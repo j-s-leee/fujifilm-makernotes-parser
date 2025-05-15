@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { useDropzone } from "react-dropzone";
 import {
   Card,
   CardContent,
@@ -18,17 +17,19 @@ import {
   getFujifilmRecipeFromMakerNote,
 } from "@/fujifilm/recipe";
 import * as exifr from "exifr";
-import { Camera, Upload } from "lucide-react";
+import { Camera, Upload, Loader2 } from "lucide-react";
 import { ImageDropzone } from "@/components/image-dropzone";
 import { Button } from "@/components/ui/button";
-import Image from "next/image";
 import { FujifilmRecipeCard } from "@/components/fujifilm-recipe-card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { cn } from "@/lib/utils";
 
 export default function ImageUploader() {
   const [image, setImage] = useState<string | null>(null);
   const [recipe, setRecipe] = useState<FujifilmRecipe | null>(null);
   const [simulation, setSimulation] = useState<FujifilmSimulation | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
     const file = acceptedFiles[0];
@@ -37,6 +38,7 @@ export default function ImageUploader() {
     setError(null);
     setRecipe(null);
     setSimulation(null);
+    setIsLoading(true);
 
     // 이미지 미리보기 생성
     const imageUrl = URL.createObjectURL(file);
@@ -66,73 +68,74 @@ export default function ImageUploader() {
           }
         } catch (error) {
           console.error("Error parsing Fujifilm MakerNote:", error);
-          setError("Could not parse Fujifilm MakerNote.");
+          setError("Fujifilm MakerNote를 파싱할 수 없습니다.");
         }
       } else {
-        setError("Could not find MakerNote.");
+        setError("MakerNote를 찾을 수 없습니다.");
       }
     } catch (error) {
       setError(
-        "Could not extract Fujifilm metadata. Make sure this is a Fujifilm camera image."
+        "Fujifilm 메타데이터를 추출할 수 없습니다. Fujifilm 카메라로 촬영한 이미지인지 확인해주세요."
       );
       console.error("Error extracting Fujifilm metadata:", error);
+    } finally {
+      setIsLoading(false);
     }
   }, []);
 
   return (
-    <div className="w-full space-y-8">
+    <div className="w-full space-y-6">
       {image ? (
-        <Card>
-          <CardHeader>
+        <Card className="border-2 border-muted">
+          <CardHeader className="flex-row justify-between items-center">
             <CardTitle className="flex items-center gap-2">
               <Camera className="h-5 w-5" />
-              Image Preview
+              image preview
             </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="overflow-hidden rounded-md">
-              <Image
-                src={image}
-                alt="Uploaded"
-                className="object-cover"
-                width={300}
-                height={300}
-              />
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {recipe && (
-                <>
-                  <div className="mt-4">
-                    <FujifilmRecipeCard {...recipe} simulation={simulation} />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold mb-4">
-                      Fujifilm 레시피
-                    </h3>
-                    <pre className="bg-gray-100 p-4 rounded-lg overflow-auto">
-                      {JSON.stringify(recipe, null, 2)}
-                    </pre>
-                  </div>
-                </>
-              )}
-            </div>
-            <div className="flex justify-center pt-4">
-              <Button variant="secondary" onClick={() => setImage(null)}>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setImage(null);
+                }}
+              >
                 choose another image
               </Button>
+            </div>
+          </CardHeader>
+          <CardContent className="relative">
+            <div className="relative w-full max-h-[calc(100vh-12rem)] rounded-lg overflow-hidden">
+              <img
+                src={image}
+                alt="Uploaded"
+                className="w-full h-full object-contain"
+              />
+              {isLoading && (
+                <div className="absolute inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm">
+                  <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                </div>
+              )}
+              {recipe && !isLoading && (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="w-full max-w-lg mx-auto px-4">
+                    <div className="p-4 bg-background/60 backdrop-blur-sm rounded-lg shadow-lg">
+                      <FujifilmRecipeCard {...recipe} simulation={simulation} />
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
       ) : (
-        <Card>
+        <Card className="border-2 border-dashed border-muted hover:border-muted-foreground/50 transition-colors">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Upload className="h-5 w-5" />
-              Upload Image
+              image upload
             </CardTitle>
-            <CardDescription>
-              Drag and drop or select a Fujifilm camera image
-            </CardDescription>
+            <CardDescription>upload a Fujifilm image file</CardDescription>
           </CardHeader>
           <CardContent>
             <ImageDropzone onFileDrop={onDrop} />
@@ -140,9 +143,9 @@ export default function ImageUploader() {
         </Card>
       )}
       {error && (
-        <div className="text-red-500 text-center p-4 bg-red-50 rounded-lg">
-          {error}
-        </div>
+        <Alert variant="destructive">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
       )}
     </div>
   );

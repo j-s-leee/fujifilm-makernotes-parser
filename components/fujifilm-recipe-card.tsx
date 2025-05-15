@@ -1,49 +1,47 @@
 import { FujifilmRecipe } from "@/fujifilm/recipe";
+import { Film } from "lucide-react";
 
 export function FujifilmRecipeCard({
   simulation,
   ...recipe
 }: FujifilmRecipe & { simulation: string | null }) {
   return (
-    <div className="space-y-4">
-      <h3 className="text-lg font-semibold">Fujifilm Recipe</h3>
-
+    <div className="space-y-2">
       {/* {recipe.model && <h4>{recipe.model}</h4>} */}
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-2">
+        {/* <div className="flex flex-wrap gap-2"> */}
         {simulation && (
-          <RecipeItem label="Film Simulation" value={simulation} />
+          <RecipeItem label={<Film className="h-4 w-4" />} value={simulation} />
         )}
         {recipe.grainEffect && (
           <RecipeItem
-            label="Grain Effect"
+            label="Grain"
             value={`${recipe.grainEffect.roughness} ${recipe.grainEffect.size}`}
           />
         )}
         {recipe.colorChromeEffect && (
-          <RecipeItem
-            label="Color Chrome Effect"
-            value={recipe.colorChromeEffect}
-          />
+          <RecipeItem label="Color Chrome" value={recipe.colorChromeEffect} />
         )}
         {recipe.colorChromeFXBlue && (
-          <RecipeItem
-            label="Color Chrome Blue"
-            value={recipe.colorChromeFXBlue}
-          />
+          <RecipeItem label="FX Blue" value={recipe.colorChromeFXBlue} />
         )}
         {recipe.whiteBalance && (
           <RecipeItem
-            label="White Balance"
-            value={`${recipe.whiteBalance.type} ${recipe.whiteBalance.colorTemperature} R: ${recipe.whiteBalance.red} B: ${recipe.whiteBalance.blue}`}
+            label={`R: ${recipe.whiteBalance.red} B: ${recipe.whiteBalance.blue}`}
+            value={`${
+              recipe.whiteBalance.colorTemperature &&
+              recipe.whiteBalance.type === "K"
+                ? `${recipe.whiteBalance.colorTemperature} K`
+                : recipe.whiteBalance.type.replace("-", " ")
+            }`}
           />
         )}
         {recipe.dynamicRange && (
-          <RecipeItem
-            label="Dynamic Range"
-            value={`${recipe.dynamicRange.range} ${recipe.dynamicRange.setting} ${recipe.dynamicRange.development}`}
-          />
+          <RecipeItem label="DR" value={`${recipe.dynamicRange.development}`} />
         )}
+      </div>
+      <div className="grid grid-cols-3 gap-2">
         {recipe.highlight != null && (
           <RecipeItem label="Highlight" value={recipe.highlight} />
         )}
@@ -80,13 +78,17 @@ function RecipeItem({
   label,
   value,
 }: {
-  label: string;
+  label: string | React.ReactNode;
   value: string | number;
 }) {
   return (
     <div className="bg-muted/50 rounded-md p-2 text-center">
-      <div className="font-medium">{value}</div>
-      <div className="text-xs text-muted-foreground uppercase">{label}</div>
+      <div className="font-medium uppercase text-sm">
+        {typeof value === "number" ? (value > 0 ? "+" + value : value) : value}
+      </div>
+      <div className="text-xs text-muted-foreground uppercase flex justify-center">
+        {label}
+      </div>
     </div>
   );
 }

@@ -208,9 +208,9 @@ export const processGrainEffectSize = (
 export const processWhiteBalanceType = (value: number) => {
   switch (value) {
     case 0x1:
-      return "auto-white-priority";
+      return "white-priority";
     case 0x2:
-      return "auto-ambiance-priority";
+      return "ambiance-priority";
     case 0x100:
       return "daylight";
     case 0x200:
@@ -242,7 +242,7 @@ export const processWhiteBalanceType = (value: number) => {
     case 0xf04:
       return "custom-5";
     case 0xff0:
-      return "kelvin";
+      return "K";
     default:
       return "auto";
   }
