@@ -22,7 +22,6 @@ export default function Home() {
   const [image, setImage] = useState<string | null>(null);
   const [recipe, setRecipe] = useState<FujifilmRecipe | null>(null);
   const [simulation, setSimulation] = useState<FujifilmSimulation | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
   const onDrop = useCallback(
@@ -32,7 +31,6 @@ export default function Home() {
 
       setRecipe(null);
       setSimulation(null);
-      setIsLoading(true);
 
       // 이미지 미리보기 생성
       const imageUrl = URL.createObjectURL(file);
@@ -83,8 +81,6 @@ export default function Home() {
             "Failed to extract metadata. Please check if this is a Fujifilm camera image",
         });
         console.error("Error extracting Fujifilm metadata:", error);
-      } finally {
-        setIsLoading(false);
       }
     },
     [toast]

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback } from "react";
 import { useDropzone } from "react-dropzone";
 import { Upload } from "lucide-react";
 
@@ -9,8 +9,6 @@ interface ImageDropzoneProps {
 }
 
 export function ImageDropzone({ onFileDrop }: ImageDropzoneProps) {
-  const [isDragging, setIsDragging] = useState(false);
-
   const onDrop = useCallback(
     (acceptedFiles: File[]) => {
       onFileDrop(acceptedFiles);

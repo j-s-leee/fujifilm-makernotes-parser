@@ -52,6 +52,7 @@ export function FujifilmRecipeCard({
         description: "Film Recipe Copied",
       });
     } catch (err) {
+      console.error(err);
       toast({
         variant: "destructive",
         description: "Copying Film Recipe Failed",
