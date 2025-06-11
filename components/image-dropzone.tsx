@@ -29,10 +29,10 @@ export function ImageDropzone({ onFileDrop }: ImageDropzoneProps) {
   return (
     <div
       {...getRootProps()}
-      className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
+      className={`font-space-grotesk border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-all ${
         isDragActive
           ? "border-primary bg-primary/5"
-          : "border-muted-foreground/25 hover:border-primary/50"
+          : "border-muted-foreground/25 hover:border-primary/50 hover:bg-muted/5"
       }`}
     >
       <input {...getInputProps()} />

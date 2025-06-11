@@ -2,13 +2,6 @@
 
 import { useState, useCallback } from "react";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
   FujifilmSimulation,
   getFujifilmSimulationFromMakerNote,
 } from "@/fujifilm/simulation";
@@ -17,12 +10,11 @@ import {
   getFujifilmRecipeFromMakerNote,
 } from "@/fujifilm/recipe";
 import * as exifr from "exifr";
-import { Camera, Upload, Loader2 } from "lucide-react";
+import { Camera } from "lucide-react";
 import { ImageDropzone } from "@/components/image-dropzone";
 import { Button } from "@/components/ui/button";
 import { FujifilmRecipeCard } from "@/components/fujifilm-recipe-card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { cn } from "@/lib/utils";
 
 export default function ImageUploader() {
   const [image, setImage] = useState<string | null>(null);
@@ -86,61 +78,39 @@ export default function ImageUploader() {
   return (
     <div className="w-full space-y-6">
       {image ? (
-        <Card className="border-2 border-muted">
-          <CardHeader className="flex-row justify-between items-center">
-            <CardTitle className="flex items-center gap-2">
-              <Camera className="h-5 w-5" />
-              image preview
-            </CardTitle>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  setImage(null);
-                }}
-              >
-                choose another image
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent className="relative">
-            <div className="relative w-full max-h-[calc(100vh-12rem)] rounded-lg overflow-hidden">
+        <div className="flex flex-col gap-4 items-center">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              setImage(null);
+            }}
+            className="w-fit"
+          >
+            <Camera className="h-5 w-5" />
+            choose another image
+          </Button>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="justify-self-center shadow-lg rounded-md overflow-hidden">
               <img
                 src={image}
                 alt="Uploaded"
-                className="w-full h-full object-contain"
+                className="max-w-full max-h-[calc(100vh-20rem)] object-contain"
               />
-              {isLoading && (
-                <div className="absolute inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm">
-                  <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-                </div>
-              )}
+            </div>
+            <div className="justify-self-center shadow-lg rounded-md">
               {recipe && !isLoading && (
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-full max-w-lg mx-auto px-4">
-                    <div className="p-4 bg-background/60 backdrop-blur-sm rounded-lg shadow-lg">
-                      <FujifilmRecipeCard {...recipe} simulation={simulation} />
-                    </div>
+                <div className="w-full h-fit md:max-h-[calc(100vh-12rem)] md:overflow-y-auto">
+                  <div className="p-4 bg-background/60 backdrop-blur-sm rounded-lg shadow-lg">
+                    <FujifilmRecipeCard {...recipe} simulation={simulation} />
                   </div>
                 </div>
               )}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       ) : (
-        <Card className="border-2 border-dashed border-muted hover:border-muted-foreground/50 transition-colors">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Upload className="h-5 w-5" />
-              image upload
-            </CardTitle>
-            <CardDescription>upload a Fujifilm image file</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ImageDropzone onFileDrop={onDrop} />
-          </CardContent>
-        </Card>
+        <ImageDropzone onFileDrop={onDrop} />
       )}
       {error && (
         <Alert variant="destructive">
