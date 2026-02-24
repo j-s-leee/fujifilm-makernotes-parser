@@ -1,12 +1,12 @@
 import { FujifilmRecipe } from "@/fujifilm/recipe";
-import { Copy, Film } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Copy } from "lucide-react";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { addSign } from "@/lib/utils";
 import { RecipeItem } from "@/components/recipe-item";
 
-export function FujifilmRecipeCard({
+export function RecipeCard({
   simulation,
   ...recipe
 }: FujifilmRecipe & { simulation: string | null }) {
@@ -49,42 +49,44 @@ export function FujifilmRecipeCard({
     try {
       await navigator.clipboard.writeText(getRecipeText());
       toast({
-        title: "Film Recipe Copied",
-        description: "Film Recipe Copied",
+        title: "Copied",
+        description: "Film recipe copied to clipboard",
       });
     } catch (err) {
       console.error(err);
       toast({
         variant: "destructive",
-        description: "Copying Film Recipe Failed",
+        description: "Failed to copy recipe",
       });
     }
   };
 
   return (
-    <Card className="font-space-grotesk">
-      <CardHeader className="pb-3">
-        <CardTitle className="text-foreground text-[22px] font-bold leading-tight tracking-[-0.015em] flex items-center gap-2">
-          <div className="flex items-center gap-2 flex-1">
-            <Film className="h-5 w-5" />
-            Film Recipe
+    <Card>
+      <CardHeader className="pb-2">
+        <div className="flex items-center justify-between">
+          <div>
+            {simulation && (
+              <h2 className="text-2xl font-bold tracking-tight">
+                {simulation}
+              </h2>
+            )}
+            <p className="text-xs uppercase text-muted-foreground mt-1">
+              Film Recipe
+            </p>
           </div>
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8"
+            className="h-8 w-8 text-muted-foreground hover:text-foreground"
             onClick={copyRecipe}
           >
             <Copy className="h-4 w-4" />
           </Button>
-        </CardTitle>
+        </div>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-2 gap-2">
-          {/* <div className="flex flex-wrap gap-2"> */}
-          {simulation && (
-            <RecipeItem label="Film Simulation" value={simulation} />
-          )}
+        <div className="grid grid-cols-2 gap-x-4">
           {recipe.grainEffect && (
             <RecipeItem
               label="Grain"

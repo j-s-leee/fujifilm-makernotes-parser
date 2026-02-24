@@ -11,7 +11,7 @@ import {
 } from "@/fujifilm/recipe";
 import { useState, useCallback } from "react";
 import * as exifr from "exifr";
-import { FujifilmRecipeCard } from "@/components/fujifilm-recipe-card";
+import { RecipeCard } from "@/components/recipe-card";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { useToast } from "@/hooks/use-toast";
@@ -110,8 +110,8 @@ export default function Home() {
               {/* photo preview */}
               {/* recipe details */}
               {recipe && (
-                <div className="w-full bg-neutral-100 dark:bg-neutral-800 rounded-lg overflow-hidden shadow-md @container">
-                  <FujifilmRecipeCard {...recipe} simulation={simulation} />
+                <div className="w-full">
+                  <RecipeCard {...recipe} simulation={simulation} />
                 </div>
               )}
               {/* recipe details */}
