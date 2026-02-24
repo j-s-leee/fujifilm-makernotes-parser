@@ -13,6 +13,7 @@ import { useState, useCallback } from "react";
 import * as exifr from "exifr";
 import { FujifilmRecipeCard } from "@/components/fujifilm-recipe-card";
 import { Header } from "@/components/header";
+import { Footer } from "@/components/footer";
 import { useToast } from "@/hooks/use-toast";
 //
 // Main Component
@@ -118,11 +119,7 @@ export default function Home() {
           </div>
         </main>
         {/* new layout */}
-        <footer className="border-t border-neutral-200 dark:border-neutral-700 py-8 text-center">
-          <p className="text-sm text-neutral-500 dark:text-neutral-400">
-            © 2025 Film Recipe Viewer. All rights reserved.
-          </p>
-        </footer>
+        <Footer />
       </div>
     </div>
   );
