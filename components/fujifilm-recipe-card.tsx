@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { addSign } from "@/lib/utils";
+import { RecipeItem } from "@/components/recipe-item";
 
 export function FujifilmRecipeCard({
   simulation,
@@ -148,26 +149,5 @@ export function FujifilmRecipeCard({
         </div>
       </CardContent>
     </Card>
-  );
-}
-
-function RecipeItem({
-  label,
-  value,
-}: {
-  label: string | React.ReactNode;
-  value: string | number;
-}) {
-  return (
-    <div
-      className={`flex flex-col gap-1 border-t border-solid border-muted py-4 pr-2`}
-    >
-      <p className="text-muted-foreground text-xs font-normal leading-normal uppercase">
-        {label}
-      </p>
-      <p className="text-foreground text-sm font-semibold leading-normal uppercase">
-        {addSign(value)}
-      </p>
-    </div>
   );
 }
