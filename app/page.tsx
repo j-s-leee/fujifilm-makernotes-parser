@@ -95,7 +95,7 @@ export default function Home() {
           <div className="layout-content-container flex flex-col w-full max-w-5xl gap-8">
             {/* dropzone */}
             <div className="w-full">
-              <ImageDropzone onFileDrop={onDrop} />
+              <ImageDropzone onFileDrop={onDrop} hasImage={!!image} />
             </div>
             {/* dropzone */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
