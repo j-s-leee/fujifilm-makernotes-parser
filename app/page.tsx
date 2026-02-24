@@ -87,40 +87,35 @@ export default function Home() {
   );
 
   return (
-    <div className="relative flex size-full min-h-screen flex-col bg-background group/design-root overflow-x-hidden font-space-grotesk">
-      <div className="layout-container flex h-full grow flex-col">
-        <Header />
-        {/* new layout */}
-        <main className="px-4 sm:px-6 md:px-10 lg:px-20 xl:px-40 flex flex-1 justify-center py-8 md:py-12">
-          <div className="layout-content-container flex flex-col w-full max-w-5xl gap-8">
-            {/* dropzone */}
-            <div className="w-full">
-              <ImageDropzone onFileDrop={onDrop} hasImage={!!image} />
-            </div>
-            {/* dropzone */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
-              {/* photo preview */}
+    <div className="flex min-h-screen flex-col bg-background">
+      <Header />
+      <main className="flex flex-1 justify-center px-4 py-8 sm:px-6 md:px-10 md:py-12">
+        <div className="flex w-full max-w-5xl flex-col gap-8">
+          <ImageDropzone onFileDrop={onDrop} hasImage={!!image} />
+          {(image || recipe) && (
+            <div className="grid grid-cols-1 items-start gap-8 md:grid-cols-2">
               {image && (
                 <img
                   src={image}
-                  alt="Uploaded"
-                  className="max-w-full h-auto max-h-[80vh] rounded-lg object-contain shadow-md"
+                  alt="Uploaded photo"
+                  className="h-auto max-h-[80vh] w-full rounded-lg object-contain shadow-sm animate-in fade-in duration-300"
                 />
               )}
-              {/* photo preview */}
-              {/* recipe details */}
               {recipe && (
                 <div className="w-full">
                   <RecipeCard {...recipe} simulation={simulation} />
                 </div>
               )}
-              {/* recipe details */}
             </div>
-          </div>
-        </main>
-        {/* new layout */}
-        <Footer />
-      </div>
+          )}
+          {!image && !recipe && (
+            <p className="text-center text-sm text-muted-foreground">
+              Drop a Fujifilm JPEG to extract its film recipe.
+            </p>
+          )}
+        </div>
+      </main>
+      <Footer />
     </div>
   );
 }
