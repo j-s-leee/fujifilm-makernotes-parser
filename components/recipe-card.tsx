@@ -1,16 +1,27 @@
 import { FujifilmRecipe } from "@/fujifilm/recipe";
-import { Copy } from "lucide-react";
+import { FujifilmSimulation } from "@/fujifilm/simulation";
+import { Copy, Share2 } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { addSign } from "@/lib/utils";
 import { RecipeItem } from "@/components/recipe-item";
+import { useUser } from "@/hooks/use-user";
+import { shareRecipe } from "@/lib/share-recipe";
+import { compressImageToThumbnail } from "@/lib/compress-image";
+import { useState } from "react";
 
 export function RecipeCard({
   simulation,
+  originalFile,
   ...recipe
-}: FujifilmRecipe & { simulation: string | null }) {
+}: FujifilmRecipe & {
+  simulation: FujifilmSimulation | null;
+  originalFile?: File | null;
+}) {
   const { toast } = useToast();
+  const { user } = useUser();
+  const [sharing, setSharing] = useState(false);
 
   const getRecipeText = () => {
     const recipeItems = [
@@ -61,6 +72,35 @@ export function RecipeCard({
     }
   };
 
+  const handleShare = async () => {
+    if (!originalFile) return;
+    setSharing(true);
+    try {
+      const thumbnailBlob = await compressImageToThumbnail(originalFile);
+      const result = await shareRecipe(recipe, simulation, thumbnailBlob);
+      if (result.success) {
+        toast({
+          title: "Shared",
+          description: "Recipe shared successfully",
+        });
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: result.error ?? "Failed to share recipe",
+        });
+      }
+    } catch (err) {
+      console.error(err);
+      toast({
+        variant: "destructive",
+        description: "Failed to share recipe",
+      });
+    } finally {
+      setSharing(false);
+    }
+  };
+
   return (
     <Card>
       <CardHeader className="pb-2">
@@ -75,14 +115,27 @@ export function RecipeCard({
               Film Recipe
             </p>
           </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 text-muted-foreground hover:text-foreground"
-            onClick={copyRecipe}
-          >
-            <Copy className="h-4 w-4" />
-          </Button>
+          <div className="flex items-center gap-1">
+            {user && originalFile && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                onClick={handleShare}
+                disabled={sharing}
+              >
+                <Share2 className="h-4 w-4" />
+              </Button>
+            )}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-muted-foreground hover:text-foreground"
+              onClick={copyRecipe}
+            >
+              <Copy className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </CardHeader>
       <CardContent>

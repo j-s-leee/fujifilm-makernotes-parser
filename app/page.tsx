@@ -22,6 +22,7 @@ export default function Home() {
   const [image, setImage] = useState<string | null>(null);
   const [recipe, setRecipe] = useState<FujifilmRecipe | null>(null);
   const [simulation, setSimulation] = useState<FujifilmSimulation | null>(null);
+  const [originalFile, setOriginalFile] = useState<File | null>(null);
   const { toast } = useToast();
 
   const onDrop = useCallback(
@@ -31,10 +32,12 @@ export default function Home() {
 
       setRecipe(null);
       setSimulation(null);
+      setOriginalFile(null);
 
       // 이미지 미리보기 생성
       const imageUrl = URL.createObjectURL(file);
       setImage(imageUrl);
+      setOriginalFile(file);
 
       try {
         // 이미지 메타데이터 추출
@@ -103,7 +106,7 @@ export default function Home() {
               )}
               {recipe && (
                 <div className="w-full">
-                  <RecipeCard {...recipe} simulation={simulation} />
+                  <RecipeCard {...recipe} simulation={simulation} originalFile={originalFile} />
                 </div>
               )}
             </div>
