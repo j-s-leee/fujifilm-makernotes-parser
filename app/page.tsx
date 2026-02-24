@@ -12,8 +12,7 @@ import {
 import { useState, useCallback } from "react";
 import * as exifr from "exifr";
 import { FujifilmRecipeCard } from "@/components/fujifilm-recipe-card";
-import { ModeToggle } from "@/components/mode-toggle";
-import { Film } from "lucide-react";
+import { Header } from "@/components/header";
 import { useToast } from "@/hooks/use-toast";
 //
 // Main Component
@@ -89,31 +88,7 @@ export default function Home() {
   return (
     <div className="relative flex size-full min-h-screen flex-col bg-background group/design-root overflow-x-hidden font-space-grotesk">
       <div className="layout-container flex h-full grow flex-col">
-        <header className="flex items-center justify-between whitespace-nowrap border-b border-solid border-b-muted px-10 py-3">
-          <div className="flex items-center gap-4">
-            <h2 className="text-foreground text-lg font-bold leading-tight tracking-[-0.015em] flex gap-2 items-center">
-              <Film className="h-5 w-5" /> Film Recipe Viewer
-            </h2>
-          </div>
-          <div className="flex flex-1 justify-end gap-2md:gap-8">
-            <div className="flex items-center gap-9">
-              {/* <a
-                className="text-foreground/80 hover:text-foreground text-sm font-medium leading-normal transition-colors"
-                href="#"
-              >
-                Home
-              </a> */}
-              <a
-                className="text-foreground/80 hover:text-foreground text-sm font-medium leading-normal transition-colors"
-                href="https://tally.so/r/wLqO0J"
-                target="_blank"
-              >
-                Feedback
-              </a>
-            </div>
-            <ModeToggle />
-          </div>
-        </header>
+        <Header />
         {/* new layout */}
         <main className="px-4 sm:px-6 md:px-10 lg:px-20 xl:px-40 flex flex-1 justify-center py-8 md:py-12">
           <div className="layout-content-container flex flex-col w-full max-w-5xl gap-8">
