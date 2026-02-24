@@ -3,6 +3,8 @@ import { Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
+import { Header } from "@/components/header";
+import { Footer } from "@/components/footer";
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
@@ -30,7 +32,11 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {children}
+          <div className="flex min-h-screen flex-col">
+            <Header />
+            <main className="flex-1">{children}</main>
+            <Footer />
+          </div>
           <Toaster />
         </ThemeProvider>
       </body>
