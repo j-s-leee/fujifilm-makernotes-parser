@@ -42,11 +42,15 @@ export default function Home() {
           // RAF에서 추출한 JPEG을 미리보기로 사용
           const imageUrl = URL.createObjectURL(jpegBlob);
           setImage(imageUrl);
-        } catch {
+        } catch (error) {
+          console.error("RAF parsing error:", error);
           toast({
             variant: "destructive",
             title: "Error",
-            description: "Failed to extract JPEG preview from RAF file",
+            description:
+              error instanceof Error
+                ? error.message
+                : "Failed to extract JPEG preview from RAF file",
           });
           return;
         }
