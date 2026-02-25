@@ -21,6 +21,7 @@ export function ImageDropzone({ onFileDrop, hasImage }: ImageDropzoneProps) {
     onDrop,
     accept: {
       "image/jpeg": [".jpg", ".jpeg"],
+      "image/x-fuji-raf": [".raf"],
     },
     multiple: false,
   });
@@ -56,7 +57,7 @@ export function ImageDropzone({ onFileDrop, hasImage }: ImageDropzoneProps) {
       <p className="text-sm text-foreground mb-1">
         Drag & drop a Fujifilm image here, or click to select
       </p>
-      <p className="text-xs text-muted-foreground">Supports JPG files</p>
+      <p className="text-xs text-muted-foreground">Supports JPG and RAF files</p>
     </div>
   );
 }

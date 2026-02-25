@@ -13,6 +13,7 @@ import { useState, useCallback } from "react";
 import * as exifr from "exifr";
 import { RecipeCard } from "@/components/recipe-card";
 import { useToast } from "@/hooks/use-toast";
+import { isRafFile, extractJpegFromRaf } from "@/lib/raf-parser";
 //
 // Main Component
 //
@@ -32,14 +33,32 @@ export default function Home() {
       setSimulation(null);
       setOriginalFile(null);
 
-      // 이미지 미리보기 생성
-      const imageUrl = URL.createObjectURL(file);
-      setImage(imageUrl);
+      // RAF 파일인 경우 임베디드 JPEG 추출
+      let parseTarget: File | Blob = file;
+      if (isRafFile(file)) {
+        try {
+          const jpegBlob = await extractJpegFromRaf(file);
+          parseTarget = jpegBlob;
+          // RAF에서 추출한 JPEG을 미리보기로 사용
+          const imageUrl = URL.createObjectURL(jpegBlob);
+          setImage(imageUrl);
+        } catch {
+          toast({
+            variant: "destructive",
+            title: "Error",
+            description: "Failed to extract JPEG preview from RAF file",
+          });
+          return;
+        }
+      } else {
+        const imageUrl = URL.createObjectURL(file);
+        setImage(imageUrl);
+      }
       setOriginalFile(file);
 
       try {
         // 이미지 메타데이터 추출
-        const exifrData = await exifr.parse(file, {
+        const exifrData = await exifr.parse(parseTarget, {
           tiff: true,
           exif: true,
           makerNote: true,
@@ -109,7 +128,7 @@ export default function Home() {
         )}
         {!image && !recipe && (
           <p className="text-center text-sm text-muted-foreground">
-            Drop a Fujifilm JPEG to extract its film recipe.
+            Drop a Fujifilm JPEG or RAF to extract its film recipe.
           </p>
         )}
       </div>
