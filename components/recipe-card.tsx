@@ -139,43 +139,67 @@ export function RecipeCard({
         </div>
       </CardHeader>
       <CardContent>
+        {/* Film Simulation — prominent separator row */}
+        {simulation && (
+          <div className="flex items-center justify-between border-b border-dashed border-border pb-4 mb-4">
+            <span className="text-xs uppercase tracking-wider text-muted-foreground font-medium">
+              Film Simulation
+            </span>
+            <span className="font-bold tracking-wide">
+              {simulation}
+            </span>
+          </div>
+        )}
         <div className="grid grid-cols-2 gap-x-4">
+          {recipe.dynamicRange && (
+            <RecipeItem
+              label="Dynamic Range"
+              value={`DR${recipe.dynamicRange.development}`}
+            />
+          )}
           {recipe.grainEffect && (
             <RecipeItem
-              label="Grain"
-              value={`${recipe.grainEffect.roughness} ${recipe.grainEffect.size}`}
+              label="Grain Effect"
+              value={`${recipe.grainEffect.roughness}, ${recipe.grainEffect.size}`}
             />
           )}
           {recipe.colorChromeEffect && (
             <RecipeItem label="Color Chrome" value={recipe.colorChromeEffect} />
           )}
           {recipe.colorChromeFXBlue && (
-            <RecipeItem label="FX Blue" value={recipe.colorChromeFXBlue} />
+            <RecipeItem label="Color Chrome FX" value={recipe.colorChromeFXBlue} />
           )}
           {recipe.whiteBalance && (
             <RecipeItem
-              label={`R: ${addSign(recipe.whiteBalance.red)} B: ${addSign(
-                recipe.whiteBalance.blue
-              )}`}
-              value={`${
+              label="White Balance"
+              value={
                 recipe.whiteBalance.colorTemperature &&
                 recipe.whiteBalance.type === "K"
-                  ? `${recipe.whiteBalance.colorTemperature} K`
+                  ? `${recipe.whiteBalance.colorTemperature}K`
                   : recipe.whiteBalance.type.replace("-", " ")
-              }`}
+              }
             />
           )}
-          {recipe.dynamicRange && (
+          {recipe.whiteBalance && (
             <RecipeItem
-              label="DR"
-              value={`${recipe.dynamicRange.development}`}
+              label="WB Shift"
+              value={
+                <span className="flex items-center gap-2">
+                  <span className="font-mono text-xs text-red-400">
+                    R:{addSign(recipe.whiteBalance.red)}
+                  </span>
+                  <span className="font-mono text-xs text-blue-400">
+                    B:{addSign(recipe.whiteBalance.blue)}
+                  </span>
+                </span>
+              }
             />
           )}
           {recipe.highlight != null && (
-            <RecipeItem label="Highlight" value={recipe.highlight} />
+            <RecipeItem label="Highlight Tone" value={recipe.highlight} />
           )}
           {recipe.shadow != null && (
-            <RecipeItem label="Shadow" value={recipe.shadow} />
+            <RecipeItem label="Shadow Tone" value={recipe.shadow} />
           )}
           {recipe.color != null && (
             <RecipeItem label="Color" value={recipe.color} />

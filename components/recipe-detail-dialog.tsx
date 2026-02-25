@@ -60,27 +60,53 @@ export function RecipeDetailDialog({
             className="w-full rounded-lg object-cover"
           />
         )}
+        {/* Film Simulation separator row */}
+        {recipe.simulation && (
+          <div className="flex items-center justify-between border-b border-dashed border-border pb-4 mb-2">
+            <span className="text-xs uppercase tracking-wider text-muted-foreground font-medium">
+              Film Simulation
+            </span>
+            <span className="font-bold tracking-wide">
+              {recipe.simulation}
+            </span>
+          </div>
+        )}
         <div className="grid grid-cols-2 gap-x-4">
+          {recipe.dynamic_range_development != null && (
+            <RecipeItem label="Dynamic Range" value={`DR${recipe.dynamic_range_development}`} />
+          )}
           {recipe.grain_roughness && (
-            <RecipeItem label="Grain" value={`${recipe.grain_roughness} ${recipe.grain_size ?? ""}`} />
+            <RecipeItem label="Grain Effect" value={`${recipe.grain_roughness}, ${recipe.grain_size ?? ""}`} />
           )}
           {recipe.color_chrome && (
             <RecipeItem label="Color Chrome" value={recipe.color_chrome} />
           )}
           {recipe.color_chrome_fx_blue && (
-            <RecipeItem label="FX Blue" value={recipe.color_chrome_fx_blue} />
+            <RecipeItem label="Color Chrome FX" value={recipe.color_chrome_fx_blue} />
           )}
           {recipe.wb_type && (
             <RecipeItem
-              label={`R: ${addSign(recipe.wb_red ?? 0)} B: ${addSign(recipe.wb_blue ?? 0)}`}
-              value={recipe.wb_color_temperature ? `${recipe.wb_color_temperature} K` : recipe.wb_type.replace("-", " ")}
+              label="White Balance"
+              value={recipe.wb_color_temperature ? `${recipe.wb_color_temperature}K` : recipe.wb_type.replace("-", " ")}
             />
           )}
-          {recipe.dynamic_range_development != null && (
-            <RecipeItem label="DR" value={recipe.dynamic_range_development} />
+          {recipe.wb_type && (
+            <RecipeItem
+              label="WB Shift"
+              value={
+                <span className="flex items-center gap-2">
+                  <span className="font-mono text-xs text-red-400">
+                    R:{addSign(recipe.wb_red ?? 0)}
+                  </span>
+                  <span className="font-mono text-xs text-blue-400">
+                    B:{addSign(recipe.wb_blue ?? 0)}
+                  </span>
+                </span>
+              }
+            />
           )}
-          {recipe.highlight != null && <RecipeItem label="Highlight" value={recipe.highlight} />}
-          {recipe.shadow != null && <RecipeItem label="Shadow" value={recipe.shadow} />}
+          {recipe.highlight != null && <RecipeItem label="Highlight Tone" value={recipe.highlight} />}
+          {recipe.shadow != null && <RecipeItem label="Shadow Tone" value={recipe.shadow} />}
           {recipe.color != null && <RecipeItem label="Color" value={recipe.color} />}
           {recipe.sharpness != null && <RecipeItem label="Sharpness" value={recipe.sharpness} />}
           {recipe.noise_reduction != null && <RecipeItem label="Noise Reduction" value={recipe.noise_reduction} />}
