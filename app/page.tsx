@@ -21,7 +21,7 @@ export default function Home() {
   const [image, setImage] = useState<string | null>(null);
   const [recipe, setRecipe] = useState<FujifilmRecipe | null>(null);
   const [simulation, setSimulation] = useState<FujifilmSimulation | null>(null);
-  const [originalFile, setOriginalFile] = useState<File | null>(null);
+  const [imageSource, setImageSource] = useState<File | Blob | null>(null);
   const { toast } = useToast();
 
   const onDrop = useCallback(
@@ -31,7 +31,7 @@ export default function Home() {
 
       setRecipe(null);
       setSimulation(null);
-      setOriginalFile(null);
+      setImageSource(null);
 
       // RAF 파일인 경우 임베디드 JPEG 추출
       let parseTarget: File | Blob = file;
@@ -39,7 +39,7 @@ export default function Home() {
         try {
           const jpegBlob = await extractJpegFromRaf(file);
           parseTarget = jpegBlob;
-          // RAF에서 추출한 JPEG을 미리보기로 사용
+          setImageSource(jpegBlob);
           const imageUrl = URL.createObjectURL(jpegBlob);
           setImage(imageUrl);
         } catch (error) {
@@ -55,10 +55,10 @@ export default function Home() {
           return;
         }
       } else {
+        setImageSource(file);
         const imageUrl = URL.createObjectURL(file);
         setImage(imageUrl);
       }
-      setOriginalFile(file);
 
       try {
         // 이미지 메타데이터 추출
@@ -125,7 +125,7 @@ export default function Home() {
             )}
             {recipe && (
               <div className="w-full">
-                <RecipeCard {...recipe} simulation={simulation} originalFile={originalFile} />
+                <RecipeCard {...recipe} simulation={simulation} imageSource={imageSource} />
               </div>
             )}
           </div>

@@ -13,11 +13,11 @@ import { useState } from "react";
 
 export function RecipeCard({
   simulation,
-  originalFile,
+  imageSource,
   ...recipe
 }: FujifilmRecipe & {
   simulation: FujifilmSimulation | null;
-  originalFile?: File | null;
+  imageSource?: File | Blob | null;
 }) {
   const { toast } = useToast();
   const { user } = useUser();
@@ -73,10 +73,10 @@ export function RecipeCard({
   };
 
   const handleShare = async () => {
-    if (!originalFile) return;
+    if (!imageSource) return;
     setSharing(true);
     try {
-      const thumbnailBlob = await compressImageToThumbnail(originalFile);
+      const thumbnailBlob = await compressImageToThumbnail(imageSource);
       const result = await shareRecipe(recipe, simulation, thumbnailBlob);
       if (result.success) {
         toast({
@@ -116,7 +116,7 @@ export function RecipeCard({
             </p>
           </div>
           <div className="flex items-center gap-1">
-            {user && originalFile && (
+            {user && imageSource && (
               <Button
                 variant="ghost"
                 size="icon"

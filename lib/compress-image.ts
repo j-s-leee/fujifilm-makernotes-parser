@@ -1,7 +1,9 @@
-export async function compressImageToThumbnail(file: File): Promise<Blob> {
+export async function compressImageToThumbnail(source: File | Blob): Promise<Blob> {
   return new Promise((resolve, reject) => {
+    const objectUrl = URL.createObjectURL(source);
     const img = new Image();
     img.onload = () => {
+      URL.revokeObjectURL(objectUrl);
       const canvas = document.createElement("canvas");
       const MAX_WIDTH = 400;
       const scale = MAX_WIDTH / img.width;
@@ -27,7 +29,10 @@ export async function compressImageToThumbnail(file: File): Promise<Blob> {
         0.7
       );
     };
-    img.onerror = () => reject(new Error("Failed to load image"));
-    img.src = URL.createObjectURL(file);
+    img.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      reject(new Error("Failed to load image"));
+    };
+    img.src = objectUrl;
   });
 }
