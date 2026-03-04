@@ -13,7 +13,7 @@ export default function LoginPage() {
             <h1 className="text-lg font-bold tracking-tight">Film Recipe Viewer</h1>
           </div>
           <p className="text-sm text-muted-foreground">
-            Sign in to share recipes and save favorites
+            Sign in to share recipes, bookmark and like
           </p>
         </CardHeader>
         <CardContent className="flex flex-col gap-3">

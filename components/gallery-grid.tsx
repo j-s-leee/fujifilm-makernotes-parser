@@ -1,117 +1,269 @@
 "use client";
 
-import { useState } from "react";
-import { Heart } from "lucide-react";
-import { RecipeDetailDialog } from "@/components/recipe-detail-dialog";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { Bookmark, Heart, Loader2 } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
 import { useUser } from "@/hooks/use-user";
 import { createClient } from "@/lib/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import {
+  getCameraModelsForGeneration,
+  SENSOR_GENERATIONS,
+  type SensorGeneration,
+} from "@/fujifilm/cameras";
+import { getThumbnailUrl } from "@/lib/get-thumbnail-url";
+
+const PAGE_SIZE = 24;
 
 interface GalleryRecipe {
   id: number;
   simulation: string | null;
-  grain_roughness: string | null;
-  grain_size: string | null;
-  color_chrome: string | null;
-  color_chrome_fx_blue: string | null;
-  wb_type: string | null;
-  wb_color_temperature: number | null;
-  wb_red: number | null;
-  wb_blue: number | null;
-  dynamic_range_development: number | null;
-  highlight: number | null;
-  shadow: number | null;
-  color: number | null;
-  sharpness: number | null;
-  noise_reduction: number | null;
-  clarity: number | null;
-  bw_adjustment: number | null;
-  bw_magenta_green: number | null;
   thumbnail_path: string | null;
-  favorite_count: number;
-  created_at: string;
+  bookmark_count: number;
+  like_count: number;
+  camera_model: string | null;
 }
 
 interface GalleryGridProps {
-  recipes: GalleryRecipe[];
-  userFavorites: number[];
-  supabaseUrl: string;
+  initialRecipes: GalleryRecipe[];
+  userBookmarks: number[];
+  userLikes: number[];
+  simulation?: string;
+  sort?: string;
+  sensor?: string;
 }
 
-export function GalleryGrid({ recipes, userFavorites, supabaseUrl }: GalleryGridProps) {
-  const [selectedRecipe, setSelectedRecipe] = useState<GalleryRecipe | null>(null);
-  const [favorites, setFavorites] = useState<Set<number>>(new Set(userFavorites));
+export function GalleryGrid({
+  initialRecipes,
+  userBookmarks,
+  userLikes,
+  simulation,
+  sort,
+  sensor,
+}: GalleryGridProps) {
+  const [recipes, setRecipes] = useState<GalleryRecipe[]>(initialRecipes);
+  const [bookmarks, setBookmarks] = useState<Set<number>>(
+    new Set(userBookmarks),
+  );
+  const [likes, setLikes] = useState<Set<number>>(new Set(userLikes));
+  const [likeCounts, setLikeCounts] = useState<Map<number, number>>(
+    () => new Map(initialRecipes.map((r) => [r.id, r.like_count])),
+  );
+  const [loading, setLoading] = useState(false);
+  const [hasMore, setHasMore] = useState(initialRecipes.length >= PAGE_SIZE);
+  const sentinelRef = useRef<HTMLDivElement>(null);
   const { user } = useUser();
   const { toast } = useToast();
 
-  const getThumbnailUrl = (path: string | null) => {
-    if (!path) return null;
-    return `${supabaseUrl}/storage/v1/object/public/thumbnails/${path}`;
-  };
+  // Reset when filters change
+  useEffect(() => {
+    setRecipes(initialRecipes);
+    setHasMore(initialRecipes.length >= PAGE_SIZE);
+    setLikeCounts(
+      new Map(initialRecipes.map((r) => [r.id, r.like_count])),
+    );
+  }, [initialRecipes]);
 
-  const toggleFavorite = async (recipeId: number, e: React.MouseEvent) => {
+  const toggleBookmark = async (recipeId: number, e: React.MouseEvent) => {
+    e.preventDefault();
     e.stopPropagation();
     if (!user) {
-      toast({ description: "Sign in to save favorites" });
+      toast({ description: "Sign in to bookmark recipes" });
       return;
     }
 
     const supabase = createClient();
-    const isFav = favorites.has(recipeId);
+    const isBookmarked = bookmarks.has(recipeId);
 
-    if (isFav) {
-      await supabase.from("favorites").delete().match({ user_id: user.id, recipe_id: recipeId });
-      setFavorites((prev) => { const next = new Set(prev); next.delete(recipeId); return next; });
+    if (isBookmarked) {
+      await supabase
+        .from("bookmarks")
+        .delete()
+        .match({ user_id: user.id, recipe_id: recipeId });
+      setBookmarks((prev) => {
+        const next = new Set(prev);
+        next.delete(recipeId);
+        return next;
+      });
     } else {
-      await supabase.from("favorites").insert({ user_id: user.id, recipe_id: recipeId });
-      setFavorites((prev) => new Set(prev).add(recipeId));
+      await supabase
+        .from("bookmarks")
+        .insert({ user_id: user.id, recipe_id: recipeId });
+      setBookmarks((prev) => new Set(prev).add(recipeId));
     }
   };
 
+  const toggleLike = async (recipeId: number, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!user) {
+      toast({ description: "Sign in to like recipes" });
+      return;
+    }
+
+    const supabase = createClient();
+    const isLiked = likes.has(recipeId);
+
+    if (isLiked) {
+      await supabase
+        .from("likes")
+        .delete()
+        .match({ user_id: user.id, recipe_id: recipeId });
+      setLikes((prev) => {
+        const next = new Set(prev);
+        next.delete(recipeId);
+        return next;
+      });
+      setLikeCounts((prev) => {
+        const next = new Map(prev);
+        next.set(recipeId, (next.get(recipeId) ?? 0) - 1);
+        return next;
+      });
+    } else {
+      await supabase
+        .from("likes")
+        .insert({ user_id: user.id, recipe_id: recipeId });
+      setLikes((prev) => new Set(prev).add(recipeId));
+      setLikeCounts((prev) => {
+        const next = new Map(prev);
+        next.set(recipeId, (next.get(recipeId) ?? 0) + 1);
+        return next;
+      });
+    }
+  };
+
+  const fetchMore = useCallback(async () => {
+    if (loading || !hasMore) return;
+    setLoading(true);
+
+    const supabase = createClient();
+    let query = supabase
+      .from("recipes_with_stats")
+      .select("*")
+      .range(recipes.length, recipes.length + PAGE_SIZE - 1);
+
+    if (simulation) {
+      query = query.eq("simulation", simulation);
+    }
+
+    if (sensor && SENSOR_GENERATIONS.includes(sensor as SensorGeneration)) {
+      const models = getCameraModelsForGeneration(sensor as SensorGeneration);
+      const patterns = models.flatMap((m) => [m, `FUJIFILM ${m}`]);
+      query = query.in("camera_model", patterns);
+    }
+
+    if (sort === "popular") {
+      query = query.order("like_count", { ascending: false });
+    } else {
+      query = query.order("created_at", { ascending: false });
+    }
+
+    const { data } = await query;
+    const newRecipes = (data ?? []) as GalleryRecipe[];
+
+    if (newRecipes.length < PAGE_SIZE) {
+      setHasMore(false);
+    }
+
+    setRecipes((prev) => [...prev, ...newRecipes]);
+    setLikeCounts((prev) => {
+      const next = new Map(prev);
+      for (const r of newRecipes) {
+        if (!next.has(r.id)) next.set(r.id, r.like_count);
+      }
+      return next;
+    });
+    setLoading(false);
+  }, [loading, hasMore, recipes.length, simulation, sort, sensor]);
+
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          fetchMore();
+        }
+      },
+      { rootMargin: "200px" },
+    );
+
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [fetchMore]);
+
   return (
-    <>
+    <div>
       <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
         {recipes.map((recipe) => {
           const url = getThumbnailUrl(recipe.thumbnail_path);
           return (
-            <div
+            <Link
               key={recipe.id}
-              className="group relative cursor-pointer overflow-hidden rounded-lg bg-muted"
-              onClick={() => setSelectedRecipe(recipe)}
+              href={`/gallery/${recipe.id}`}
+              className="group relative overflow-hidden rounded-lg bg-muted"
             >
               {url ? (
-                <img
+                <Image
                   src={url}
                   alt={recipe.simulation ?? "Recipe"}
-                  className="aspect-square w-full object-cover transition-transform group-hover:scale-105"
+                  width={300}
+                  height={300}
+                  className="aspect-square w-full object-cover"
+                  sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
                 />
               ) : (
                 <div className="flex aspect-square items-center justify-center text-muted-foreground text-sm">
                   No image
                 </div>
               )}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
-              <div className="absolute bottom-0 left-0 right-0 p-3 text-white opacity-0 transition-opacity group-hover:opacity-100">
-                <p className="text-sm font-semibold">{recipe.simulation ?? "Unknown"}</p>
+              {/* Bottom left: simulation badge + like count */}
+              <div className="absolute bottom-2 left-2 flex flex-col items-start gap-1">
+                <button
+                  onClick={(e) => toggleLike(recipe.id, e)}
+                  className="flex items-center gap-1 rounded-md bg-black/60 px-1.5 py-0.5 text-xs text-white backdrop-blur-sm transition-colors hover:bg-black/80"
+                >
+                  <Heart
+                    className={`h-3 w-3 ${
+                      likes.has(recipe.id)
+                        ? "fill-red-500 text-red-500"
+                        : "text-white"
+                    }`}
+                  />
+                  <span>{likeCounts.get(recipe.id) ?? recipe.like_count}</span>
+                </button>
+                <span className="flex items-center gap-1.5 rounded-md bg-black/60 px-2 py-0.5 text-xs font-medium text-white backdrop-blur-sm">
+                  {recipe.simulation ?? "Unknown"}
+                  {recipe.camera_model && (
+                    <>
+                      <span className="opacity-50">&middot;</span>
+                      <span className="opacity-80">{recipe.camera_model.replace(/^FUJIFILM\s*/i, "")}</span>
+                    </>
+                  )}
+                </span>
               </div>
+              {/* Top right: bookmark button */}
               <button
-                onClick={(e) => toggleFavorite(recipe.id, e)}
-                className="absolute right-2 top-2 rounded-full bg-black/30 p-1.5 opacity-0 transition-opacity group-hover:opacity-100"
+                onClick={(e) => toggleBookmark(recipe.id, e)}
+                className="absolute right-2 top-2 rounded-md bg-black/30 p-1.5 backdrop-blur-sm transition-colors hover:bg-black/50"
               >
-                <Heart
-                  className={`h-4 w-4 ${favorites.has(recipe.id) ? "fill-white text-white" : "text-white"}`}
+                <Bookmark
+                  className={`h-4 w-4 ${
+                    bookmarks.has(recipe.id)
+                      ? "fill-white text-white"
+                      : "text-white"
+                  }`}
                 />
               </button>
-            </div>
+            </Link>
           );
         })}
       </div>
-      <RecipeDetailDialog
-        recipe={selectedRecipe}
-        open={!!selectedRecipe}
-        onOpenChange={(open) => !open && setSelectedRecipe(null)}
-        thumbnailUrl={selectedRecipe ? getThumbnailUrl(selectedRecipe.thumbnail_path) : null}
-      />
-    </>
+      <div ref={sentinelRef} className="flex justify-center py-8">
+        {loading && <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />}
+      </div>
+    </div>
   );
 }

@@ -1,4 +1,33 @@
 -- ============================================================
+-- PROFILES TABLE
+-- ============================================================
+CREATE TABLE public.profiles (
+  id           uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  display_name text,
+  avatar_path  text,
+  created_at   timestamptz DEFAULT now(),
+  updated_at   timestamptz DEFAULT now()
+);
+
+ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Profiles are publicly readable"
+  ON public.profiles FOR SELECT
+  TO anon, authenticated
+  USING (true);
+
+CREATE POLICY "Users can insert own profile"
+  ON public.profiles FOR INSERT
+  TO authenticated
+  WITH CHECK ((SELECT auth.uid()) = id);
+
+CREATE POLICY "Users can update own profile"
+  ON public.profiles FOR UPDATE
+  TO authenticated
+  USING ((SELECT auth.uid()) = id)
+  WITH CHECK ((SELECT auth.uid()) = id);
+
+-- ============================================================
 -- RECIPES TABLE
 -- ============================================================
 CREATE TABLE public.recipes (
@@ -24,6 +53,8 @@ CREATE TABLE public.recipes (
   bw_adjustment numeric,
   bw_magenta_green numeric,
   thumbnail_path text,
+  camera_model text,
+  lens_model text,
   created_at  timestamptz DEFAULT now()
 );
 
@@ -32,6 +63,7 @@ ALTER TABLE public.recipes ENABLE ROW LEVEL SECURITY;
 CREATE INDEX recipes_user_id_idx ON public.recipes (user_id);
 CREATE INDEX recipes_simulation_idx ON public.recipes (simulation);
 CREATE INDEX recipes_created_at_idx ON public.recipes (created_at DESC);
+CREATE INDEX recipes_camera_model_idx ON public.recipes (camera_model);
 
 -- Anyone can read all recipes (public gallery)
 CREATE POLICY "Recipes are publicly readable"
@@ -52,9 +84,9 @@ CREATE POLICY "Users can delete their own recipes"
   USING ((SELECT auth.uid()) = user_id);
 
 -- ============================================================
--- FAVORITES TABLE
+-- BOOKMARKS TABLE
 -- ============================================================
-CREATE TABLE public.favorites (
+CREATE TABLE public.bookmarks (
   id          bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
   user_id     uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   recipe_id   bigint NOT NULL REFERENCES public.recipes(id) ON DELETE CASCADE,
@@ -62,26 +94,60 @@ CREATE TABLE public.favorites (
   UNIQUE (user_id, recipe_id)
 );
 
-ALTER TABLE public.favorites ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.bookmarks ENABLE ROW LEVEL SECURITY;
 
-CREATE INDEX favorites_user_id_idx ON public.favorites (user_id);
-CREATE INDEX favorites_recipe_id_idx ON public.favorites (recipe_id);
+CREATE INDEX bookmarks_user_id_idx ON public.bookmarks (user_id);
+CREATE INDEX bookmarks_recipe_id_idx ON public.bookmarks (recipe_id);
 
--- Anyone can see favorite counts (for sorting)
-CREATE POLICY "Favorites are publicly readable"
-  ON public.favorites FOR SELECT
+-- Anyone can see bookmark counts (for sorting)
+CREATE POLICY "Bookmarks are publicly readable"
+  ON public.bookmarks FOR SELECT
   TO anon, authenticated
   USING (true);
 
--- Authenticated users can add favorites
-CREATE POLICY "Users can add favorites"
-  ON public.favorites FOR INSERT
+-- Authenticated users can add bookmarks
+CREATE POLICY "Users can add bookmarks"
+  ON public.bookmarks FOR INSERT
   TO authenticated
   WITH CHECK ((SELECT auth.uid()) = user_id);
 
--- Users can remove their own favorites
-CREATE POLICY "Users can remove their own favorites"
-  ON public.favorites FOR DELETE
+-- Users can remove their own bookmarks
+CREATE POLICY "Users can remove their own bookmarks"
+  ON public.bookmarks FOR DELETE
+  TO authenticated
+  USING ((SELECT auth.uid()) = user_id);
+
+-- ============================================================
+-- LIKES TABLE
+-- ============================================================
+CREATE TABLE public.likes (
+  id          bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+  user_id     uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  recipe_id   bigint NOT NULL REFERENCES public.recipes(id) ON DELETE CASCADE,
+  created_at  timestamptz DEFAULT now(),
+  UNIQUE (user_id, recipe_id)
+);
+
+ALTER TABLE public.likes ENABLE ROW LEVEL SECURITY;
+
+CREATE INDEX likes_user_id_idx ON public.likes (user_id);
+CREATE INDEX likes_recipe_id_idx ON public.likes (recipe_id);
+
+-- Anyone can see like counts
+CREATE POLICY "Likes are publicly readable"
+  ON public.likes FOR SELECT
+  TO anon, authenticated
+  USING (true);
+
+-- Authenticated users can add likes
+CREATE POLICY "Users can add likes"
+  ON public.likes FOR INSERT
+  TO authenticated
+  WITH CHECK ((SELECT auth.uid()) = user_id);
+
+-- Users can remove their own likes
+CREATE POLICY "Users can remove their own likes"
+  ON public.likes FOR DELETE
   TO authenticated
   USING ((SELECT auth.uid()) = user_id);
 
@@ -110,15 +176,22 @@ CREATE POLICY "Users can delete their own thumbnails"
   USING (bucket_id = 'thumbnails' AND (SELECT auth.uid())::text = (storage.foldername(name))[1]);
 
 -- ============================================================
--- VIEW: Recipe with favorite count (for gallery sorting)
+-- VIEW: Recipe with bookmark and like counts
 -- ============================================================
-CREATE OR REPLACE VIEW public.recipes_with_stats AS
+DROP VIEW IF EXISTS public.recipes_with_stats;
+CREATE VIEW public.recipes_with_stats AS
 SELECT
   r.*,
-  COALESCE(f.fav_count, 0) AS favorite_count
+  COALESCE(b.cnt, 0) AS bookmark_count,
+  COALESCE(l.cnt, 0) AS like_count
 FROM public.recipes r
 LEFT JOIN (
-  SELECT recipe_id, COUNT(*) AS fav_count
-  FROM public.favorites
+  SELECT recipe_id, COUNT(*) AS cnt
+  FROM public.bookmarks
   GROUP BY recipe_id
-) f ON f.recipe_id = r.id;
+) b ON b.recipe_id = r.id
+LEFT JOIN (
+  SELECT recipe_id, COUNT(*) AS cnt
+  FROM public.likes
+  GROUP BY recipe_id
+) l ON l.recipe_id = r.id;

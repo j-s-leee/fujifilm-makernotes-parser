@@ -14,7 +14,7 @@ export function ImageDropzone({ onFileDrop, hasImage }: ImageDropzoneProps) {
     (acceptedFiles: File[]) => {
       onFileDrop(acceptedFiles);
     },
-    [onFileDrop]
+    [onFileDrop],
   );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -38,7 +38,9 @@ export function ImageDropzone({ onFileDrop, hasImage }: ImageDropzoneProps) {
       >
         <input {...getInputProps()} />
         <Upload className="h-4 w-4 text-muted-foreground" />
-        <p className="text-sm text-muted-foreground">Upload another image</p>
+        <p className="text-sm text-muted-foreground">
+          Try another Fujifilm image
+        </p>
       </div>
     );
   }
@@ -57,7 +59,9 @@ export function ImageDropzone({ onFileDrop, hasImage }: ImageDropzoneProps) {
       <p className="text-sm text-foreground mb-1">
         Drag & drop a Fujifilm image here, or click to select
       </p>
-      <p className="text-xs text-muted-foreground">Supports JPG and RAF files</p>
+      <p className="text-xs text-muted-foreground">
+        Supports JPG and RAF files
+      </p>
     </div>
   );
 }

@@ -5,7 +5,9 @@ import type { FujifilmSimulation } from "@/fujifilm/simulation";
 export async function shareRecipe(
   recipe: FujifilmRecipe,
   simulation: FujifilmSimulation | null,
-  thumbnailBlob: Blob
+  thumbnail: { blob: Blob; contentType: string; extension: string },
+  cameraModel?: string | null,
+  lensModel?: string | null
 ): Promise<{ success: boolean; error?: string }> {
   const supabase = createClient();
 
@@ -17,17 +19,23 @@ export async function shareRecipe(
     return { success: false, error: "Not authenticated" };
   }
 
-  // Upload thumbnail
-  const fileName = `${user.id}/${Date.now()}.jpg`;
-  const { error: uploadError } = await supabase.storage
-    .from("thumbnails")
-    .upload(fileName, thumbnailBlob, {
-      contentType: "image/jpeg",
-    });
+  // Upload thumbnail via API route (R2)
+  const formData = new FormData();
+  const file = new File([thumbnail.blob], `upload.${thumbnail.extension}`, {
+    type: thumbnail.contentType,
+  });
+  formData.append("file", file);
 
-  if (uploadError) {
+  const uploadRes = await fetch("/api/upload", {
+    method: "POST",
+    body: formData,
+  });
+
+  if (!uploadRes.ok) {
     return { success: false, error: "Failed to upload thumbnail" };
   }
+
+  const { key: fileName } = await uploadRes.json();
 
   // Insert recipe
   const { error: insertError } = await supabase.from("recipes").insert({
@@ -52,6 +60,8 @@ export async function shareRecipe(
     bw_adjustment: recipe.bwAdjustment ?? null,
     bw_magenta_green: recipe.bwMagentaGreen ?? null,
     thumbnail_path: fileName,
+    camera_model: cameraModel ?? null,
+    lens_model: lensModel ?? null,
   });
 
   if (insertError) {

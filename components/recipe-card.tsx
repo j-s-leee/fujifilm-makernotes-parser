@@ -14,10 +14,14 @@ import { useState } from "react";
 export function RecipeCard({
   simulation,
   imageSource,
+  cameraModel,
+  lensModel,
   ...recipe
 }: FujifilmRecipe & {
   simulation: FujifilmSimulation | null;
   imageSource?: File | Blob | null;
+  cameraModel?: string | null;
+  lensModel?: string | null;
 }) {
   const { toast } = useToast();
   const { user } = useUser();
@@ -76,8 +80,8 @@ export function RecipeCard({
     if (!imageSource) return;
     setSharing(true);
     try {
-      const thumbnailBlob = await compressImageToThumbnail(imageSource);
-      const result = await shareRecipe(recipe, simulation, thumbnailBlob);
+      const thumbnail = await compressImageToThumbnail(imageSource);
+      const result = await shareRecipe(recipe, simulation, thumbnail, cameraModel, lensModel);
       if (result.success) {
         toast({
           title: "Shared",

@@ -22,6 +22,8 @@ export default function Home() {
   const [recipe, setRecipe] = useState<FujifilmRecipe | null>(null);
   const [simulation, setSimulation] = useState<FujifilmSimulation | null>(null);
   const [imageSource, setImageSource] = useState<File | Blob | null>(null);
+  const [cameraModel, setCameraModel] = useState<string | null>(null);
+  const [lensModel, setLensModel] = useState<string | null>(null);
   const { toast } = useToast();
 
   const onDrop = useCallback(
@@ -32,6 +34,8 @@ export default function Home() {
       setRecipe(null);
       setSimulation(null);
       setImageSource(null);
+      setCameraModel(null);
+      setLensModel(null);
 
       // RAF 파일인 경우 임베디드 JPEG 추출
       let parseTarget: File | Blob = file;
@@ -68,9 +72,16 @@ export default function Home() {
           makerNote: true,
         });
 
+        if (exifrData.Make && exifrData.Model) {
+          setCameraModel(`${exifrData.Make} ${exifrData.Model}`.trim());
+        } else {
+          setCameraModel(null);
+        }
+        setLensModel(exifrData.LensModel ?? null);
+
         if (exifrData.makerNote) {
           const makerNoteBytes = new Uint8Array(
-            Object.values(exifrData.makerNote)
+            Object.values(exifrData.makerNote),
           );
 
           try {
@@ -94,7 +105,7 @@ export default function Home() {
           toast({
             variant: "destructive",
             title: "Error",
-            description: "No MakerNote data found in the image",
+            description: "Please check if this is a Fujifilm camera image",
           });
         }
       } catch (error) {
@@ -107,7 +118,7 @@ export default function Home() {
         console.error("Error extracting Fujifilm metadata:", error);
       }
     },
-    [toast]
+    [toast],
   );
 
   return (
@@ -119,21 +130,30 @@ export default function Home() {
             {image && (
               <img
                 src={image}
-                alt="Uploaded photo"
+                alt="Selected photo"
                 className="h-auto max-h-[80vh] w-full rounded-lg object-contain shadow-sm animate-in fade-in duration-300"
               />
             )}
             {recipe && (
               <div className="w-full">
-                <RecipeCard {...recipe} simulation={simulation} imageSource={imageSource} />
+                <RecipeCard
+                  {...recipe}
+                  simulation={simulation}
+                  imageSource={imageSource}
+                  cameraModel={cameraModel}
+                  lensModel={lensModel}
+                />
               </div>
             )}
           </div>
         )}
         {!image && !recipe && (
-          <p className="text-center text-sm text-muted-foreground">
-            Drop a Fujifilm JPEG or RAF to extract its film recipe.
-          </p>
+          <>
+            <p className="text-center text-sm text-muted-foreground">
+              Drop a Fujifilm JPEG or RAF to check its film recipe and share it
+              with others.
+            </p>
+          </>
         )}
       </div>
     </div>
