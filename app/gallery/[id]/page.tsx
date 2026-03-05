@@ -1,9 +1,11 @@
-import { createClient } from "@/lib/supabase/server";
+import { createStaticClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import { RecipeHero } from "@/components/recipe-hero";
 import { BackButton } from "@/components/back-button";
 import { RecipeSettings } from "@/components/recipe-settings";
 import { SimilarRecipes } from "@/components/similar-recipes";
+
+export const revalidate = 60;
 
 interface RecipePageProps {
   params: Promise<{ id: string }>;
@@ -14,7 +16,7 @@ export default async function RecipePage({ params }: RecipePageProps) {
   const recipeId = parseInt(id, 10);
   if (isNaN(recipeId)) notFound();
 
-  const supabase = await createClient();
+  const supabase = createStaticClient();
 
   // Fetch recipe with stats
   const { data: recipe } = await supabase
@@ -27,31 +29,6 @@ export default async function RecipePage({ params }: RecipePageProps) {
 
   // Fetch sharer info - try email from user_id
   const sharerName: string | null = null;
-
-  // Check if current user has bookmarked/liked this recipe
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  let isBookmarked = false;
-  let isLiked = false;
-  if (user) {
-    const { data: bmark } = await supabase
-      .from("bookmarks")
-      .select("id")
-      .eq("user_id", user.id)
-      .eq("recipe_id", recipeId)
-      .single();
-    isBookmarked = !!bmark;
-
-    const { data: like } = await supabase
-      .from("likes")
-      .select("id")
-      .eq("user_id", user.id)
-      .eq("recipe_id", recipeId)
-      .single();
-    isLiked = !!like;
-  }
 
   // Fetch similar recipes (same core settings)
   let similarRecipes: typeof recipe[] = [];
@@ -118,8 +95,6 @@ export default async function RecipePage({ params }: RecipePageProps) {
         <div className="grid grid-cols-1 items-start gap-8 md:grid-cols-2">
           <RecipeHero
             recipe={recipe}
-            isBookmarked={isBookmarked}
-            isLiked={isLiked}
             sharerName={sharerName}
           />
           <RecipeSettings recipe={recipe} />

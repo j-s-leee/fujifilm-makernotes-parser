@@ -77,6 +77,7 @@ export async function PUT(request: NextRequest) {
         Key: avatarPath,
         Body: buffer,
         ContentType: avatarFile.type,
+        CacheControl: "public, max-age=31536000, immutable",
       }),
     );
   }

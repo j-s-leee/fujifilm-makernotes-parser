@@ -27,18 +27,6 @@ export default async function MyRecipesPage() {
 
   const typedRecipes = (recipes ?? []) as GalleryRecipe[];
 
-  const { data: bmarks } = await supabase
-    .from("bookmarks")
-    .select("recipe_id")
-    .eq("user_id", user.id);
-  const userBookmarks = bmarks?.map((b) => b.recipe_id) ?? [];
-
-  const { data: lks } = await supabase
-    .from("likes")
-    .select("recipe_id")
-    .eq("user_id", user.id);
-  const userLikes = lks?.map((l) => l.recipe_id) ?? [];
-
   return (
     <div className="flex flex-1 justify-center px-4 py-8 sm:px-6 md:px-10 md:py-12">
       <div className="flex w-full max-w-6xl flex-col gap-6">
@@ -51,8 +39,6 @@ export default async function MyRecipesPage() {
         {typedRecipes.length > 0 ? (
           <GroupedRecipeGrid
             initialRecipes={typedRecipes}
-            userBookmarks={userBookmarks}
-            userLikes={userLikes}
             fetchConfig={{ type: "user", userId: user.id }}
             basePath="/my-recipes"
           />

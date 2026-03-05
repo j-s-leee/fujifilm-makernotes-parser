@@ -1,45 +1,39 @@
-import { createClient } from "@/lib/supabase/server";
+import { createStaticClient } from "@/lib/supabase/server";
 import {
   SimulationDistributionChart,
   PopularRecipesChart,
   TrendsChart,
 } from "@/components/stats-charts";
 
-export default async function StatsPage() {
-  const supabase = await createClient();
+export const revalidate = 3600;
 
-  // Simulation distribution
+export default async function StatsPage() {
+  const supabase = createStaticClient();
+
   const { data: recipes } = await supabase
     .from("recipes")
-    .select("simulation");
+    .select("simulation, created_at");
 
   const simulationCounts: Record<string, number> = {};
+  const monthlyCounts: Record<string, number> = {};
+
   recipes?.forEach((r) => {
     const sim = r.simulation ?? "Unknown";
     simulationCounts[sim] = (simulationCounts[sim] ?? 0) + 1;
+
+    const date = new Date(r.created_at);
+    const month = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+    monthlyCounts[month] = (monthlyCounts[month] ?? 0) + 1;
   });
 
   const simulationData = Object.entries(simulationCounts)
     .map(([name, count]) => ({ name, count }))
     .sort((a, b) => b.count - a.count);
 
-  // Monthly trends
-  const { data: recipesWithDates } = await supabase
-    .from("recipes")
-    .select("created_at");
-
-  const monthlyCounts: Record<string, number> = {};
-  recipesWithDates?.forEach((r) => {
-    const date = new Date(r.created_at);
-    const month = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
-    monthlyCounts[month] = (monthlyCounts[month] ?? 0) + 1;
-  });
-
   const trendData = Object.entries(monthlyCounts)
     .map(([month, count]) => ({ month, count }))
     .sort((a, b) => a.month.localeCompare(b.month));
 
-  // Total count
   const totalRecipes = recipes?.length ?? 0;
 
   return (
