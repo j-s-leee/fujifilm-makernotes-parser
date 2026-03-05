@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { createStaticClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import { RecipeHero } from "@/components/recipe-hero";
 import { BackButton } from "@/components/back-button";
@@ -16,7 +16,7 @@ export default async function RecipePage({ params }: RecipePageProps) {
   const recipeId = parseInt(id, 10);
   if (isNaN(recipeId)) notFound();
 
-  const supabase = await createClient();
+  const supabase = createStaticClient();
 
   // Fetch recipe with stats
   const { data: recipe } = await supabase

@@ -10,7 +10,7 @@ const r2Hostname = r2PublicUrl ? new URL(r2PublicUrl).hostname : "";
 
 const nextConfig: NextConfig = {
   images: {
-    qualities: [90],
+    deviceSizes: [640, 750, 828, 1080, 1200],
     remotePatterns: [
       // Existing Supabase storage (for legacy images)
       {

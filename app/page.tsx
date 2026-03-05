@@ -10,7 +10,6 @@ import {
   getFujifilmRecipeFromMakerNote,
 } from "@/fujifilm/recipe";
 import { useState, useCallback } from "react";
-import * as exifr from "exifr";
 import { RecipeCard } from "@/components/recipe-card";
 import { useToast } from "@/hooks/use-toast";
 import { isRafFile, extractJpegFromRaf } from "@/lib/raf-parser";
@@ -66,6 +65,7 @@ export default function Home() {
 
       try {
         // 이미지 메타데이터 추출
+        const exifr = await import("exifr");
         const exifrData = await exifr.parse(parseTarget, {
           tiff: true,
           exif: true,

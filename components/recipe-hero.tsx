@@ -46,6 +46,7 @@ export function RecipeHero({
           height={600}
           className="w-full rounded-lg object-cover"
           sizes="(max-width: 768px) 100vw, 50vw"
+          quality={90}
           priority
         />
       ) : (

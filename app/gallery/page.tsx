@@ -45,23 +45,22 @@ export default async function GalleryPage({ searchParams }: GalleryPageProps) {
     query = query.order("created_at", { ascending: false });
   }
 
-  const { data: recipes } = await query;
+  const [{ data: recipes }, { data: allRecipes }, { data: cameraData }] =
+    await Promise.all([
+      query,
+      supabase.from("recipes").select("simulation"),
+      supabase
+        .from("recipes")
+        .select("camera_model")
+        .not("camera_model", "is", null),
+    ]);
 
-  // Get unique simulations for filter
-  const { data: allRecipes } = await supabase
-    .from("recipes")
-    .select("simulation");
   const simulations = [
     ...new Set(
       allRecipes?.map((r) => r.simulation).filter(Boolean) as string[],
     ),
   ].sort();
 
-  // Get sensor generations that exist in data
-  const { data: cameraData } = await supabase
-    .from("recipes")
-    .select("camera_model")
-    .not("camera_model", "is", null);
   const existingModels = new Set(
     cameraData?.map((r) => r.camera_model) ?? [],
   );

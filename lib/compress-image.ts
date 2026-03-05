@@ -1,6 +1,6 @@
 const DEFAULT_MAX_SIDE = 1200;
-const WEBP_QUALITY = 0.95;
-const JPEG_FALLBACK_QUALITY = 0.93;
+const WEBP_QUALITY = 0.80;
+const JPEG_FALLBACK_QUALITY = 0.80;
 
 /**
  * Compress an image for thumbnail upload.
