@@ -1,4 +1,4 @@
-import { signInWithGoogle, signInWithGitHub } from "./actions";
+import { signInWithGoogle } from "./actions";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Film } from "lucide-react";
@@ -20,11 +20,6 @@ export default function LoginPage() {
           <form action={signInWithGoogle}>
             <Button variant="outline" className="w-full" type="submit">
               Continue with Google
-            </Button>
-          </form>
-          <form action={signInWithGitHub}>
-            <Button variant="outline" className="w-full" type="submit">
-              Continue with GitHub
             </Button>
           </form>
         </CardContent>
