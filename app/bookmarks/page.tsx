@@ -24,12 +24,6 @@ export default async function BookmarksPage() {
     .eq("user_id", user.id);
   const bookmarkIds = bmarks?.map((b) => b.recipe_id) ?? [];
 
-  const { data: lks } = await supabase
-    .from("likes")
-    .select("recipe_id")
-    .eq("user_id", user.id);
-  const likeIds = lks?.map((l) => l.recipe_id) ?? [];
-
   let typedRecipes: GalleryRecipe[] = [];
   if (bookmarkIds.length > 0) {
     const { data: recipes } = await supabase
@@ -53,8 +47,6 @@ export default async function BookmarksPage() {
         {typedRecipes.length > 0 ? (
           <GroupedRecipeGrid
             initialRecipes={typedRecipes}
-            userBookmarks={bookmarkIds}
-            userLikes={likeIds}
             fetchConfig={{ type: "bookmarks", bookmarkIds }}
             basePath="/bookmarks"
           />

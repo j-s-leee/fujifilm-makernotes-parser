@@ -4,9 +4,8 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { Bookmark, Heart, Loader2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useUser } from "@/hooks/use-user";
 import { createClient } from "@/lib/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { useUserInteractions } from "@/contexts/user-interactions-context";
 import {
   getCameraModelsForGeneration,
   SENSOR_GENERATIONS,
@@ -27,8 +26,6 @@ interface GalleryRecipe {
 
 interface GalleryGridProps {
   initialRecipes: GalleryRecipe[];
-  userBookmarks: number[];
-  userLikes: number[];
   simulation?: string;
   sort?: string;
   sensor?: string;
@@ -36,102 +33,23 @@ interface GalleryGridProps {
 
 export function GalleryGrid({
   initialRecipes,
-  userBookmarks,
-  userLikes,
   simulation,
   sort,
   sensor,
 }: GalleryGridProps) {
   const [recipes, setRecipes] = useState<GalleryRecipe[]>(initialRecipes);
-  const [bookmarks, setBookmarks] = useState<Set<number>>(
-    new Set(userBookmarks),
-  );
-  const [likes, setLikes] = useState<Set<number>>(new Set(userLikes));
-  const [likeCounts, setLikeCounts] = useState<Map<number, number>>(
-    () => new Map(initialRecipes.map((r) => [r.id, r.like_count])),
-  );
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(initialRecipes.length >= PAGE_SIZE);
   const sentinelRef = useRef<HTMLDivElement>(null);
-  const { user } = useUser();
-  const { toast } = useToast();
+  const { bookmarks, likes, likeCounts, toggleBookmark, toggleLike, mergeLikeCounts } =
+    useUserInteractions();
 
   // Reset when filters change
   useEffect(() => {
     setRecipes(initialRecipes);
     setHasMore(initialRecipes.length >= PAGE_SIZE);
-    setLikeCounts(
-      new Map(initialRecipes.map((r) => [r.id, r.like_count])),
-    );
-  }, [initialRecipes]);
-
-  const toggleBookmark = async (recipeId: number, e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (!user) {
-      toast({ description: "Sign in to bookmark recipes" });
-      return;
-    }
-
-    const supabase = createClient();
-    const isBookmarked = bookmarks.has(recipeId);
-
-    if (isBookmarked) {
-      await supabase
-        .from("bookmarks")
-        .delete()
-        .match({ user_id: user.id, recipe_id: recipeId });
-      setBookmarks((prev) => {
-        const next = new Set(prev);
-        next.delete(recipeId);
-        return next;
-      });
-    } else {
-      await supabase
-        .from("bookmarks")
-        .insert({ user_id: user.id, recipe_id: recipeId });
-      setBookmarks((prev) => new Set(prev).add(recipeId));
-    }
-  };
-
-  const toggleLike = async (recipeId: number, e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (!user) {
-      toast({ description: "Sign in to like recipes" });
-      return;
-    }
-
-    const supabase = createClient();
-    const isLiked = likes.has(recipeId);
-
-    if (isLiked) {
-      await supabase
-        .from("likes")
-        .delete()
-        .match({ user_id: user.id, recipe_id: recipeId });
-      setLikes((prev) => {
-        const next = new Set(prev);
-        next.delete(recipeId);
-        return next;
-      });
-      setLikeCounts((prev) => {
-        const next = new Map(prev);
-        next.set(recipeId, (next.get(recipeId) ?? 0) - 1);
-        return next;
-      });
-    } else {
-      await supabase
-        .from("likes")
-        .insert({ user_id: user.id, recipe_id: recipeId });
-      setLikes((prev) => new Set(prev).add(recipeId));
-      setLikeCounts((prev) => {
-        const next = new Map(prev);
-        next.set(recipeId, (next.get(recipeId) ?? 0) + 1);
-        return next;
-      });
-    }
-  };
+    mergeLikeCounts(initialRecipes);
+  }, [initialRecipes, mergeLikeCounts]);
 
   const fetchMore = useCallback(async () => {
     if (loading || !hasMore) return;
@@ -167,15 +85,9 @@ export function GalleryGrid({
     }
 
     setRecipes((prev) => [...prev, ...newRecipes]);
-    setLikeCounts((prev) => {
-      const next = new Map(prev);
-      for (const r of newRecipes) {
-        if (!next.has(r.id)) next.set(r.id, r.like_count);
-      }
-      return next;
-    });
+    mergeLikeCounts(newRecipes);
     setLoading(false);
-  }, [loading, hasMore, recipes.length, simulation, sort, sensor]);
+  }, [loading, hasMore, recipes.length, simulation, sort, sensor, mergeLikeCounts]);
 
   useEffect(() => {
     const sentinel = sentinelRef.current;

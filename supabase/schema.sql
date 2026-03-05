@@ -179,7 +179,8 @@ CREATE POLICY "Users can delete their own thumbnails"
 -- VIEW: Recipe with bookmark and like counts
 -- ============================================================
 DROP VIEW IF EXISTS public.recipes_with_stats;
-CREATE VIEW public.recipes_with_stats AS
+CREATE VIEW public.recipes_with_stats
+WITH (security_invoker = on) AS
 SELECT
   r.*,
   COALESCE(b.cnt, 0) AS bookmark_count,

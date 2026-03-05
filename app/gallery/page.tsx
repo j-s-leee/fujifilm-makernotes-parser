@@ -47,26 +47,6 @@ export default async function GalleryPage({ searchParams }: GalleryPageProps) {
 
   const { data: recipes } = await query;
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  let userBookmarks: number[] = [];
-  let userLikes: number[] = [];
-  if (user) {
-    const { data: bmarks } = await supabase
-      .from("bookmarks")
-      .select("recipe_id")
-      .eq("user_id", user.id);
-    userBookmarks = bmarks?.map((b) => b.recipe_id) ?? [];
-
-    const { data: lks } = await supabase
-      .from("likes")
-      .select("recipe_id")
-      .eq("user_id", user.id);
-    userLikes = lks?.map((l) => l.recipe_id) ?? [];
-  }
-
   // Get unique simulations for filter
   const { data: allRecipes } = await supabase
     .from("recipes")
@@ -204,8 +184,6 @@ export default async function GalleryPage({ searchParams }: GalleryPageProps) {
         {recipes && recipes.length > 0 ? (
           <GalleryGrid
             initialRecipes={recipes}
-            userBookmarks={userBookmarks}
-            userLikes={userLikes}
             simulation={params.simulation}
             sort={params.sort}
             sensor={params.sensor}

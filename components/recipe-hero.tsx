@@ -1,11 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect } from "react";
 import Image from "next/image";
 import { Heart, Bookmark } from "lucide-react";
-import { useUser } from "@/hooks/use-user";
-import { createClient } from "@/lib/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { useUserInteractions } from "@/contexts/user-interactions-context";
 import { getThumbnailUrl } from "@/lib/get-thumbnail-url";
 
 interface RecipeHeroProps {
@@ -18,70 +16,24 @@ interface RecipeHeroProps {
     bookmark_count: number;
     like_count: number;
   };
-  isBookmarked: boolean;
-  isLiked: boolean;
   sharerName: string | null;
 }
 
 export function RecipeHero({
   recipe,
-  isBookmarked: initialBookmarked,
-  isLiked: initialLiked,
   sharerName,
 }: RecipeHeroProps) {
-  const [isBookmarked, setIsBookmarked] = useState(initialBookmarked);
-  const [isLiked, setIsLiked] = useState(initialLiked);
-  const [likeCount, setLikeCount] = useState(recipe.like_count);
-  const { user } = useUser();
-  const { toast } = useToast();
+  const { bookmarks, likes, likeCounts, toggleBookmark, toggleLike, mergeLikeCounts } =
+    useUserInteractions();
+
+  useEffect(() => {
+    mergeLikeCounts([recipe]);
+  }, [recipe, mergeLikeCounts]);
 
   const thumbnailUrl = getThumbnailUrl(recipe.thumbnail_path);
-
-  const toggleBookmark = async () => {
-    if (!user) {
-      toast({ description: "Sign in to bookmark recipes" });
-      return;
-    }
-
-    const supabase = createClient();
-
-    if (isBookmarked) {
-      await supabase
-        .from("bookmarks")
-        .delete()
-        .match({ user_id: user.id, recipe_id: recipe.id });
-      setIsBookmarked(false);
-    } else {
-      await supabase
-        .from("bookmarks")
-        .insert({ user_id: user.id, recipe_id: recipe.id });
-      setIsBookmarked(true);
-    }
-  };
-
-  const toggleLike = async () => {
-    if (!user) {
-      toast({ description: "Sign in to like recipes" });
-      return;
-    }
-
-    const supabase = createClient();
-
-    if (isLiked) {
-      await supabase
-        .from("likes")
-        .delete()
-        .match({ user_id: user.id, recipe_id: recipe.id });
-      setIsLiked(false);
-      setLikeCount((c) => c - 1);
-    } else {
-      await supabase
-        .from("likes")
-        .insert({ user_id: user.id, recipe_id: recipe.id });
-      setIsLiked(true);
-      setLikeCount((c) => c + 1);
-    }
-  };
+  const isBookmarked = bookmarks.has(recipe.id);
+  const isLiked = likes.has(recipe.id);
+  const likeCount = likeCounts.get(recipe.id) ?? recipe.like_count;
 
   return (
     <div className="flex flex-col gap-4">
@@ -121,7 +73,7 @@ export function RecipeHero({
         </div>
         <div className="flex items-center gap-2">
           <button
-            onClick={toggleLike}
+            onClick={() => toggleLike(recipe.id)}
             className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-sm transition-colors hover:bg-muted"
           >
             <Heart
@@ -134,7 +86,7 @@ export function RecipeHero({
             <span className="text-muted-foreground">{likeCount}</span>
           </button>
           <button
-            onClick={toggleBookmark}
+            onClick={() => toggleBookmark(recipe.id)}
             className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-sm transition-colors hover:bg-muted"
           >
             <Bookmark

@@ -5,6 +5,8 @@ import {
   TrendsChart,
 } from "@/components/stats-charts";
 
+export const revalidate = 3600;
+
 export default async function StatsPage() {
   const supabase = await createClient();
 
