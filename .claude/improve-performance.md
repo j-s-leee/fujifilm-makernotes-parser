@@ -4,6 +4,7 @@
 2. [x] 갤러리/상세 페이지 Supabase 쿼리 병렬화 — gallery/page.tsx 3개 쿼리 병렬화, 상세페이지는 user 쿼리 제거로 해소
 3. [x] Stats 페이지 중복 쿼리 통합 — simulation + created_at 한 번에 조회
 4. [x] revalidate 추가 — gallery/[id]=60, stats=3600, bookmarks/[id]=60, likes/[id]=60, my-recipes/[id]=60
+5. [x] ISR 실제 동작 수정 — createStaticClient() 도입, cookies() 호출 제거로 ISR 캐싱 활성화
 
 ---
 
@@ -28,5 +29,6 @@
 
 1. [ ] Vercel: Analytics 탭에서 Serverless Function Duration 확인 — ISR 적용 후 호출 빈도 감소 확인
 2. [ ] Supabase: Dashboard > Reports > API requests 확인 — 불필요한 쿼리 없는지 모니터링
-3. [ ] Cloudflare R2: 커스텀 도메인 Cache-Control 헤더 설정 — 이미지에 public, max-age=31536000, immutable
-4. [ ] Vercel: Image Optimization 사용량 확인 — 무료 1000장/월. 초과 시 unoptimized 또는 R2에서 직접 서빙 전환 고려
+3. [x] R2 Cache-Control 설정 — 업로드 시 public, max-age=31536000, immutable 헤더 추가 (upload, profile 양쪽)
+4. [ ] Vercel: Image Optimization 사용량 확인 — 무료 1000장/월. 초과 시 unoptimized 전환 고려 (업로드 시 이미 WebP 변환하므로 영향 적음)
+5. [x] dev/prod DB 분리 — Supabase 프로젝트 2개 운영, Vercel 환경변수 환경별 분리 완료
