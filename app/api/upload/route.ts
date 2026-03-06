@@ -41,26 +41,22 @@ export async function POST(request: NextRequest) {
   const origWidth = metadata.width ?? 0;
   const baseName = key.replace(/\.[^.]+$/, "");
 
-  // Generate and upload resized variants (480w, 960w, 1200w)
-  const WIDTHS = [480, 960, 1200] as const;
-  await Promise.all(
-    WIDTHS.map(async (w) => {
-      if (origWidth > 0 && w >= origWidth) return;
-      const resized = await sharp(buffer)
-        .resize(w, undefined, { withoutEnlargement: true })
-        .webp({ quality: 80 })
-        .toBuffer();
-      await r2.send(
-        new PutObjectCommand({
-          Bucket: R2_BUCKET,
-          Key: `${baseName}_w${w}.webp`,
-          Body: resized,
-          ContentType: "image/webp",
-          CacheControl: "public, max-age=31536000, immutable",
-        }),
-      );
-    }),
-  );
+  // Generate and upload 480w thumbnail (original serves larger sizes)
+  if (origWidth > 480) {
+    const resized = await sharp(buffer)
+      .resize(480, undefined, { withoutEnlargement: true })
+      .webp({ quality: 80 })
+      .toBuffer();
+    await r2.send(
+      new PutObjectCommand({
+        Bucket: R2_BUCKET,
+        Key: `${baseName}_w480.webp`,
+        Body: resized,
+        ContentType: "image/webp",
+        CacheControl: "public, max-age=31536000, immutable",
+      }),
+    );
+  }
 
   const blurBuffer = await sharp(buffer)
     .resize(10, 10, { fit: "cover" })

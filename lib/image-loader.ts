@@ -1,5 +1,3 @@
-const SIZES = [480, 960, 1200];
-
 export default function r2Loader({
   src,
   width,
@@ -14,11 +12,13 @@ export default function r2Loader({
   const r2Base = process.env.NEXT_PUBLIC_R2_PUBLIC_URL;
   if (!r2Base) return src;
 
-  // If src contains _w (variant marker), it's already a variant path — serve directly
+  // If src already contains a variant marker — serve directly
   if (/_w\d+\.webp$/.test(src)) return `${r2Base}/${src}`;
 
-  // Select the smallest pre-generated size that covers the requested width
-  const baseName = src.replace(/\.[^.]+$/, "");
-  const target = SIZES.find((s) => s >= width) ?? SIZES[SIZES.length - 1];
-  return `${r2Base}/${baseName}_w${target}.webp`;
+  // ≤480 → use _w480 thumbnail, >480 → use original
+  if (width <= 480) {
+    const baseName = src.replace(/\.[^.]+$/, "");
+    return `${r2Base}/${baseName}_w480.webp`;
+  }
+  return `${r2Base}/${src}`;
 }
