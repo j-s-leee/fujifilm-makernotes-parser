@@ -31,6 +31,7 @@ export default async function BookmarksPage() {
       .select("*")
       .in("id", bookmarkIds)
       .order("created_at", { ascending: false })
+      .order("id", { ascending: false })
       .limit(24);
     typedRecipes = (recipes ?? []) as GalleryRecipe[];
   }

@@ -3,6 +3,8 @@ export interface GalleryRecipe {
   simulation: string | null;
   thumbnail_path: string | null;
   blur_data_url: string | null;
+  thumbnail_width: number | null;
+  thumbnail_height: number | null;
   bookmark_count: number;
   like_count: number;
   created_at: string | null;

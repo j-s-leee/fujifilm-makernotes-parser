@@ -43,6 +43,7 @@ export default async function RecipesPage({ searchParams }: RecipesPageProps) {
   } else {
     query = query.order("created_at", { ascending: false });
   }
+  query = query.order("id", { ascending: false });
 
   const { data: recipes } = await query;
 

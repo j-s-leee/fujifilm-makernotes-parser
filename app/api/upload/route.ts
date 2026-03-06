@@ -36,11 +36,18 @@ export async function POST(request: NextRequest) {
     }),
   );
 
+  const metadata = await sharp(buffer).metadata();
+
   const blurBuffer = await sharp(buffer)
     .resize(10, 10, { fit: "cover" })
     .jpeg({ quality: 40 })
     .toBuffer();
   const blurDataUrl = `data:image/jpeg;base64,${blurBuffer.toString("base64")}`;
 
-  return NextResponse.json({ key, blurDataUrl });
+  return NextResponse.json({
+    key,
+    blurDataUrl,
+    width: metadata.width ?? null,
+    height: metadata.height ?? null,
+  });
 }

@@ -36,7 +36,7 @@ export async function shareRecipe(
     return { success: false, error: "Failed to upload thumbnail" };
   }
 
-  const { key: fileName, blurDataUrl } = await uploadRes.json();
+  const { key: fileName, blurDataUrl, width, height } = await uploadRes.json();
 
   // Resolve FK: simulation_id
   let simulationId: number | null = null;
@@ -108,6 +108,8 @@ export async function shareRecipe(
     bw_magenta_green: recipe.bwMagentaGreen ?? null,
     thumbnail_path: fileName,
     blur_data_url: blurDataUrl ?? null,
+    thumbnail_width: width ?? null,
+    thumbnail_height: height ?? null,
     recipe_hash: computeRecipeHash({
       simulation: simulation ?? null,
       grain_roughness: recipe.grainEffect?.roughness ?? null,

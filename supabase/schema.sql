@@ -145,6 +145,8 @@ CREATE TABLE public.recipes (
   thumbnail_path text,
   blur_data_url text,
   recipe_hash text,
+  thumbnail_width  smallint,
+  thumbnail_height smallint,
   bookmark_count integer NOT NULL DEFAULT 0,
   like_count integer NOT NULL DEFAULT 0,
   created_at  timestamptz DEFAULT now()
@@ -152,14 +154,14 @@ CREATE TABLE public.recipes (
 
 ALTER TABLE public.recipes ENABLE ROW LEVEL SECURITY;
 
-CREATE INDEX recipes_user_id_idx ON public.recipes (user_id);
 CREATE INDEX recipes_simulation_id_idx ON public.recipes (simulation_id);
 CREATE INDEX recipes_camera_model_id_idx ON public.recipes (camera_model_id);
 CREATE INDEX recipes_lens_id_idx ON public.recipes (lens_id);
 CREATE INDEX recipes_wb_type_id_idx ON public.recipes (wb_type_id);
-CREATE INDEX recipes_created_at_idx ON public.recipes (created_at DESC);
 CREATE INDEX recipes_recipe_hash_idx ON public.recipes (recipe_hash);
-CREATE INDEX recipes_like_count_idx ON public.recipes (like_count DESC);
+CREATE INDEX recipes_created_at_id_idx ON public.recipes (created_at DESC, id DESC);
+CREATE INDEX recipes_like_count_id_idx ON public.recipes (like_count DESC, id DESC);
+CREATE INDEX recipes_user_created_at_id_idx ON public.recipes (user_id, created_at DESC, id DESC);
 
 -- Anyone can read all recipes (public gallery)
 CREATE POLICY "Recipes are publicly readable"
