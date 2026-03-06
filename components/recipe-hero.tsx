@@ -11,6 +11,7 @@ interface RecipeHeroProps {
     id: number;
     simulation: string | null;
     thumbnail_path: string | null;
+    blur_data_url: string | null;
     camera_model: string | null;
     lens_model: string | null;
     bookmark_count: number;
@@ -48,6 +49,8 @@ export function RecipeHero({
           sizes="(max-width: 768px) 100vw, 50vw"
           quality={90}
           priority
+          placeholder={recipe.blur_data_url ? "blur" : "empty"}
+          blurDataURL={recipe.blur_data_url ?? undefined}
         />
       ) : (
         <div className="flex aspect-square w-full items-center justify-center rounded-lg bg-muted text-sm text-muted-foreground">

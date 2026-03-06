@@ -18,6 +18,7 @@ interface GalleryRecipe {
   id: number;
   simulation: string | null;
   thumbnail_path: string | null;
+  blur_data_url: string | null;
   bookmark_count: number;
   like_count: number;
   camera_model: string | null;
@@ -122,6 +123,8 @@ export function GalleryGrid({
                   height={300}
                   className="aspect-square w-full object-cover"
                   sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                  placeholder={recipe.blur_data_url ? "blur" : "empty"}
+                  blurDataURL={recipe.blur_data_url ?? undefined}
                 />
               ) : (
                 <div className="flex aspect-square items-center justify-center text-muted-foreground text-sm">

@@ -2,6 +2,7 @@ export interface GalleryRecipe {
   id: number;
   simulation: string | null;
   thumbnail_path: string | null;
+  blur_data_url: string | null;
   bookmark_count: number;
   like_count: number;
   created_at: string | null;

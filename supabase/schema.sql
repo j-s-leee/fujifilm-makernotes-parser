@@ -126,6 +126,7 @@ CREATE TABLE public.recipes (
   bw_adjustment numeric,
   bw_magenta_green numeric,
   thumbnail_path text,
+  blur_data_url text,
   recipe_hash text,
   created_at  timestamptz DEFAULT now()
 );

@@ -7,6 +7,7 @@ interface SimilarRecipesProps {
     id: number;
     simulation: string | null;
     thumbnail_path: string | null;
+    blur_data_url: string | null;
   }[];
 }
 
@@ -33,6 +34,8 @@ export function SimilarRecipes({ recipes }: SimilarRecipesProps) {
                   height={200}
                   className="aspect-square w-full object-cover"
                   sizes="(max-width: 640px) 33vw, (max-width: 768px) 25vw, 16vw"
+                  placeholder={recipe.blur_data_url ? "blur" : "empty"}
+                  blurDataURL={recipe.blur_data_url ?? undefined}
                 />
               ) : (
                 <div className="flex aspect-square items-center justify-center text-xs text-muted-foreground">

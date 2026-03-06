@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
+import sharp from "sharp";
 import { createClient } from "@/lib/supabase/server";
 import { r2, R2_BUCKET } from "@/lib/r2";
 
@@ -35,5 +36,11 @@ export async function POST(request: NextRequest) {
     }),
   );
 
-  return NextResponse.json({ key });
+  const blurBuffer = await sharp(buffer)
+    .resize(10, 10, { fit: "cover" })
+    .jpeg({ quality: 40 })
+    .toBuffer();
+  const blurDataUrl = `data:image/jpeg;base64,${blurBuffer.toString("base64")}`;
+
+  return NextResponse.json({ key, blurDataUrl });
 }

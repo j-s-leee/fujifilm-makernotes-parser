@@ -139,6 +139,8 @@ export function GroupedRecipeGrid({
             height={300}
             className="aspect-square w-full object-cover"
             sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+            placeholder={recipe.blur_data_url ? "blur" : "empty"}
+            blurDataURL={recipe.blur_data_url ?? undefined}
           />
         ) : (
           <div className="flex aspect-square items-center justify-center text-muted-foreground text-sm">
