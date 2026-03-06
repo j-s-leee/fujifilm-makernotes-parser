@@ -11,7 +11,7 @@ export default async function StatsPage() {
   const supabase = createStaticClient();
 
   const { data: recipes } = await supabase
-    .from("recipes")
+    .from("recipes_with_stats")
     .select("simulation, created_at");
 
   const simulationCounts: Record<string, number> = {};

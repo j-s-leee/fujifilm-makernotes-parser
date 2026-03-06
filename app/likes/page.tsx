@@ -31,6 +31,7 @@ export default async function LikesPage() {
       .select("*")
       .in("id", likeIds)
       .order("created_at", { ascending: false })
+      .order("id", { ascending: false })
       .limit(24);
     typedRecipes = (recipes ?? []) as GalleryRecipe[];
   }
@@ -48,7 +49,7 @@ export default async function LikesPage() {
           <GroupedRecipeGrid
             initialRecipes={typedRecipes}
             fetchConfig={{ type: "likes", likeIds }}
-            basePath="/likes"
+            basePath="/recipes"
           />
         ) : (
           <p className="text-center text-sm text-muted-foreground py-20">

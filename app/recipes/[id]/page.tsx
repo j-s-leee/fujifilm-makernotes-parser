@@ -30,56 +30,14 @@ export default async function RecipePage({ params }: RecipePageProps) {
   // Fetch sharer info - try email from user_id
   const sharerName: string | null = null;
 
-  // Fetch similar recipes (same core settings)
+  // Fetch similar recipes (same core settings via recipe_hash)
   let similarRecipes: typeof recipe[] = [];
-  {
-    let query = supabase
+  if (recipe.recipe_hash) {
+    const { data } = await supabase
       .from("recipes_with_stats")
       .select("*")
-      .neq("id", recipeId);
-
-    if (recipe.simulation !== null) {
-      query = query.eq("simulation", recipe.simulation);
-    } else {
-      query = query.is("simulation", null);
-    }
-    if (recipe.grain_roughness !== null) {
-      query = query.eq("grain_roughness", recipe.grain_roughness);
-    } else {
-      query = query.is("grain_roughness", null);
-    }
-    if (recipe.grain_size !== null) {
-      query = query.eq("grain_size", recipe.grain_size);
-    } else {
-      query = query.is("grain_size", null);
-    }
-    if (recipe.highlight !== null) {
-      query = query.eq("highlight", recipe.highlight);
-    } else {
-      query = query.is("highlight", null);
-    }
-    if (recipe.shadow !== null) {
-      query = query.eq("shadow", recipe.shadow);
-    } else {
-      query = query.is("shadow", null);
-    }
-    if (recipe.color !== null) {
-      query = query.eq("color", recipe.color);
-    } else {
-      query = query.is("color", null);
-    }
-    if (recipe.sharpness !== null) {
-      query = query.eq("sharpness", recipe.sharpness);
-    } else {
-      query = query.is("sharpness", null);
-    }
-    if (recipe.dynamic_range_development !== null) {
-      query = query.eq("dynamic_range_development", recipe.dynamic_range_development);
-    } else {
-      query = query.is("dynamic_range_development", null);
-    }
-
-    const { data } = await query
+      .eq("recipe_hash", recipe.recipe_hash)
+      .neq("id", recipeId)
       .order("created_at", { ascending: false })
       .limit(12);
     similarRecipes = data ?? [];
@@ -89,7 +47,7 @@ export default async function RecipePage({ params }: RecipePageProps) {
     <div className="flex flex-1 justify-center px-4 py-8 sm:px-6 md:px-10 md:py-12">
       <div className="flex w-full max-w-5xl flex-col gap-8">
         {/* Back link */}
-        <BackButton label="Back to Gallery" fallbackHref="/gallery" />
+        <BackButton label="Back to Recipes" fallbackHref="/recipes" />
 
         {/* Hero: Photo + Meta on left, Settings on right */}
         <div className="grid grid-cols-1 items-start gap-8 md:grid-cols-2">

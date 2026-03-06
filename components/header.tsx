@@ -85,15 +85,15 @@ export function Header() {
           <Link href="/" className="flex items-center gap-2">
             <Film className="h-5 w-5" />
             <h1 className="text-lg font-bold tracking-tight">
-              Film Recipe Viewer
+              film-simulation.site
             </h1>
           </Link>
           <nav className="hidden items-center gap-4 md:flex">
             <Link
-              href="/gallery"
+              href="/recipes"
               className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
             >
-              Gallery
+              Recipes
             </Link>
             <Link
               href="/stats"
@@ -179,11 +179,11 @@ export function Header() {
       {mobileMenuOpen && (
         <nav className="flex flex-col gap-1 border-t border-border px-6 py-3 md:hidden">
           <Link
-            href="/gallery"
+            href="/recipes"
             onClick={() => setMobileMenuOpen(false)}
             className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
           >
-            Gallery
+            Recipes
           </Link>
           <Link
             href="/stats"

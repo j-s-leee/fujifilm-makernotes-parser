@@ -5,7 +5,7 @@ export function Footer() {
     <footer className="border-t border-border px-6 py-6 md:px-10">
       <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
         <p className="text-sm text-muted-foreground">
-          &copy; {new Date().getFullYear()} Film Recipe Viewer
+          &copy; {new Date().getFullYear()} film-simulation.site
         </p>
         <nav className="flex items-center gap-6">
           <Link

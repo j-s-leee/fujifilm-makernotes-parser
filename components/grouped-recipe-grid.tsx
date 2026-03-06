@@ -26,12 +26,17 @@ interface GroupedRecipeGridProps {
 export function GroupedRecipeGrid({
   initialRecipes,
   fetchConfig,
-  basePath = "/gallery",
+  basePath = "/recipes",
 }: GroupedRecipeGridProps) {
   const [recipes, setRecipes] = useState<GalleryRecipe[]>(initialRecipes);
   const [expandedGroups, setExpandedGroups] = useState<Set<number>>(new Set());
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(initialRecipes.length >= PAGE_SIZE);
+  const cursorRef = useRef<GalleryRecipe | null>(
+    initialRecipes.length > 0
+      ? initialRecipes[initialRecipes.length - 1]
+      : null,
+  );
   const sentinelRef = useRef<HTMLDivElement>(null);
   const { bookmarks, likes, likeCounts, toggleBookmark, toggleLike, mergeLikeCounts } =
     useUserInteractions();
@@ -58,6 +63,8 @@ export function GroupedRecipeGrid({
 
   const fetchMore = useCallback(async () => {
     if (loading || !hasMore) return;
+    const cursor = cursorRef.current;
+    if (!cursor) return;
     setLoading(true);
 
     const supabase = createClient();
@@ -65,8 +72,12 @@ export function GroupedRecipeGrid({
     let query = supabase
       .from("recipes_with_stats")
       .select("*")
+      .or(
+        `created_at.lt.${cursor.created_at},and(created_at.eq.${cursor.created_at},id.lt.${cursor.id})`,
+      )
       .order("created_at", { ascending: false })
-      .range(recipes.length, recipes.length + PAGE_SIZE - 1);
+      .order("id", { ascending: false })
+      .limit(PAGE_SIZE);
 
     if (fetchConfig.type === "user") {
       query = query.eq("user_id", fetchConfig.userId);
@@ -83,10 +94,14 @@ export function GroupedRecipeGrid({
       setHasMore(false);
     }
 
+    if (newRecipes.length > 0) {
+      cursorRef.current = newRecipes[newRecipes.length - 1];
+    }
+
     setRecipes((prev) => [...prev, ...newRecipes]);
     mergeLikeCounts(newRecipes);
     setLoading(false);
-  }, [loading, hasMore, recipes.length, fetchConfig, mergeLikeCounts]);
+  }, [loading, hasMore, fetchConfig, mergeLikeCounts]);
 
   useEffect(() => {
     const sentinel = sentinelRef.current;
@@ -115,12 +130,14 @@ export function GroupedRecipeGrid({
       animationDelay?: number;
     },
   ) => {
-    const url = getThumbnailUrl(recipe.thumbnail_path);
+    const src = recipe.thumbnail_width
+      ? recipe.thumbnail_path
+      : getThumbnailUrl(recipe.thumbnail_path);
     return (
       <Link
         key={recipe.id}
         href={`${basePath}/${recipe.id}`}
-        className={`group relative overflow-hidden rounded-lg bg-muted ${
+        className={`group relative block overflow-hidden rounded-lg bg-muted ${
           options?.animated
             ? "animate-in fade-in-0 zoom-in-95 slide-in-from-bottom-2 duration-300 fill-mode-both"
             : ""
@@ -131,14 +148,21 @@ export function GroupedRecipeGrid({
             : undefined
         }
       >
-        {url ? (
+        {src ? (
           <Image
-            src={url}
+            src={src}
             alt={recipe.simulation ?? "Recipe"}
-            width={300}
-            height={300}
-            className="aspect-square w-full object-cover"
+            width={recipe.thumbnail_width ?? 300}
+            height={recipe.thumbnail_height ?? 300}
+            className="w-full object-cover rounded-lg"
+            style={
+              recipe.thumbnail_width && recipe.thumbnail_height
+                ? { aspectRatio: `${recipe.thumbnail_width}/${recipe.thumbnail_height}` }
+                : { aspectRatio: "1/1" }
+            }
             sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+            placeholder={recipe.blur_data_url ? "blur" : "empty"}
+            blurDataURL={recipe.blur_data_url ?? undefined}
           />
         ) : (
           <div className="flex aspect-square items-center justify-center text-muted-foreground text-sm">
@@ -165,7 +189,7 @@ export function GroupedRecipeGrid({
             {recipe.camera_model && (
               <>
                 <span className="opacity-50">&middot;</span>
-                <span className="opacity-80">{recipe.camera_model.replace(/^FUJIFILM\s*/i, "")}</span>
+                <span className="opacity-80">{recipe.camera_model}</span>
               </>
             )}
           </span>
@@ -205,7 +229,7 @@ export function GroupedRecipeGrid({
 
   return (
     <div>
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
+      <div className="columns-2 gap-4 md:columns-3 lg:columns-4 [&>*]:mb-4 [&>*]:break-inside-avoid">
         {groups.map((group, groupIndex) => {
           const isExpanded = expandedGroups.has(groupIndex);
 

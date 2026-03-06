@@ -1,4 +1,13 @@
 -- ============================================================
+-- ENUM TYPES
+-- ============================================================
+CREATE TYPE public.weak_strong AS ENUM ('off', 'weak', 'strong');
+CREATE TYPE public.grain_size_enum AS ENUM ('off', 'small', 'large');
+CREATE TYPE public.dr_setting AS ENUM (
+  'auto', 'manual', 'standard', 'wide-1', 'wide-2', 'film-simulation'
+);
+
+-- ============================================================
 -- PROFILES TABLE
 -- ============================================================
 CREATE TABLE public.profiles (
@@ -28,21 +37,102 @@ CREATE POLICY "Users can update own profile"
   WITH CHECK ((SELECT auth.uid()) = id);
 
 -- ============================================================
+-- REFERENCE TABLES
+-- ============================================================
+
+-- Simulations (film simulation modes)
+CREATE TABLE public.simulations (
+  id   smallint PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+  slug text NOT NULL UNIQUE
+);
+
+ALTER TABLE public.simulations ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "simulations are public"
+  ON public.simulations FOR SELECT
+  TO anon, authenticated
+  USING (true);
+
+-- Camera models with sensor generation
+CREATE TABLE public.camera_models (
+  id                smallint PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+  name              text NOT NULL UNIQUE,
+  sensor_generation text NOT NULL
+);
+
+ALTER TABLE public.camera_models ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "camera_models are public"
+  ON public.camera_models FOR SELECT
+  TO anon, authenticated
+  USING (true);
+
+-- Lenses (open-ended, insert-on-share)
+CREATE TABLE public.lenses (
+  id   smallint PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+  name text NOT NULL UNIQUE
+);
+
+ALTER TABLE public.lenses ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "lenses are public"
+  ON public.lenses FOR SELECT
+  TO anon, authenticated
+  USING (true);
+
+-- Lens upsert handled via resolve_lens_id() SECURITY DEFINER function
+CREATE OR REPLACE FUNCTION public.resolve_lens_id(lens_name text)
+RETURNS smallint
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  result_id smallint;
+BEGIN
+  SELECT id INTO result_id FROM lenses WHERE name = lens_name;
+  IF NOT FOUND THEN
+    INSERT INTO lenses (name) VALUES (lens_name)
+    ON CONFLICT (name) DO NOTHING
+    RETURNING id INTO result_id;
+    IF result_id IS NULL THEN
+      SELECT id INTO result_id FROM lenses WHERE name = lens_name;
+    END IF;
+  END IF;
+  RETURN result_id;
+END;
+$$ LANGUAGE plpgsql;
+
+-- White balance types
+CREATE TABLE public.wb_types (
+  id   smallint PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+  slug text NOT NULL UNIQUE
+);
+
+ALTER TABLE public.wb_types ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "wb_types are public"
+  ON public.wb_types FOR SELECT
+  TO anon, authenticated
+  USING (true);
+
+-- ============================================================
 -- RECIPES TABLE
 -- ============================================================
 CREATE TABLE public.recipes (
   id          bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
   user_id     uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  simulation  text,
-  grain_roughness text,
-  grain_size  text,
-  color_chrome text,
-  color_chrome_fx_blue text,
-  wb_type     text,
+  simulation_id   smallint REFERENCES public.simulations(id),
+  camera_model_id smallint REFERENCES public.camera_models(id),
+  lens_id         smallint REFERENCES public.lenses(id),
+  wb_type_id      smallint REFERENCES public.wb_types(id),
+  grain_roughness public.weak_strong,
+  grain_size  public.grain_size_enum,
+  color_chrome public.weak_strong,
+  color_chrome_fx_blue public.weak_strong,
+  dynamic_range_setting public.dr_setting,
   wb_color_temperature integer,
   wb_red      numeric,
   wb_blue     numeric,
-  dynamic_range_setting text,
   dynamic_range_development integer,
   highlight   numeric,
   shadow      numeric,
@@ -53,17 +143,25 @@ CREATE TABLE public.recipes (
   bw_adjustment numeric,
   bw_magenta_green numeric,
   thumbnail_path text,
-  camera_model text,
-  lens_model text,
+  blur_data_url text,
+  recipe_hash text,
+  thumbnail_width  smallint,
+  thumbnail_height smallint,
+  bookmark_count integer NOT NULL DEFAULT 0,
+  like_count integer NOT NULL DEFAULT 0,
   created_at  timestamptz DEFAULT now()
 );
 
 ALTER TABLE public.recipes ENABLE ROW LEVEL SECURITY;
 
-CREATE INDEX recipes_user_id_idx ON public.recipes (user_id);
-CREATE INDEX recipes_simulation_idx ON public.recipes (simulation);
-CREATE INDEX recipes_created_at_idx ON public.recipes (created_at DESC);
-CREATE INDEX recipes_camera_model_idx ON public.recipes (camera_model);
+CREATE INDEX recipes_simulation_id_idx ON public.recipes (simulation_id);
+CREATE INDEX recipes_camera_model_id_idx ON public.recipes (camera_model_id);
+CREATE INDEX recipes_lens_id_idx ON public.recipes (lens_id);
+CREATE INDEX recipes_wb_type_id_idx ON public.recipes (wb_type_id);
+CREATE INDEX recipes_recipe_hash_idx ON public.recipes (recipe_hash);
+CREATE INDEX recipes_created_at_id_idx ON public.recipes (created_at DESC, id DESC);
+CREATE INDEX recipes_like_count_id_idx ON public.recipes (like_count DESC, id DESC);
+CREATE INDEX recipes_user_created_at_id_idx ON public.recipes (user_id, created_at DESC, id DESC);
 
 -- Anyone can read all recipes (public gallery)
 CREATE POLICY "Recipes are publicly readable"
@@ -176,23 +274,61 @@ CREATE POLICY "Users can delete their own thumbnails"
   USING (bucket_id = 'thumbnails' AND (SELECT auth.uid())::text = (storage.foldername(name))[1]);
 
 -- ============================================================
--- VIEW: Recipe with bookmark and like counts
+-- TRIGGER FUNCTIONS: Maintain bookmark/like counters
+-- ============================================================
+CREATE OR REPLACE FUNCTION public.update_bookmark_count()
+RETURNS trigger
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  IF TG_OP = 'INSERT' THEN
+    UPDATE public.recipes SET bookmark_count = bookmark_count + 1 WHERE id = NEW.recipe_id;
+  ELSIF TG_OP = 'DELETE' THEN
+    UPDATE public.recipes SET bookmark_count = bookmark_count - 1 WHERE id = OLD.recipe_id;
+  END IF;
+  RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION public.update_like_count()
+RETURNS trigger
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  IF TG_OP = 'INSERT' THEN
+    UPDATE public.recipes SET like_count = like_count + 1 WHERE id = NEW.recipe_id;
+  ELSIF TG_OP = 'DELETE' THEN
+    UPDATE public.recipes SET like_count = like_count - 1 WHERE id = OLD.recipe_id;
+  END IF;
+  RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_bookmark_count
+  AFTER INSERT OR DELETE ON public.bookmarks
+  FOR EACH ROW EXECUTE FUNCTION public.update_bookmark_count();
+
+CREATE TRIGGER trg_like_count
+  AFTER INSERT OR DELETE ON public.likes
+  FOR EACH ROW EXECUTE FUNCTION public.update_like_count();
+
+-- ============================================================
+-- VIEW: Recipe with stats and joined text values
 -- ============================================================
 DROP VIEW IF EXISTS public.recipes_with_stats;
 CREATE VIEW public.recipes_with_stats
 WITH (security_invoker = on) AS
 SELECT
   r.*,
-  COALESCE(b.cnt, 0) AS bookmark_count,
-  COALESCE(l.cnt, 0) AS like_count
+  s.slug AS simulation,
+  cm.name AS camera_model,
+  cm.sensor_generation,
+  l.name AS lens_model,
+  w.slug AS wb_type
 FROM public.recipes r
-LEFT JOIN (
-  SELECT recipe_id, COUNT(*) AS cnt
-  FROM public.bookmarks
-  GROUP BY recipe_id
-) b ON b.recipe_id = r.id
-LEFT JOIN (
-  SELECT recipe_id, COUNT(*) AS cnt
-  FROM public.likes
-  GROUP BY recipe_id
-) l ON l.recipe_id = r.id;
+LEFT JOIN public.simulations s ON s.id = r.simulation_id
+LEFT JOIN public.camera_models cm ON cm.id = r.camera_model_id
+LEFT JOIN public.lenses l ON l.id = r.lens_id
+LEFT JOIN public.wb_types w ON w.id = r.wb_type_id;

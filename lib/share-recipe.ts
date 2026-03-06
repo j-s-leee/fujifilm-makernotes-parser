@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/client";
+import { computeRecipeHash } from "@/lib/recipe-hash";
 import type { FujifilmRecipe } from "@/fujifilm/recipe";
 import type { FujifilmSimulation } from "@/fujifilm/simulation";
 
@@ -35,17 +36,63 @@ export async function shareRecipe(
     return { success: false, error: "Failed to upload thumbnail" };
   }
 
-  const { key: fileName } = await uploadRes.json();
+  const { key: fileName, blurDataUrl, width, height } = await uploadRes.json();
 
-  // Insert recipe
+  // Resolve FK: simulation_id
+  let simulationId: number | null = null;
+  if (simulation) {
+    const { data: sim } = await supabase
+      .from("simulations")
+      .select("id")
+      .eq("slug", simulation)
+      .single();
+    simulationId = sim?.id ?? null;
+  }
+
+  // Resolve FK: camera_model_id
+  let cameraModelId: number | null = null;
+  if (cameraModel) {
+    const normalizedCamera = cameraModel.replace(/^FUJIFILM\s*/i, "").trim();
+    const { data: cm } = await supabase
+      .from("camera_models")
+      .select("id")
+      .eq("name", normalizedCamera)
+      .single();
+    cameraModelId = cm?.id ?? null;
+  }
+
+  // Resolve FK: lens_id (upsert via DB function)
+  let lensId: number | null = null;
+  if (lensModel) {
+    const { data } = await supabase.rpc("resolve_lens_id", {
+      lens_name: lensModel,
+    });
+    lensId = data ?? null;
+  }
+
+  // Resolve FK: wb_type_id
+  let wbTypeId: number | null = null;
+  const wbSlug = recipe.whiteBalance?.type ?? null;
+  if (wbSlug) {
+    const { data: wb } = await supabase
+      .from("wb_types")
+      .select("id")
+      .eq("slug", wbSlug)
+      .single();
+    wbTypeId = wb?.id ?? null;
+  }
+
+  // Insert recipe with FK references and enum values
   const { error: insertError } = await supabase.from("recipes").insert({
     user_id: user.id,
-    simulation: simulation ?? null,
+    simulation_id: simulationId,
+    camera_model_id: cameraModelId,
+    lens_id: lensId,
+    wb_type_id: wbTypeId,
     grain_roughness: recipe.grainEffect?.roughness ?? null,
     grain_size: recipe.grainEffect?.size ?? null,
     color_chrome: recipe.colorChromeEffect ?? null,
     color_chrome_fx_blue: recipe.colorChromeFXBlue ?? null,
-    wb_type: recipe.whiteBalance?.type ?? null,
     wb_color_temperature: recipe.whiteBalance?.colorTemperature ?? null,
     wb_red: recipe.whiteBalance?.red ?? null,
     wb_blue: recipe.whiteBalance?.blue ?? null,
@@ -60,8 +107,19 @@ export async function shareRecipe(
     bw_adjustment: recipe.bwAdjustment ?? null,
     bw_magenta_green: recipe.bwMagentaGreen ?? null,
     thumbnail_path: fileName,
-    camera_model: cameraModel ?? null,
-    lens_model: lensModel ?? null,
+    blur_data_url: blurDataUrl ?? null,
+    thumbnail_width: width ?? null,
+    thumbnail_height: height ?? null,
+    recipe_hash: computeRecipeHash({
+      simulation: simulation ?? null,
+      grain_roughness: recipe.grainEffect?.roughness ?? null,
+      grain_size: recipe.grainEffect?.size ?? null,
+      highlight: recipe.highlight ?? null,
+      shadow: recipe.shadow ?? null,
+      color: recipe.color ?? null,
+      sharpness: recipe.sharpness ?? null,
+      dynamic_range_development: recipe.dynamicRange?.development ?? null,
+    }),
   });
 
   if (insertError) {

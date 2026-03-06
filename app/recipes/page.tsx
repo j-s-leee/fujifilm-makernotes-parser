@@ -3,11 +3,14 @@ import { createClient } from "@/lib/supabase/server";
 import { GalleryGrid } from "@/components/gallery-grid";
 import {
   SENSOR_GENERATIONS,
-  getCameraModelsForGeneration,
   type SensorGeneration,
 } from "@/fujifilm/cameras";
+import {
+  FUJIFILM_SIMULATION_FORM_INPUT_OPTIONS,
+  isStringFujifilmSimulation,
+} from "@/fujifilm/simulation";
 
-interface GalleryPageProps {
+interface RecipesPageProps {
   searchParams: Promise<{
     simulation?: string;
     sort?: string;
@@ -15,7 +18,7 @@ interface GalleryPageProps {
   }>;
 }
 
-export default async function GalleryPage({ searchParams }: GalleryPageProps) {
+export default async function RecipesPage({ searchParams }: RecipesPageProps) {
   const params = await searchParams;
   const supabase = await createClient();
 
@@ -24,7 +27,7 @@ export default async function GalleryPage({ searchParams }: GalleryPageProps) {
     .select("*")
     .limit(24);
 
-  if (params.simulation) {
+  if (params.simulation && isStringFujifilmSimulation(params.simulation)) {
     query = query.eq("simulation", params.simulation);
   }
 
@@ -32,11 +35,7 @@ export default async function GalleryPage({ searchParams }: GalleryPageProps) {
     params.sensor &&
     SENSOR_GENERATIONS.includes(params.sensor as SensorGeneration)
   ) {
-    const models = getCameraModelsForGeneration(
-      params.sensor as SensorGeneration,
-    );
-    const patterns = models.flatMap((m) => [m, `FUJIFILM ${m}`]);
-    query = query.in("camera_model", patterns);
+    query = query.eq("sensor_generation", params.sensor);
   }
 
   if (params.sort === "popular") {
@@ -44,32 +43,9 @@ export default async function GalleryPage({ searchParams }: GalleryPageProps) {
   } else {
     query = query.order("created_at", { ascending: false });
   }
+  query = query.order("id", { ascending: false });
 
-  const [{ data: recipes }, { data: allRecipes }, { data: cameraData }] =
-    await Promise.all([
-      query,
-      supabase.from("recipes").select("simulation"),
-      supabase
-        .from("recipes")
-        .select("camera_model")
-        .not("camera_model", "is", null),
-    ]);
-
-  const simulations = [
-    ...new Set(
-      allRecipes?.map((r) => r.simulation).filter(Boolean) as string[],
-    ),
-  ].sort();
-
-  const existingModels = new Set(
-    cameraData?.map((r) => r.camera_model) ?? [],
-  );
-  const availableGenerations = SENSOR_GENERATIONS.filter((gen) => {
-    const models = getCameraModelsForGeneration(gen);
-    return models.some(
-      (m) => existingModels.has(m) || existingModels.has(`FUJIFILM ${m}`),
-    );
-  });
+  const { data: recipes } = await query;
 
   // Build filter URL helper
   const buildUrl = (overrides: Record<string, string | undefined>) => {
@@ -79,7 +55,7 @@ export default async function GalleryPage({ searchParams }: GalleryPageProps) {
     if (merged.sensor) search.set("sensor", merged.sensor);
     if (merged.sort) search.set("sort", merged.sort);
     const qs = search.toString();
-    return `/gallery${qs ? `?${qs}` : ""}`;
+    return `/recipes${qs ? `?${qs}` : ""}`;
   };
 
   return (
@@ -87,7 +63,7 @@ export default async function GalleryPage({ searchParams }: GalleryPageProps) {
       <div className="flex w-full max-w-6xl flex-col gap-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">Gallery</h1>
+            <h1 className="text-2xl font-bold tracking-tight">Recipes</h1>
             <p className="text-sm text-muted-foreground mt-1">
               Community-shared film recipes
             </p>
@@ -95,36 +71,34 @@ export default async function GalleryPage({ searchParams }: GalleryPageProps) {
         </div>
 
         {/* Sensor generation filter */}
-        {availableGenerations.length > 0 && (
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs font-medium text-muted-foreground">
-              Sensor
-            </span>
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-xs font-medium text-muted-foreground">
+            Sensor
+          </span>
+          <Link
+            href={buildUrl({ sensor: undefined })}
+            className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+              !params.sensor
+                ? "bg-foreground text-background"
+                : "border-border text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            All
+          </Link>
+          {SENSOR_GENERATIONS.map((gen) => (
             <Link
-              href={buildUrl({ sensor: undefined })}
+              key={gen}
+              href={buildUrl({ sensor: gen })}
               className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
-                !params.sensor
+                params.sensor === gen
                   ? "bg-foreground text-background"
                   : "border-border text-muted-foreground hover:text-foreground"
               }`}
             >
-              All
+              {gen}
             </Link>
-            {availableGenerations.map((gen) => (
-              <Link
-                key={gen}
-                href={buildUrl({ sensor: gen })}
-                className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
-                  params.sensor === gen
-                    ? "bg-foreground text-background"
-                    : "border-border text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                {gen}
-              </Link>
-            ))}
-          </div>
-        )}
+          ))}
+        </div>
 
         {/* Simulation filter */}
         <div className="flex flex-wrap items-center gap-2">
@@ -141,17 +115,17 @@ export default async function GalleryPage({ searchParams }: GalleryPageProps) {
           >
             All
           </Link>
-          {simulations.map((sim) => (
+          {FUJIFILM_SIMULATION_FORM_INPUT_OPTIONS.map((opt) => (
             <Link
-              key={sim}
-              href={buildUrl({ simulation: sim })}
+              key={opt.value}
+              href={buildUrl({ simulation: opt.value })}
               className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
-                params.simulation === sim
+                params.simulation === opt.value
                   ? "bg-foreground text-background"
                   : "border-border text-muted-foreground hover:text-foreground"
               }`}
             >
-              {sim}
+              {opt.label}
             </Link>
           ))}
         </div>

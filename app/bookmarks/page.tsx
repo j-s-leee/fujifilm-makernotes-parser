@@ -31,6 +31,7 @@ export default async function BookmarksPage() {
       .select("*")
       .in("id", bookmarkIds)
       .order("created_at", { ascending: false })
+      .order("id", { ascending: false })
       .limit(24);
     typedRecipes = (recipes ?? []) as GalleryRecipe[];
   }
@@ -48,7 +49,7 @@ export default async function BookmarksPage() {
           <GroupedRecipeGrid
             initialRecipes={typedRecipes}
             fetchConfig={{ type: "bookmarks", bookmarkIds }}
-            basePath="/bookmarks"
+            basePath="/recipes"
           />
         ) : (
           <p className="text-center text-sm text-muted-foreground py-20">

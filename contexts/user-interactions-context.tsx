@@ -6,6 +6,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import { useUser } from "@/hooks/use-user";
@@ -50,6 +51,7 @@ export function UserInteractionsProvider({
     new Map(),
   );
   const [isLoaded, setIsLoaded] = useState(false);
+  const inflightRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     if (!user) {
@@ -96,24 +98,49 @@ export function UserInteractionsProvider({
         return;
       }
 
+      const key = `bookmark:${recipeId}`;
+      if (inflightRef.current.has(key)) return;
+      inflightRef.current.add(key);
+
       const supabase = createClient();
       const isBookmarked = bookmarks.has(recipeId);
 
+      // optimistic update
       if (isBookmarked) {
         setBookmarks((prev) => {
           const next = new Set(prev);
           next.delete(recipeId);
           return next;
         });
-        await supabase
-          .from("bookmarks")
-          .delete()
-          .match({ user_id: user.id, recipe_id: recipeId });
       } else {
         setBookmarks((prev) => new Set(prev).add(recipeId));
-        await supabase
-          .from("bookmarks")
-          .insert({ user_id: user.id, recipe_id: recipeId });
+      }
+
+      try {
+        const { error } = isBookmarked
+          ? await supabase
+              .from("bookmarks")
+              .delete()
+              .match({ user_id: user.id, recipe_id: recipeId })
+          : await supabase
+              .from("bookmarks")
+              .insert({ user_id: user.id, recipe_id: recipeId });
+
+        if (error) throw error;
+      } catch {
+        // rollback
+        if (isBookmarked) {
+          setBookmarks((prev) => new Set(prev).add(recipeId));
+        } else {
+          setBookmarks((prev) => {
+            const next = new Set(prev);
+            next.delete(recipeId);
+            return next;
+          });
+        }
+        toast({ description: "Something went wrong. Please try again." });
+      } finally {
+        inflightRef.current.delete(key);
       }
     },
     [user, bookmarks, toast],
@@ -129,9 +156,15 @@ export function UserInteractionsProvider({
         return;
       }
 
+      const key = `like:${recipeId}`;
+      if (inflightRef.current.has(key)) return;
+      inflightRef.current.add(key);
+
       const supabase = createClient();
       const isLiked = likes.has(recipeId);
+      const prevCount = likeCounts.get(recipeId) ?? 0;
 
+      // optimistic update
       if (isLiked) {
         setLikes((prev) => {
           const next = new Set(prev);
@@ -140,26 +173,51 @@ export function UserInteractionsProvider({
         });
         setLikeCounts((prev) => {
           const next = new Map(prev);
-          next.set(recipeId, (next.get(recipeId) ?? 0) - 1);
+          next.set(recipeId, prevCount - 1);
           return next;
         });
-        await supabase
-          .from("likes")
-          .delete()
-          .match({ user_id: user.id, recipe_id: recipeId });
       } else {
         setLikes((prev) => new Set(prev).add(recipeId));
         setLikeCounts((prev) => {
           const next = new Map(prev);
-          next.set(recipeId, (next.get(recipeId) ?? 0) + 1);
+          next.set(recipeId, prevCount + 1);
           return next;
         });
-        await supabase
-          .from("likes")
-          .insert({ user_id: user.id, recipe_id: recipeId });
+      }
+
+      try {
+        const { error } = isLiked
+          ? await supabase
+              .from("likes")
+              .delete()
+              .match({ user_id: user.id, recipe_id: recipeId })
+          : await supabase
+              .from("likes")
+              .insert({ user_id: user.id, recipe_id: recipeId });
+
+        if (error) throw error;
+      } catch {
+        // rollback
+        if (isLiked) {
+          setLikes((prev) => new Set(prev).add(recipeId));
+        } else {
+          setLikes((prev) => {
+            const next = new Set(prev);
+            next.delete(recipeId);
+            return next;
+          });
+        }
+        setLikeCounts((prev) => {
+          const next = new Map(prev);
+          next.set(recipeId, prevCount);
+          return next;
+        });
+        toast({ description: "Something went wrong. Please try again." });
+      } finally {
+        inflightRef.current.delete(key);
       }
     },
-    [user, likes, toast],
+    [user, likes, likeCounts, toast],
   );
 
   const mergeLikeCounts = useCallback(

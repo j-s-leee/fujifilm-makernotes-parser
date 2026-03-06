@@ -7,6 +7,9 @@ interface SimilarRecipesProps {
     id: number;
     simulation: string | null;
     thumbnail_path: string | null;
+    blur_data_url: string | null;
+    thumbnail_width: number | null;
+    thumbnail_height: number | null;
   }[];
 }
 
@@ -16,23 +19,32 @@ export function SimilarRecipes({ recipes }: SimilarRecipesProps) {
       <h2 className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
         Similar Recipes
       </h2>
-      <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-6">
+      <div className="columns-3 gap-3 sm:columns-4 md:columns-6 [&>*]:mb-3 [&>*]:break-inside-avoid">
         {recipes.map((recipe) => {
-          const url = getThumbnailUrl(recipe.thumbnail_path);
+          const src = recipe.thumbnail_width
+            ? recipe.thumbnail_path
+            : getThumbnailUrl(recipe.thumbnail_path);
           return (
             <Link
               key={recipe.id}
-              href={`/gallery/${recipe.id}`}
-              className="group relative overflow-hidden rounded-lg bg-muted"
+              href={`/recipes/${recipe.id}`}
+              className="group relative block overflow-hidden rounded-lg bg-muted"
             >
-              {url ? (
+              {src ? (
                 <Image
-                  src={url}
+                  src={src}
                   alt={recipe.simulation ?? "Recipe"}
-                  width={200}
-                  height={200}
-                  className="aspect-square w-full object-cover"
+                  width={recipe.thumbnail_width ?? 200}
+                  height={recipe.thumbnail_height ?? 200}
+                  className="w-full object-cover rounded-lg"
+                  style={
+                    recipe.thumbnail_width && recipe.thumbnail_height
+                      ? { aspectRatio: `${recipe.thumbnail_width}/${recipe.thumbnail_height}` }
+                      : { aspectRatio: "1/1" }
+                  }
                   sizes="(max-width: 640px) 33vw, (max-width: 768px) 25vw, 16vw"
+                  placeholder={recipe.blur_data_url ? "blur" : "empty"}
+                  blurDataURL={recipe.blur_data_url ?? undefined}
                 />
               ) : (
                 <div className="flex aspect-square items-center justify-center text-xs text-muted-foreground">
