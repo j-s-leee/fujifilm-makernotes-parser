@@ -48,7 +48,7 @@ export default async function LikesPage() {
           <GroupedRecipeGrid
             initialRecipes={typedRecipes}
             fetchConfig={{ type: "likes", likeIds }}
-            basePath="/likes"
+            basePath="/recipes"
           />
         ) : (
           <p className="text-center text-sm text-muted-foreground py-20">

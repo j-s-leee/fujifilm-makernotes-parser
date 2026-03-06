@@ -13,8 +13,20 @@ const spaceGrotesk = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
-  title: "Film Recipe Viewer",
-  description: "View and share your Fujifilm recipes",
+  title: {
+    default: "film-simulation.site",
+    template: "%s | film-simulation.site",
+  },
+  description: "Discover and share Fujifilm film simulation recipes",
+  icons: {
+    icon: [
+      { url: "/logo/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+      { url: "/logo/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+    ],
+    shortcut: "/logo/favicon.ico",
+    apple: "/logo/apple-touch-icon.png",
+  },
+  manifest: "/logo/site.webmanifest",
 };
 
 export default function RootLayout({

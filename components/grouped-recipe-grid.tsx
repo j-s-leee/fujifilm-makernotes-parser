@@ -26,7 +26,7 @@ interface GroupedRecipeGridProps {
 export function GroupedRecipeGrid({
   initialRecipes,
   fetchConfig,
-  basePath = "/gallery",
+  basePath = "/recipes",
 }: GroupedRecipeGridProps) {
   const [recipes, setRecipes] = useState<GalleryRecipe[]>(initialRecipes);
   const [expandedGroups, setExpandedGroups] = useState<Set<number>>(new Set());

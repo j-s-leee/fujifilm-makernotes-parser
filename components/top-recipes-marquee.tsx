@@ -42,7 +42,7 @@ export function TopRecipesMarquee() {
         return (
           <Link
             key={recipe.id}
-            href={`/gallery/${recipe.id}`}
+            href={`/recipes/${recipe.id}`}
             className="group relative h-32 w-32 flex-shrink-0 overflow-hidden rounded-lg sm:h-40 sm:w-40"
           >
             <Image

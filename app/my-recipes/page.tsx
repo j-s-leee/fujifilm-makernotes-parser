@@ -40,7 +40,7 @@ export default async function MyRecipesPage() {
           <GroupedRecipeGrid
             initialRecipes={typedRecipes}
             fetchConfig={{ type: "user", userId: user.id }}
-            basePath="/my-recipes"
+            basePath="/recipes"
           />
         ) : (
           <p className="text-center text-sm text-muted-foreground py-20">

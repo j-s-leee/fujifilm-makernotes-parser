@@ -22,7 +22,7 @@ export function SimilarRecipes({ recipes }: SimilarRecipesProps) {
           return (
             <Link
               key={recipe.id}
-              href={`/gallery/${recipe.id}`}
+              href={`/recipes/${recipe.id}`}
               className="group relative overflow-hidden rounded-lg bg-muted"
             >
               {url ? (

@@ -89,7 +89,7 @@ export default async function RecipePage({ params }: RecipePageProps) {
     <div className="flex flex-1 justify-center px-4 py-8 sm:px-6 md:px-10 md:py-12">
       <div className="flex w-full max-w-5xl flex-col gap-8">
         {/* Back link */}
-        <BackButton label="Back to Gallery" fallbackHref="/gallery" />
+        <BackButton label="Back to Recipes" fallbackHref="/recipes" />
 
         {/* Hero: Photo + Meta on left, Settings on right */}
         <div className="grid grid-cols-1 items-start gap-8 md:grid-cols-2">

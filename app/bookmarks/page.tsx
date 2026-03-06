@@ -48,7 +48,7 @@ export default async function BookmarksPage() {
           <GroupedRecipeGrid
             initialRecipes={typedRecipes}
             fetchConfig={{ type: "bookmarks", bookmarkIds }}
-            basePath="/bookmarks"
+            basePath="/recipes"
           />
         ) : (
           <p className="text-center text-sm text-muted-foreground py-20">
