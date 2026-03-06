@@ -138,16 +138,20 @@ export function GalleryGrid({
     <div>
       <div className="columns-2 gap-4 md:columns-3 lg:columns-4 [&>*]:mb-4 [&>*]:break-inside-avoid">
         {recipes.map((recipe) => {
-          const url = getThumbnailUrl(recipe.thumbnail_path);
+          // New images (have thumbnail_width) → pass path for loader to resolve variants
+          // Legacy images (no thumbnail_width) → pass full R2 URL so loader returns as-is
+          const src = recipe.thumbnail_width
+            ? recipe.thumbnail_path
+            : getThumbnailUrl(recipe.thumbnail_path);
           return (
             <Link
               key={recipe.id}
               href={`/recipes/${recipe.id}`}
               className="group relative block overflow-hidden rounded-lg bg-muted"
             >
-              {url ? (
+              {src ? (
                 <Image
-                  src={url}
+                  src={src}
                   alt={recipe.simulation ?? "Recipe"}
                   width={recipe.thumbnail_width ?? 300}
                   height={recipe.thumbnail_height ?? 300}

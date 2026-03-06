@@ -21,16 +21,18 @@ export function SimilarRecipes({ recipes }: SimilarRecipesProps) {
       </h2>
       <div className="columns-3 gap-3 sm:columns-4 md:columns-6 [&>*]:mb-3 [&>*]:break-inside-avoid">
         {recipes.map((recipe) => {
-          const url = getThumbnailUrl(recipe.thumbnail_path);
+          const src = recipe.thumbnail_width
+            ? recipe.thumbnail_path
+            : getThumbnailUrl(recipe.thumbnail_path);
           return (
             <Link
               key={recipe.id}
               href={`/recipes/${recipe.id}`}
               className="group relative block overflow-hidden rounded-lg bg-muted"
             >
-              {url ? (
+              {src ? (
                 <Image
-                  src={url}
+                  src={src}
                   alt={recipe.simulation ?? "Recipe"}
                   width={recipe.thumbnail_width ?? 200}
                   height={recipe.thumbnail_height ?? 200}

@@ -12,6 +12,7 @@ interface RecipeHeroProps {
     simulation: string | null;
     thumbnail_path: string | null;
     blur_data_url: string | null;
+    thumbnail_width: number | null;
     camera_model: string | null;
     lens_model: string | null;
     bookmark_count: number;
@@ -31,7 +32,10 @@ export function RecipeHero({
     mergeLikeCounts([recipe]);
   }, [recipe, mergeLikeCounts]);
 
-  const thumbnailUrl = getThumbnailUrl(recipe.thumbnail_path);
+  // New images → pass path for loader; legacy → pass full R2 URL
+  const thumbnailUrl = recipe.thumbnail_width
+    ? recipe.thumbnail_path
+    : getThumbnailUrl(recipe.thumbnail_path);
   const isBookmarked = bookmarks.has(recipe.id);
   const isLiked = likes.has(recipe.id);
   const likeCount = likeCounts.get(recipe.id) ?? recipe.like_count;
@@ -47,7 +51,6 @@ export function RecipeHero({
           height={600}
           className="w-full rounded-lg object-cover"
           sizes="(max-width: 768px) 100vw, 50vw"
-          quality={90}
           priority
           placeholder={recipe.blur_data_url ? "blur" : "empty"}
           blurDataURL={recipe.blur_data_url ?? undefined}

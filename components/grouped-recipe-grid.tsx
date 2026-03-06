@@ -130,7 +130,9 @@ export function GroupedRecipeGrid({
       animationDelay?: number;
     },
   ) => {
-    const url = getThumbnailUrl(recipe.thumbnail_path);
+    const src = recipe.thumbnail_width
+      ? recipe.thumbnail_path
+      : getThumbnailUrl(recipe.thumbnail_path);
     return (
       <Link
         key={recipe.id}
@@ -146,9 +148,9 @@ export function GroupedRecipeGrid({
             : undefined
         }
       >
-        {url ? (
+        {src ? (
           <Image
-            src={url}
+            src={src}
             alt={recipe.simulation ?? "Recipe"}
             width={recipe.thumbnail_width ?? 300}
             height={recipe.thumbnail_height ?? 300}
