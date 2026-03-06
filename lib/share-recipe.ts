@@ -61,24 +61,13 @@ export async function shareRecipe(
     cameraModelId = cm?.id ?? null;
   }
 
-  // Resolve FK: lens_id (upsert — new lenses can appear)
+  // Resolve FK: lens_id (upsert via DB function)
   let lensId: number | null = null;
   if (lensModel) {
-    const { data: existing } = await supabase
-      .from("lenses")
-      .select("id")
-      .eq("name", lensModel)
-      .single();
-    if (existing) {
-      lensId = existing.id;
-    } else {
-      const { data: inserted } = await supabase
-        .from("lenses")
-        .insert({ name: lensModel })
-        .select("id")
-        .single();
-      lensId = inserted?.id ?? null;
-    }
+    const { data } = await supabase.rpc("resolve_lens_id", {
+      lens_name: lensModel,
+    });
+    lensId = data ?? null;
   }
 
   // Resolve FK: wb_type_id

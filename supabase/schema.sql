@@ -80,10 +80,27 @@ CREATE POLICY "lenses are public"
   TO anon, authenticated
   USING (true);
 
-CREATE POLICY "Users can add lenses"
-  ON public.lenses FOR INSERT
-  TO authenticated
-  WITH CHECK (true);
+-- Lens upsert handled via resolve_lens_id() SECURITY DEFINER function
+CREATE OR REPLACE FUNCTION public.resolve_lens_id(lens_name text)
+RETURNS smallint
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  result_id smallint;
+BEGIN
+  SELECT id INTO result_id FROM lenses WHERE name = lens_name;
+  IF NOT FOUND THEN
+    INSERT INTO lenses (name) VALUES (lens_name)
+    ON CONFLICT (name) DO NOTHING
+    RETURNING id INTO result_id;
+    IF result_id IS NULL THEN
+      SELECT id INTO result_id FROM lenses WHERE name = lens_name;
+    END IF;
+  END IF;
+  RETURN result_id;
+END;
+$$ LANGUAGE plpgsql;
 
 -- White balance types
 CREATE TABLE public.wb_types (
@@ -128,6 +145,8 @@ CREATE TABLE public.recipes (
   thumbnail_path text,
   blur_data_url text,
   recipe_hash text,
+  bookmark_count integer NOT NULL DEFAULT 0,
+  like_count integer NOT NULL DEFAULT 0,
   created_at  timestamptz DEFAULT now()
 );
 
@@ -140,6 +159,7 @@ CREATE INDEX recipes_lens_id_idx ON public.recipes (lens_id);
 CREATE INDEX recipes_wb_type_id_idx ON public.recipes (wb_type_id);
 CREATE INDEX recipes_created_at_idx ON public.recipes (created_at DESC);
 CREATE INDEX recipes_recipe_hash_idx ON public.recipes (recipe_hash);
+CREATE INDEX recipes_like_count_idx ON public.recipes (like_count DESC);
 
 -- Anyone can read all recipes (public gallery)
 CREATE POLICY "Recipes are publicly readable"
@@ -252,6 +272,47 @@ CREATE POLICY "Users can delete their own thumbnails"
   USING (bucket_id = 'thumbnails' AND (SELECT auth.uid())::text = (storage.foldername(name))[1]);
 
 -- ============================================================
+-- TRIGGER FUNCTIONS: Maintain bookmark/like counters
+-- ============================================================
+CREATE OR REPLACE FUNCTION public.update_bookmark_count()
+RETURNS trigger
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  IF TG_OP = 'INSERT' THEN
+    UPDATE public.recipes SET bookmark_count = bookmark_count + 1 WHERE id = NEW.recipe_id;
+  ELSIF TG_OP = 'DELETE' THEN
+    UPDATE public.recipes SET bookmark_count = bookmark_count - 1 WHERE id = OLD.recipe_id;
+  END IF;
+  RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION public.update_like_count()
+RETURNS trigger
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  IF TG_OP = 'INSERT' THEN
+    UPDATE public.recipes SET like_count = like_count + 1 WHERE id = NEW.recipe_id;
+  ELSIF TG_OP = 'DELETE' THEN
+    UPDATE public.recipes SET like_count = like_count - 1 WHERE id = OLD.recipe_id;
+  END IF;
+  RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_bookmark_count
+  AFTER INSERT OR DELETE ON public.bookmarks
+  FOR EACH ROW EXECUTE FUNCTION public.update_bookmark_count();
+
+CREATE TRIGGER trg_like_count
+  AFTER INSERT OR DELETE ON public.likes
+  FOR EACH ROW EXECUTE FUNCTION public.update_like_count();
+
+-- ============================================================
 -- VIEW: Recipe with stats and joined text values
 -- ============================================================
 DROP VIEW IF EXISTS public.recipes_with_stats;
@@ -263,21 +324,9 @@ SELECT
   cm.name AS camera_model,
   cm.sensor_generation,
   l.name AS lens_model,
-  w.slug AS wb_type,
-  COALESCE(b.cnt, 0) AS bookmark_count,
-  COALESCE(lk.cnt, 0) AS like_count
+  w.slug AS wb_type
 FROM public.recipes r
 LEFT JOIN public.simulations s ON s.id = r.simulation_id
 LEFT JOIN public.camera_models cm ON cm.id = r.camera_model_id
 LEFT JOIN public.lenses l ON l.id = r.lens_id
-LEFT JOIN public.wb_types w ON w.id = r.wb_type_id
-LEFT JOIN (
-  SELECT recipe_id, COUNT(*) AS cnt
-  FROM public.bookmarks
-  GROUP BY recipe_id
-) b ON b.recipe_id = r.id
-LEFT JOIN (
-  SELECT recipe_id, COUNT(*) AS cnt
-  FROM public.likes
-  GROUP BY recipe_id
-) lk ON lk.recipe_id = r.id;
+LEFT JOIN public.wb_types w ON w.id = r.wb_type_id;
