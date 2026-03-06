@@ -1,10 +1,8 @@
-const SIZES = [480, 960, 1200];
-
 /**
  * Returns the thumbnail URL for a recipe image.
  *
- * - `hasVariants` true + `width` → returns the best-fit pre-generated variant URL
- * - Otherwise → returns the original R2 URL (legacy images)
+ * - `hasVariants` true + `width` ≤ 480 → returns _w480 variant URL
+ * - Otherwise → returns the original R2 URL
  */
 export function getThumbnailUrl(
   path: string | null,
@@ -16,10 +14,9 @@ export function getThumbnailUrl(
 
   const r2Url = process.env.NEXT_PUBLIC_R2_PUBLIC_URL;
   if (r2Url) {
-    if (hasVariants && width) {
+    if (hasVariants && width && width <= 480) {
       const baseName = path.replace(/\.[^.]+$/, "");
-      const target = SIZES.find((s) => s >= width) ?? SIZES[SIZES.length - 1];
-      return `${r2Url}/${baseName}_w${target}.webp`;
+      return `${r2Url}/${baseName}_w480.webp`;
     }
     return `${r2Url}/${path}`;
   }
