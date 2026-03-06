@@ -30,56 +30,14 @@ export default async function RecipePage({ params }: RecipePageProps) {
   // Fetch sharer info - try email from user_id
   const sharerName: string | null = null;
 
-  // Fetch similar recipes (same core settings)
+  // Fetch similar recipes (same core settings via recipe_hash)
   let similarRecipes: typeof recipe[] = [];
-  {
-    let query = supabase
+  if (recipe.recipe_hash) {
+    const { data } = await supabase
       .from("recipes_with_stats")
       .select("*")
-      .neq("id", recipeId);
-
-    if (recipe.simulation !== null) {
-      query = query.eq("simulation", recipe.simulation);
-    } else {
-      query = query.is("simulation", null);
-    }
-    if (recipe.grain_roughness !== null) {
-      query = query.eq("grain_roughness", recipe.grain_roughness);
-    } else {
-      query = query.is("grain_roughness", null);
-    }
-    if (recipe.grain_size !== null) {
-      query = query.eq("grain_size", recipe.grain_size);
-    } else {
-      query = query.is("grain_size", null);
-    }
-    if (recipe.highlight !== null) {
-      query = query.eq("highlight", recipe.highlight);
-    } else {
-      query = query.is("highlight", null);
-    }
-    if (recipe.shadow !== null) {
-      query = query.eq("shadow", recipe.shadow);
-    } else {
-      query = query.is("shadow", null);
-    }
-    if (recipe.color !== null) {
-      query = query.eq("color", recipe.color);
-    } else {
-      query = query.is("color", null);
-    }
-    if (recipe.sharpness !== null) {
-      query = query.eq("sharpness", recipe.sharpness);
-    } else {
-      query = query.is("sharpness", null);
-    }
-    if (recipe.dynamic_range_development !== null) {
-      query = query.eq("dynamic_range_development", recipe.dynamic_range_development);
-    } else {
-      query = query.is("dynamic_range_development", null);
-    }
-
-    const { data } = await query
+      .eq("recipe_hash", recipe.recipe_hash)
+      .neq("id", recipeId)
       .order("created_at", { ascending: false })
       .limit(12);
     similarRecipes = data ?? [];

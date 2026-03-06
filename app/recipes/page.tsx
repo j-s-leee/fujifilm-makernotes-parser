@@ -3,7 +3,6 @@ import { createClient } from "@/lib/supabase/server";
 import { GalleryGrid } from "@/components/gallery-grid";
 import {
   SENSOR_GENERATIONS,
-  getCameraModelsForGeneration,
   type SensorGeneration,
 } from "@/fujifilm/cameras";
 import {
@@ -36,11 +35,7 @@ export default async function RecipesPage({ searchParams }: RecipesPageProps) {
     params.sensor &&
     SENSOR_GENERATIONS.includes(params.sensor as SensorGeneration)
   ) {
-    const models = getCameraModelsForGeneration(
-      params.sensor as SensorGeneration,
-    );
-    const patterns = models.flatMap((m) => [m, `FUJIFILM ${m}`]);
-    query = query.in("camera_model", patterns);
+    query = query.eq("sensor_generation", params.sensor);
   }
 
   if (params.sort === "popular") {

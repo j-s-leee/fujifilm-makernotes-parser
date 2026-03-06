@@ -7,7 +7,6 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { useUserInteractions } from "@/contexts/user-interactions-context";
 import {
-  getCameraModelsForGeneration,
   SENSOR_GENERATIONS,
   type SensorGeneration,
 } from "@/fujifilm/cameras";
@@ -66,9 +65,7 @@ export function GalleryGrid({
     }
 
     if (sensor && SENSOR_GENERATIONS.includes(sensor as SensorGeneration)) {
-      const models = getCameraModelsForGeneration(sensor as SensorGeneration);
-      const patterns = models.flatMap((m) => [m, `FUJIFILM ${m}`]);
-      query = query.in("camera_model", patterns);
+      query = query.eq("sensor_generation", sensor);
     }
 
     if (sort === "popular") {
@@ -151,7 +148,7 @@ export function GalleryGrid({
                   {recipe.camera_model && (
                     <>
                       <span className="opacity-50">&middot;</span>
-                      <span className="opacity-80">{recipe.camera_model.replace(/^FUJIFILM\s*/i, "")}</span>
+                      <span className="opacity-80">{recipe.camera_model}</span>
                     </>
                   )}
                 </span>

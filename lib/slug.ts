@@ -1,6 +1,6 @@
 import {
   SENSOR_GENERATIONS,
-  getCameraModelsForGeneration,
+  ALL_CAMERA_MODELS,
   type SensorGeneration,
 } from "@/fujifilm/cameras";
 import {
@@ -38,10 +38,5 @@ export function fromSensorSlug(slug: string): SensorGeneration | null {
 
 /** Resolve a camera slug back to a camera model name */
 export function fromCameraSlug(slug: string): string | null {
-  for (const gen of SENSOR_GENERATIONS) {
-    const models = getCameraModelsForGeneration(gen);
-    const match = models.find((m) => toSlug(m) === slug);
-    if (match) return match;
-  }
-  return null;
+  return ALL_CAMERA_MODELS.find((m) => toSlug(m) === slug) ?? null;
 }

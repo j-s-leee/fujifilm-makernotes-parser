@@ -3,10 +3,7 @@ import type { Metadata } from "next";
 import { createStaticClient } from "@/lib/supabase/server";
 import { GalleryGrid } from "@/components/gallery-grid";
 import { fromSensorSlug, toSlug } from "@/lib/slug";
-import {
-  SENSOR_GENERATIONS,
-  getCameraModelsForGeneration,
-} from "@/fujifilm/cameras";
+import { SENSOR_GENERATIONS } from "@/fujifilm/cameras";
 
 export const revalidate = 3600;
 
@@ -33,13 +30,10 @@ export default async function SensorPage({ params }: Props) {
 
   const supabase = createStaticClient();
 
-  const models = getCameraModelsForGeneration(sensor);
-  const patterns = models.flatMap((m) => [m, `FUJIFILM ${m}`]);
-  console.log(patterns);
   const { data: recipes } = await supabase
     .from("recipes_with_stats")
     .select("*")
-    .in("camera_model", patterns)
+    .eq("sensor_generation", sensor)
     .order("created_at", { ascending: false })
     .limit(24);
 

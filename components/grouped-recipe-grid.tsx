@@ -165,7 +165,7 @@ export function GroupedRecipeGrid({
             {recipe.camera_model && (
               <>
                 <span className="opacity-50">&middot;</span>
-                <span className="opacity-80">{recipe.camera_model.replace(/^FUJIFILM\s*/i, "")}</span>
+                <span className="opacity-80">{recipe.camera_model}</span>
               </>
             )}
           </span>
