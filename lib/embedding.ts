@@ -24,6 +24,7 @@ export async function getImageEmbedding(
         "Content-Type": "application/octet-stream",
       },
       body: imageBuffer,
+      signal: AbortSignal.timeout(30_000),
     });
 
     if (!response.ok) {
