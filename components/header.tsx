@@ -104,6 +104,12 @@ export function Header() {
             {user && (
               <>
                 <Link
+                  href="/recommend"
+                  className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  Recommend
+                </Link>
+                <Link
                   href="/my-recipes"
                   className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
                 >
@@ -194,6 +200,13 @@ export function Header() {
           </Link>
           {user && (
             <>
+              <Link
+                href="/recommend"
+                onClick={() => setMobileMenuOpen(false)}
+                className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              >
+                Recommend
+              </Link>
               <Link
                 href="/my-recipes"
                 onClick={() => setMobileMenuOpen(false)}
