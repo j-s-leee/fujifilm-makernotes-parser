@@ -5,7 +5,7 @@
  *
  * Requires:
  *   NEXT_PUBLIC_SUPABASE_URL
- *   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY (or a service role key)
+ *   SUPABASE_SERVICE_ROLE_KEY (required for UPDATE — bypasses RLS)
  *   NEXT_PUBLIC_R2_PUBLIC_URL
  *   HUGGINGFACE_API_KEY
  *
@@ -18,7 +18,9 @@ config({ path: ".env.local" });
 import { createClient } from "@supabase/supabase-js";
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const SUPABASE_KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY!;
+const SUPABASE_KEY =
+  process.env.SUPABASE_SERVICE_ROLE_KEY ??
+  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY!;
 const R2_PUBLIC_URL = process.env.NEXT_PUBLIC_R2_PUBLIC_URL!;
 const HF_API_KEY = process.env.HUGGINGFACE_API_KEY!;
 const HF_API_URL =

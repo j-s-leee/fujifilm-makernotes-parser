@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import Link from "next/link";
 import { RecommendUploader } from "@/components/recommend-uploader";
 import { RecommendResults } from "@/components/recommend-results";
 import type { RecommendResult } from "@/components/recommend-uploader";
@@ -18,6 +19,13 @@ export function RecommendPageClient() {
     setPreviewUrl(newPreviewUrl);
   };
 
+  // Clean up preview URL on unmount
+  useEffect(() => {
+    return () => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+    };
+  }, [previewUrl]);
+
   return (
     <div className="flex flex-1 justify-center px-4 py-8 sm:px-6 md:px-10 md:py-12">
       <div className="flex w-full max-w-6xl flex-col gap-6">
@@ -28,6 +36,12 @@ export function RecommendPageClient() {
           <p className="text-sm text-muted-foreground mt-1">
             Upload any photo to find Fujifilm recipes with a similar look
           </p>
+          <Link
+            href="/recommend/history"
+            className="text-sm text-muted-foreground hover:text-foreground underline mt-1 inline-block"
+          >
+            View past recommendations
+          </Link>
         </div>
 
         <RecommendUploader onResult={handleResult} />
