@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
     .toBuffer();
   const blurDataUrl = `data:image/jpeg;base64,${blurBuffer.toString("base64")}`;
 
-  // Generate CLIP embedding (non-blocking — null on failure)
+  // Generate CLIP embedding — returns null on failure (upload still succeeds)
   const embedding = await getImageEmbedding(buffer);
 
   return NextResponse.json({
