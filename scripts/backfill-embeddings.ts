@@ -7,7 +7,7 @@
  *   NEXT_PUBLIC_SUPABASE_URL
  *   SUPABASE_SERVICE_ROLE_KEY (required for UPDATE — bypasses RLS)
  *   NEXT_PUBLIC_R2_PUBLIC_URL
- *   HUGGINGFACE_API_KEY
+ *   REPLICATE_API_TOKEN
  *
  * Idempotent: only processes recipes where image_embedding IS NULL.
  */
@@ -16,55 +16,47 @@ import { config } from "dotenv";
 config({ path: ".env.local" });
 
 import { createClient } from "@supabase/supabase-js";
+import Replicate from "replicate";
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const SUPABASE_KEY =
   process.env.SUPABASE_SERVICE_ROLE_KEY ??
   process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY!;
 const R2_PUBLIC_URL = process.env.NEXT_PUBLIC_R2_PUBLIC_URL!;
-const HF_API_KEY = process.env.HUGGINGFACE_API_KEY!;
-const HF_API_URL =
-  "https://api-inference.huggingface.co/pipeline/feature-extraction/openai/clip-vit-base-patch32";
+const REPLICATE_TOKEN = process.env.REPLICATE_API_TOKEN!;
+
+const REPLICATE_MODEL =
+  "andreasjansson/clip-features:75b33f253f7714a281ad3e9b28f63e3232d583716ef6718f2e46641077ea040a" as const;
 
 const BATCH_SIZE = 10;
-const DELAY_MS = 2000; // 2s between batches to respect rate limits
+const DELAY_MS = 1000;
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+const replicate = new Replicate({ auth: REPLICATE_TOKEN });
 
 async function getEmbedding(imageUrl: string): Promise<number[] | null> {
   try {
-    const imgRes = await fetch(imageUrl);
-    if (!imgRes.ok) {
-      console.error(`  Failed to fetch image: ${imgRes.status}`);
-      return null;
-    }
-    const buffer = Buffer.from(await imgRes.arrayBuffer());
-
-    const res = await fetch(HF_API_URL, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${HF_API_KEY}`,
-        "Content-Type": "application/octet-stream",
-      },
-      body: buffer,
+    const output = await replicate.run(REPLICATE_MODEL, {
+      input: { inputs: imageUrl },
     });
 
-    if (!res.ok) {
-      console.error(`  HF API error: ${res.status} ${res.statusText}`);
+    const results = output as { embedding: number[] }[];
+
+    if (!results || results.length === 0 || !results[0].embedding) {
+      console.error("  Unexpected Replicate output format");
       return null;
     }
 
-    const data = await res.json();
-    const embedding: number[] = Array.isArray(data[0]) ? data[0] : data;
+    const embedding = results[0].embedding;
 
-    if (embedding.length !== 512) {
+    if (embedding.length !== 768) {
       console.error(`  Unexpected dimension: ${embedding.length}`);
       return null;
     }
 
     return embedding;
   } catch (err) {
-    console.error(`  Error:`, err);
+    console.error("  Error:", err);
     return null;
   }
 }
@@ -123,11 +115,11 @@ async function main() {
         .eq("id", recipe.id);
 
       if (updateError) {
-        console.error(`  DB update failed:`, updateError);
+        console.error("  DB update failed:", updateError);
         failed++;
       } else {
         succeeded++;
-        console.log(`  OK`);
+        console.log("  OK");
       }
     }
 
@@ -139,7 +131,7 @@ async function main() {
   }
 
   console.log(
-    `\nDone! Processed: ${processed}, Succeeded: ${succeeded}, Failed: ${failed}`
+    `\nDone! Processed: ${processed}, Succeeded: ${succeeded}, Failed: ${failed}`,
   );
 }
 

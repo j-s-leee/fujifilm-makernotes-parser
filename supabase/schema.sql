@@ -339,7 +339,7 @@ LEFT JOIN public.wb_types w ON w.id = r.wb_type_id;
 CREATE EXTENSION IF NOT EXISTS vector;
 
 -- Add embedding column to recipes
-ALTER TABLE public.recipes ADD COLUMN image_embedding vector(512);
+ALTER TABLE public.recipes ADD COLUMN image_embedding vector(768);
 
 -- ivfflat index for cosine similarity search
 CREATE INDEX recipes_image_embedding_idx
@@ -421,7 +421,7 @@ CREATE POLICY "Users can create recommendation results"
 -- SIMILARITY SEARCH FUNCTION
 -- ============================================================
 CREATE OR REPLACE FUNCTION match_recipes_by_image(
-  query_embedding vector(512),
+  query_embedding vector(768),
   match_count int DEFAULT 10
 )
 RETURNS TABLE (id bigint, similarity float)

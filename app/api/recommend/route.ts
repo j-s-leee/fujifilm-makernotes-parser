@@ -68,7 +68,9 @@ export async function POST(request: NextRequest) {
   );
 
   // 5. Generate CLIP embedding
-  const embedding = await getImageEmbedding(buffer);
+  const r2PublicUrl = process.env.NEXT_PUBLIC_R2_PUBLIC_URL!;
+  const imageUrl = `${r2PublicUrl}/${key}`;
+  const embedding = await getImageEmbedding(imageUrl);
 
   if (!embedding) {
     return NextResponse.json(

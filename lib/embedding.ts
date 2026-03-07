@@ -1,45 +1,40 @@
-const HF_API_URL =
-  "https://api-inference.huggingface.co/pipeline/feature-extraction/openai/clip-vit-base-patch32";
+import Replicate from "replicate";
+
+const REPLICATE_MODEL =
+  "andreasjansson/clip-features:75b33f253f7714a281ad3e9b28f63e3232d583716ef6718f2e46641077ea040a";
 
 /**
- * Generate a CLIP image embedding via HuggingFace Inference API.
- * Sends raw image bytes and returns a 512-dimensional float array.
+ * Generate a CLIP image embedding via Replicate.
+ * Sends an image URL and returns a 768-dimensional float array.
  *
  * Returns null if the API call fails (non-blocking for callers).
  */
 export async function getImageEmbedding(
-  imageBuffer: Buffer
+  imageUrl: string
 ): Promise<number[] | null> {
-  const apiKey = process.env.HUGGINGFACE_API_KEY;
-  if (!apiKey) {
-    console.warn("HUGGINGFACE_API_KEY not set, skipping embedding");
+  const apiToken = process.env.REPLICATE_API_TOKEN;
+  if (!apiToken) {
+    console.warn("REPLICATE_API_TOKEN not set, skipping embedding");
     return null;
   }
 
   try {
-    const response = await fetch(HF_API_URL, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/octet-stream",
-      },
-      body: imageBuffer,
-      signal: AbortSignal.timeout(30_000),
+    const replicate = new Replicate({ auth: apiToken });
+
+    const output = await replicate.run(REPLICATE_MODEL, {
+      input: { inputs: imageUrl },
     });
 
-    if (!response.ok) {
-      console.error(
-        `HF embedding API error: ${response.status} ${response.statusText}`
-      );
+    const results = output as { embedding: number[] }[];
+
+    if (!results || results.length === 0 || !results[0].embedding) {
+      console.error("Unexpected Replicate output format");
       return null;
     }
 
-    const data = await response.json();
+    const embedding = results[0].embedding;
 
-    // HF feature-extraction returns a nested array: [[...512 floats]]
-    const embedding: number[] = Array.isArray(data[0]) ? data[0] : data;
-
-    if (embedding.length !== 512) {
+    if (embedding.length !== 768) {
       console.error(`Unexpected embedding dimension: ${embedding.length}`);
       return null;
     }
