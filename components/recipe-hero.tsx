@@ -21,12 +21,15 @@ interface RecipeHeroProps {
   sharerName: string | null;
 }
 
-export function RecipeHero({
-  recipe,
-  sharerName,
-}: RecipeHeroProps) {
-  const { bookmarks, likes, likeCounts, toggleBookmark, toggleLike, mergeLikeCounts } =
-    useUserInteractions();
+export function RecipeHero({ recipe, sharerName }: RecipeHeroProps) {
+  const {
+    bookmarks,
+    likes,
+    likeCounts,
+    toggleBookmark,
+    toggleLike,
+    mergeLikeCounts,
+  } = useUserInteractions();
 
   useEffect(() => {
     mergeLikeCounts([recipe]);
@@ -50,7 +53,7 @@ export function RecipeHero({
           width={600}
           height={600}
           className="w-full rounded-lg object-cover"
-          sizes="(max-width: 768px) 100vw, 50vw"
+          sizes="(max-width: 600px) 100vw, 50vw"
           priority
           placeholder={recipe.blur_data_url ? "blur" : "empty"}
           blurDataURL={recipe.blur_data_url ?? undefined}
@@ -85,9 +88,7 @@ export function RecipeHero({
           >
             <Heart
               className={`h-4 w-4 ${
-                isLiked
-                  ? "fill-red-500 text-red-500"
-                  : "text-muted-foreground"
+                isLiked ? "fill-red-500 text-red-500" : "text-muted-foreground"
               }`}
             />
             <span className="text-muted-foreground">{likeCount}</span>
