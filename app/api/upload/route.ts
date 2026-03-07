@@ -3,6 +3,7 @@ import { PutObjectCommand } from "@aws-sdk/client-s3";
 import sharp from "sharp";
 import { createClient } from "@/lib/supabase/server";
 import { r2, R2_BUCKET } from "@/lib/r2";
+import { getImageEmbedding } from "@/lib/embedding";
 
 export async function POST(request: NextRequest) {
   const supabase = await createClient();
@@ -64,10 +65,14 @@ export async function POST(request: NextRequest) {
     .toBuffer();
   const blurDataUrl = `data:image/jpeg;base64,${blurBuffer.toString("base64")}`;
 
+  // Generate CLIP embedding (non-blocking — null on failure)
+  const embedding = await getImageEmbedding(buffer);
+
   return NextResponse.json({
     key,
     blurDataUrl,
     width: metadata.width ?? null,
     height: metadata.height ?? null,
+    embedding,
   });
 }
