@@ -16,12 +16,14 @@ export function RecipeCard({
   imageSource,
   cameraModel,
   lensModel,
+  onShareSuccess,
   ...recipe
 }: FujifilmRecipe & {
   simulation: FujifilmSimulation | null;
   imageSource?: File | Blob | null;
   cameraModel?: string | null;
   lensModel?: string | null;
+  onShareSuccess?: (recipeId: number) => void;
 }) {
   const { toast } = useToast();
   const { user } = useUser();
@@ -87,6 +89,7 @@ export function RecipeCard({
           title: "Shared",
           description: "Recipe shared successfully",
         });
+        onShareSuccess?.(result.recipeId);
       } else {
         toast({
           variant: "destructive",

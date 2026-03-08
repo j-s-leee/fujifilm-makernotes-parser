@@ -27,11 +27,27 @@ export default async function RecipePage({ params }: RecipePageProps) {
 
   if (!recipe) notFound();
 
-  // Fetch sharer info - try email from user_id
-  const sharerName: string | null = null;
+  // Fetch sharer profile
+  const { data: sharerProfile } = await supabase
+    .from("profiles")
+    .select("display_name, username, avatar_path")
+    .eq("id", recipe.user_id)
+    .single();
+
+  const r2PublicUrl = process.env.NEXT_PUBLIC_R2_PUBLIC_URL ?? "";
+  const sharer = sharerProfile
+    ? {
+        userId: recipe.user_id as string,
+        displayName: sharerProfile.display_name ?? "Anonymous",
+        username: sharerProfile.username as string | null,
+        avatarUrl: sharerProfile.avatar_path
+          ? `${r2PublicUrl}/${sharerProfile.avatar_path}`
+          : null,
+      }
+    : null;
 
   // Fetch similar recipes (same core settings via recipe_hash)
-  let similarRecipes: typeof recipe[] = [];
+  let similarRecipes: (typeof recipe)[] = [];
   if (recipe.recipe_hash) {
     const { data } = await supabase
       .from("recipes_with_stats")
@@ -45,23 +61,28 @@ export default async function RecipePage({ params }: RecipePageProps) {
 
   return (
     <div className="flex flex-1 justify-center px-4 py-8 sm:px-6 md:px-10 md:py-12">
-      <div className="flex w-full max-w-5xl flex-col gap-8">
+      <div className="flex w-full max-w-6xl flex-col gap-8">
         {/* Back link */}
         <BackButton label="Back to Recipes" fallbackHref="/recipes" />
 
-        {/* Hero: Photo + Meta on left, Settings on right */}
-        <div className="grid grid-cols-1 items-start gap-8 md:grid-cols-2">
-          <RecipeHero
-            recipe={recipe}
-            sharerName={sharerName}
-          />
-          <RecipeSettings recipe={recipe} />
-        </div>
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+          {/* Left column: Hero + Similar */}
+          <div className="flex flex-col gap-8">
+            <RecipeHero recipe={recipe} sharer={sharer} />
+            {similarRecipes.length > 0 ? (
+              <SimilarRecipes recipes={similarRecipes} />
+            ) : (
+              <p className="text-center text-sm text-muted-foreground py-20">
+                No similar recipes found.
+              </p>
+            )}
+          </div>
 
-        {/* Similar recipes */}
-        {similarRecipes.length > 0 && (
-          <SimilarRecipes recipes={similarRecipes} />
-        )}
+          {/* Right column: Settings (sticky) */}
+          <div>
+            <RecipeSettings recipe={recipe} />
+          </div>
+        </div>
       </div>
     </div>
   );

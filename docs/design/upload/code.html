@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>FujiRecipe Pro - Upload</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#13daec",
+                        "background-light": "#f6f8f8",
+                        "background-dark": "#102022",
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen">
+<div class="relative flex min-h-screen w-full flex-col overflow-x-hidden">
+<div class="layout-container flex h-full grow flex-col">
+<!-- Navigation Bar -->
+<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-primary/10 px-6 py-4 lg:px-20 bg-background-light dark:bg-background-dark/50 backdrop-blur-md sticky top-0 z-50">
+<div class="flex items-center gap-3">
+<div class="flex items-center justify-center rounded-lg bg-primary/20 p-2 text-primary">
+<span class="material-symbols-outlined text-2xl">photo_camera</span>
+</div>
+<h2 class="text-xl font-bold leading-tight tracking-tight text-slate-900 dark:text-slate-100">FujiRecipe Pro</h2>
+</div>
+<div class="flex flex-1 justify-end gap-8 items-center">
+<nav class="hidden md:flex items-center gap-8">
+<a class="text-sm font-medium hover:text-primary transition-colors text-slate-700 dark:text-slate-300" href="#">Gallery</a>
+<a class="text-sm font-medium hover:text-primary transition-colors text-slate-700 dark:text-slate-300" href="#">My Recipes</a>
+<a class="text-sm font-medium hover:text-primary transition-colors text-slate-700 dark:text-slate-300" href="#">About</a>
+</nav>
+<div class="h-10 w-10 rounded-full border border-primary/20 bg-cover bg-center" data-alt="User profile avatar with abstract colors" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDrAVU8zdq93dbi9nv3W-8IDEUmrkf49patS6kSRHQvgJrjrphASulMPqZhXCtxbN9auT9wBMqekFxVlSPY0oKeAZBKFbMzli-m6ZX6TiuMqD6Uyo3cGKRW0f8AGEH4vio1mXMlrc4r9LTzWhE881ozRTSX8aAni9qJWdJxndaSurSnDGsZ_ieR1D4SH1vmNBB8s4dQceqHb78vU-o18VttBruzCD5246_x49nhufKBOxgS7o7F9HuY-hYRLiHQp63lP9p9h1PNg-4p");'></div>
+</div>
+</header>
+<main class="flex flex-1 flex-col items-center justify-center px-4 py-12 lg:px-20">
+<div class="w-full max-w-4xl space-y-10">
+<!-- Title Section -->
+<div class="text-center space-y-4">
+<h1 class="text-4xl md:text-5xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
+                            Upload Your <span class="text-primary">Masterpiece</span>
+</h1>
+<p class="text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
+                            Share your Fujifilm SOOC (Straight Out Of Camera) photos. We'll automatically extract the film recipe settings or help you apply new ones.
+                        </p>
+</div>
+<!-- Upload Zone -->
+<div class="relative group">
+<div class="absolute -inset-1 bg-gradient-to-r from-primary/30 to-blue-500/30 rounded-xl blur opacity-20 group-hover:opacity-40 transition duration-500"></div>
+<div class="relative flex flex-col items-center justify-center gap-8 rounded-xl border-2 border-dashed border-primary/30 bg-white/5 dark:bg-slate-900/50 px-8 py-20 transition-all hover:border-primary/60 hover:bg-white/10 dark:hover:bg-slate-800/50 cursor-pointer">
+<div class="flex flex-col items-center gap-6">
+<div class="flex h-20 w-20 items-center justify-center rounded-full bg-primary/10 text-primary">
+<span class="material-symbols-outlined text-5xl">cloud_upload</span>
+</div>
+<div class="space-y-2 text-center">
+<p class="text-xl font-bold text-slate-900 dark:text-slate-100">Drag &amp; drop your Fujifilm SOOC image here</p>
+<p class="text-sm text-slate-500 dark:text-slate-400">Or click to browse your files. Supports JPG and RAF formats.</p>
+</div>
+</div>
+<button class="flex min-w-[160px] cursor-pointer items-center justify-center rounded-lg bg-primary px-6 py-3 text-sm font-bold text-slate-900 shadow-lg shadow-primary/20 transition-transform hover:scale-105 active:scale-95">
+                                Browse Files
+                            </button>
+</div>
+</div>
+<!-- Supported Models Section -->
+<div class="space-y-6 pt-4">
+<div class="flex items-center gap-4">
+<h3 class="text-sm font-semibold uppercase tracking-widest text-slate-500 dark:text-slate-500">Supported Models</h3>
+<div class="h-px flex-1 bg-slate-200 dark:bg-slate-800"></div>
+</div>
+<div class="flex flex-wrap justify-center gap-3">
+<div class="flex h-9 items-center justify-center rounded-lg border border-primary/10 bg-primary/5 px-4 text-xs font-semibold text-primary">X-T5</div>
+<div class="flex h-9 items-center justify-center rounded-lg border border-primary/10 bg-primary/5 px-4 text-xs font-semibold text-primary">X100V</div>
+<div class="flex h-9 items-center justify-center rounded-lg border border-primary/10 bg-primary/5 px-4 text-xs font-semibold text-primary">X-Pro3</div>
+<div class="flex h-9 items-center justify-center rounded-lg border border-primary/10 bg-primary/5 px-4 text-xs font-semibold text-primary">X-H2s</div>
+<div class="flex h-9 items-center justify-center rounded-lg border border-primary/10 bg-primary/5 px-4 text-xs font-semibold text-primary">X-T4</div>
+<div class="flex h-9 items-center justify-center rounded-lg border border-primary/10 bg-primary/5 px-4 text-xs font-semibold text-primary">X-E4</div>
+<div class="flex h-9 items-center justify-center rounded-lg border border-primary/10 bg-primary/5 px-4 text-xs font-semibold text-primary">GFX100S</div>
+<div class="flex h-9 items-center justify-center rounded-lg border border-primary/10 bg-primary/5 px-4 text-xs font-semibold text-primary">X-S10</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Footer Meta -->
+<footer class="px-6 py-8 lg:px-20 border-t border-primary/10 text-center">
+<p class="text-xs text-slate-500 dark:text-slate-500">
+                    © 2024 FujiRecipe Pro. Developed for the Fujifilm community. All product names and brands are property of their respective owners.
+                </p>
+</footer>
+</div>
+</div>
+</body></html>

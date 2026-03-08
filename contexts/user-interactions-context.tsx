@@ -223,6 +223,14 @@ export function UserInteractionsProvider({
   const mergeLikeCounts = useCallback(
     (recipes: { id: number; like_count: number }[]) => {
       setLikeCounts((prev) => {
+        let changed = false;
+        for (const r of recipes) {
+          if (!prev.has(r.id)) {
+            changed = true;
+            break;
+          }
+        }
+        if (!changed) return prev;
         const next = new Map(prev);
         for (const r of recipes) {
           if (!next.has(r.id)) next.set(r.id, r.like_count);

@@ -13,10 +13,13 @@ CREATE TYPE public.dr_setting AS ENUM (
 CREATE TABLE public.profiles (
   id           uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   display_name text,
+  username     text UNIQUE,
   avatar_path  text,
   created_at   timestamptz DEFAULT now(),
   updated_at   timestamptz DEFAULT now()
 );
+
+CREATE INDEX profiles_username_idx ON public.profiles (username);
 
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 
@@ -35,6 +38,31 @@ CREATE POLICY "Users can update own profile"
   TO authenticated
   USING ((SELECT auth.uid()) = id)
   WITH CHECK ((SELECT auth.uid()) = id);
+
+-- Auto-create profile on signup
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS trigger
+LANGUAGE plpgsql SECURITY DEFINER
+SET search_path = ''
+AS $$
+BEGIN
+  INSERT INTO public.profiles (id, display_name, avatar_path)
+  VALUES (
+    NEW.id,
+    COALESCE(
+      NEW.raw_user_meta_data ->> 'full_name',
+      NEW.raw_user_meta_data ->> 'name'
+    ),
+    NEW.raw_user_meta_data ->> 'avatar_url'
+  )
+  ON CONFLICT (id) DO NOTHING;
+  RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
 -- ============================================================
 -- REFERENCE TABLES
@@ -326,12 +354,16 @@ SELECT
   cm.name AS camera_model,
   cm.sensor_generation,
   l.name AS lens_model,
-  w.slug AS wb_type
+  w.slug AS wb_type,
+  p.display_name AS user_display_name,
+  p.username AS user_username,
+  p.avatar_path AS user_avatar_path
 FROM public.recipes r
 LEFT JOIN public.simulations s ON s.id = r.simulation_id
 LEFT JOIN public.camera_models cm ON cm.id = r.camera_model_id
 LEFT JOIN public.lenses l ON l.id = r.lens_id
-LEFT JOIN public.wb_types w ON w.id = r.wb_type_id;
+LEFT JOIN public.wb_types w ON w.id = r.wb_type_id
+LEFT JOIN public.profiles p ON p.id = r.user_id;
 
 -- ============================================================
 -- PGVECTOR EXTENSION
@@ -451,4 +483,23 @@ AS $$
         r.image_embedding <=> query_embedding
     END
   LIMIT match_count;
+$$;
+
+-- ============================================================
+-- TRENDING RECIPES FUNCTION
+-- ============================================================
+-- Time-decayed score: (likes + bookmarks×2) / (age_hours + 2)^1.5
+CREATE OR REPLACE FUNCTION get_trending_recipes(p_limit int DEFAULT 24)
+RETURNS SETOF recipes_with_stats
+LANGUAGE sql STABLE
+AS $$
+  SELECT *
+  FROM recipes_with_stats
+  WHERE thumbnail_path IS NOT NULL
+  ORDER BY
+    (like_count + bookmark_count * 2)
+    / POWER(EXTRACT(EPOCH FROM (NOW() - created_at)) / 3600 + 2, 1.5)
+    DESC,
+    created_at DESC
+  LIMIT p_limit;
 $$;

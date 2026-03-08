@@ -9,7 +9,7 @@ export async function shareRecipe(
   thumbnail: { blob: Blob; contentType: string; extension: string },
   cameraModel?: string | null,
   lensModel?: string | null
-): Promise<{ success: boolean; error?: string }> {
+): Promise<{ success: true; recipeId: number } | { success: false; error: string }> {
   const supabase = createClient();
 
   const {
@@ -83,7 +83,7 @@ export async function shareRecipe(
   }
 
   // Insert recipe with FK references and enum values
-  const { error: insertError } = await supabase.from("recipes").insert({
+  const { data: inserted, error: insertError } = await supabase.from("recipes").insert({
     user_id: user.id,
     simulation_id: simulationId,
     camera_model_id: cameraModelId,
@@ -122,11 +122,11 @@ export async function shareRecipe(
       sharpness: recipe.sharpness ?? null,
       dynamic_range_development: recipe.dynamicRange?.development ?? null,
     }),
-  });
+  }).select("id").single();
 
-  if (insertError) {
+  if (insertError || !inserted) {
     return { success: false, error: "Failed to save recipe" };
   }
 
-  return { success: true };
+  return { success: true, recipeId: inserted.id };
 }

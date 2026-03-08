@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Film, LogOut, Menu, User, X } from "lucide-react";
+import { Bookmark, Film, Heart, LogOut, Menu, ScanSearch, SlidersHorizontal, Upload, User, X } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,6 +12,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ModeToggle } from "@/components/mode-toggle";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { UploadRecipeModal } from "@/components/upload-recipe-modal";
 import { useUser } from "@/hooks/use-user";
 import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
@@ -31,8 +38,10 @@ export function Header() {
   const { user, loading } = useUser();
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const [profile, setProfile] = useState<{
     display_name: string | null;
+    username: string | null;
     avatar_url: string | null;
   } | null>(null);
   const [profileLoaded, setProfileLoaded] = useState(false);
@@ -84,56 +93,92 @@ export function Header() {
         <div className="flex items-center gap-6">
           <Link href="/" className="flex items-center gap-2">
             <Film className="h-5 w-5" />
-            <h1 className="text-lg font-bold tracking-tight">
-              film-simulation.site
-            </h1>
           </Link>
           <nav className="hidden items-center gap-4 md:flex">
-            <Link
-              href="/recipes"
-              className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-            >
-              Recipes
-            </Link>
-            <Link
-              href="/stats"
-              className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-            >
-              Stats
-            </Link>
-            {user && (
-              <>
-                <Link
-                  href="/recommend"
-                  className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-                >
-                  Recommend
-                </Link>
-                <Link
-                  href="/my-recipes"
-                  className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-                >
-                  My Recipes
-                </Link>
-                <Link
-                  href="/bookmarks"
-                  className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-                >
-                  Bookmarks
-                </Link>
-                <Link
-                  href="/likes"
-                  className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-                >
-                  Likes
-                </Link>
-              </>
-            )}
+            <TooltipProvider delayDuration={300}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Link
+                    href="/recipes"
+                    className="text-muted-foreground transition-colors hover:text-foreground"
+                    aria-label="Recipes"
+                  >
+                    <SlidersHorizontal className="h-5 w-5" />
+                  </Link>
+                </TooltipTrigger>
+                <TooltipContent>Recipes</TooltipContent>
+              </Tooltip>
+              {user && (
+                <>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Link
+                        href="/recommend"
+                        className="text-muted-foreground transition-colors hover:text-foreground"
+                        aria-label="Recommend"
+                      >
+                        <ScanSearch className="h-5 w-5" />
+                      </Link>
+                    </TooltipTrigger>
+                    <TooltipContent>Recommend</TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Link
+                        href="/bookmarks"
+                        className="text-muted-foreground transition-colors hover:text-foreground"
+                        aria-label="Bookmarks"
+                      >
+                        <Bookmark className="h-5 w-5" />
+                      </Link>
+                    </TooltipTrigger>
+                    <TooltipContent>Bookmarks</TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Link
+                        href="/likes"
+                        className="text-muted-foreground transition-colors hover:text-foreground"
+                        aria-label="Likes"
+                      >
+                        <Heart className="h-5 w-5" />
+                      </Link>
+                    </TooltipTrigger>
+                    <TooltipContent>Likes</TooltipContent>
+                  </Tooltip>
+                </>
+              )}
+            </TooltipProvider>
           </nav>
         </div>
         <div className="flex items-center gap-4">
           {!loading && (
             <>
+              {user ? (
+                <>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 md:hidden"
+                    onClick={() => setUploadModalOpen(true)}
+                  >
+                    <Upload className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="hidden md:inline-flex"
+                    onClick={() => setUploadModalOpen(true)}
+                  >
+                    <Upload className="mr-2 h-4 w-4" />
+                    Upload
+                  </Button>
+                  <UploadRecipeModal
+                    open={uploadModalOpen}
+                    onOpenChange={setUploadModalOpen}
+                  />
+                </>
+              ) : null}
               {user ? (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -141,9 +186,9 @@ export function Header() {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem asChild>
-                      <Link href="/profile">
+                      <Link href={`/u/${profile?.username ?? user?.id}`}>
                         <User className="mr-2 h-4 w-4" />
-                        Edit Profile
+                        Profile
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
@@ -187,45 +232,35 @@ export function Header() {
           <Link
             href="/recipes"
             onClick={() => setMobileMenuOpen(false)}
-            className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
           >
+            <SlidersHorizontal className="h-4 w-4" />
             Recipes
-          </Link>
-          <Link
-            href="/stats"
-            onClick={() => setMobileMenuOpen(false)}
-            className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-          >
-            Stats
           </Link>
           {user && (
             <>
               <Link
                 href="/recommend"
                 onClick={() => setMobileMenuOpen(false)}
-                className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
               >
+                <ScanSearch className="h-4 w-4" />
                 Recommend
-              </Link>
-              <Link
-                href="/my-recipes"
-                onClick={() => setMobileMenuOpen(false)}
-                className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-              >
-                My Recipes
               </Link>
               <Link
                 href="/bookmarks"
                 onClick={() => setMobileMenuOpen(false)}
-                className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
               >
+                <Bookmark className="h-4 w-4" />
                 Bookmarks
               </Link>
               <Link
                 href="/likes"
                 onClick={() => setMobileMenuOpen(false)}
-                className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
               >
+                <Heart className="h-4 w-4" />
                 Likes
               </Link>
             </>
