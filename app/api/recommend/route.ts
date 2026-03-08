@@ -4,6 +4,7 @@ import sharp from "sharp";
 import { createClient } from "@/lib/supabase/server";
 import { r2, R2_BUCKET } from "@/lib/r2";
 import { getImageEmbedding } from "@/lib/embedding";
+import { computeColorHistogram } from "@/lib/color-histogram";
 
 export async function POST(request: NextRequest) {
   // 1. Auth check
@@ -67,10 +68,13 @@ export async function POST(request: NextRequest) {
     })
   );
 
-  // 5. Generate CLIP embedding
+  // 5. Generate CLIP embedding and color histogram in parallel
   const r2PublicUrl = process.env.NEXT_PUBLIC_R2_PUBLIC_URL!;
   const imageUrl = `${r2PublicUrl}/${key}`;
-  const embedding = await getImageEmbedding(imageUrl);
+  const [embedding, colorHistogram] = await Promise.all([
+    getImageEmbedding(imageUrl),
+    computeColorHistogram(buffer),
+  ]);
 
   if (!embedding) {
     return NextResponse.json(
@@ -91,6 +95,7 @@ export async function POST(request: NextRequest) {
     {
       query_embedding: JSON.stringify(embedding),
       match_count: matchCount,
+      query_histogram: JSON.stringify(colorHistogram),
     }
   );
 

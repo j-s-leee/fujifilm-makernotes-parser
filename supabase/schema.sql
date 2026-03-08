@@ -338,8 +338,9 @@ LEFT JOIN public.wb_types w ON w.id = r.wb_type_id;
 -- ============================================================
 CREATE EXTENSION IF NOT EXISTS vector;
 
--- Add embedding column to recipes
+-- Add embedding and color histogram columns to recipes
 ALTER TABLE public.recipes ADD COLUMN image_embedding vector(768);
+ALTER TABLE public.recipes ADD COLUMN color_histogram vector(48);
 
 -- ivfflat index for cosine similarity search
 CREATE INDEX recipes_image_embedding_idx
@@ -420,16 +421,34 @@ CREATE POLICY "Users can create recommendation results"
 -- ============================================================
 -- SIMILARITY SEARCH FUNCTION
 -- ============================================================
+-- Weighted average: 0.4 × CLIP cosine + 0.6 × histogram cosine
+-- Falls back to CLIP-only when histogram is unavailable
 CREATE OR REPLACE FUNCTION match_recipes_by_image(
   query_embedding vector(768),
-  match_count int DEFAULT 10
+  match_count int DEFAULT 10,
+  query_histogram vector(48) DEFAULT NULL
 )
 RETURNS TABLE (id bigint, similarity float)
 LANGUAGE sql STABLE
 AS $$
-  SELECT id, 1 - (image_embedding <=> query_embedding) AS similarity
-  FROM recipes
-  WHERE image_embedding IS NOT NULL
-  ORDER BY image_embedding <=> query_embedding
+  SELECT
+    r.id,
+    CASE
+      WHEN query_histogram IS NOT NULL AND r.color_histogram IS NOT NULL THEN
+        0.4 * (1 - (r.image_embedding <=> query_embedding))
+        + 0.6 * (1 - (r.color_histogram <=> query_histogram))
+      ELSE
+        1 - (r.image_embedding <=> query_embedding)
+    END AS similarity
+  FROM recipes r
+  WHERE r.image_embedding IS NOT NULL
+  ORDER BY
+    CASE
+      WHEN query_histogram IS NOT NULL AND r.color_histogram IS NOT NULL THEN
+        0.4 * (r.image_embedding <=> query_embedding)
+        + 0.6 * (r.color_histogram <=> query_histogram)
+      ELSE
+        r.image_embedding <=> query_embedding
+    END
   LIMIT match_count;
 $$;
