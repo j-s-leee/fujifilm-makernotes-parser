@@ -1,0 +1,207 @@
+"use client";
+
+import { useState } from "react";
+import Link from "next/link";
+import { ChevronDown, SlidersHorizontal, X } from "lucide-react";
+
+interface RecipeFiltersProps {
+  params: {
+    simulation?: string;
+    sort?: string;
+    sensor?: string;
+    camera?: string;
+  };
+  sensorGenerations: string[];
+  cameraModels: string[];
+  simulationOptions: { value: string; label: string }[];
+}
+
+function buildUrl(
+  params: RecipeFiltersProps["params"],
+  overrides: Record<string, string | undefined>,
+) {
+  const merged = { ...params, ...overrides };
+  const search = new URLSearchParams();
+  if (merged.simulation) search.set("simulation", merged.simulation);
+  if (merged.sensor) search.set("sensor", merged.sensor);
+  if (merged.camera) search.set("camera", merged.camera);
+  if (merged.sort) search.set("sort", merged.sort);
+  const qs = search.toString();
+  return `/recipes${qs ? `?${qs}` : ""}`;
+}
+
+export function RecipeFilters({
+  params,
+  sensorGenerations,
+  cameraModels,
+  simulationOptions,
+}: RecipeFiltersProps) {
+  const [open, setOpen] = useState(false);
+
+  const activeFilters: { label: string; clearUrl: string }[] = [];
+  if (params.sensor) {
+    activeFilters.push({
+      label: params.sensor,
+      clearUrl: buildUrl(params, { sensor: undefined }),
+    });
+  }
+  if (params.camera) {
+    activeFilters.push({
+      label: params.camera,
+      clearUrl: buildUrl(params, { camera: undefined }),
+    });
+  }
+  if (params.simulation) {
+    const opt = simulationOptions.find((o) => o.value === params.simulation);
+    activeFilters.push({
+      label: opt?.label ?? params.simulation,
+      clearUrl: buildUrl(params, { simulation: undefined }),
+    });
+  }
+
+  const pillBase =
+    "shrink-0 rounded-md border px-3 py-1 text-xs font-medium whitespace-nowrap transition-colors";
+  const pillActive = "bg-foreground text-background";
+  const pillInactive =
+    "border-border text-muted-foreground hover:text-foreground";
+
+  return (
+    <div className="flex flex-col gap-3">
+      {/* Filter button + active chips + sort */}
+      <div className="flex items-center gap-2 flex-wrap">
+        <button
+          onClick={() => setOpen(!open)}
+          className={`flex items-center gap-1.5 rounded-md border px-3 py-1 text-xs font-medium transition-colors ${
+            open || activeFilters.length > 0
+              ? "bg-foreground text-background"
+              : "border-border text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          <SlidersHorizontal className="h-3 w-3" />
+          Filter
+          {activeFilters.length > 0 && (
+            <span className="ml-0.5 rounded-full bg-background text-foreground px-1.5 text-[10px] leading-4">
+              {activeFilters.length}
+            </span>
+          )}
+          <ChevronDown
+            className={`h-3 w-3 transition-transform ${open ? "rotate-180" : ""}`}
+          />
+        </button>
+
+        {/* Active filter chips */}
+        {activeFilters.map((f) => (
+          <Link
+            key={f.label}
+            href={f.clearUrl}
+            className="flex items-center gap-1 rounded-md bg-muted px-2.5 py-1 text-xs font-medium text-foreground transition-colors hover:bg-muted/80"
+          >
+            {f.label}
+            <X className="h-3 w-3" />
+          </Link>
+        ))}
+
+        {/* Sort — pushed to right */}
+        <div className="ml-auto flex gap-2">
+          <Link
+            href={buildUrl(params, { sort: undefined })}
+            className={`text-xs font-medium ${
+              params.sort !== "popular"
+                ? "text-foreground underline"
+                : "text-muted-foreground"
+            }`}
+          >
+            Newest
+          </Link>
+          <Link
+            href={buildUrl(params, { sort: "popular" })}
+            className={`text-xs font-medium ${
+              params.sort === "popular"
+                ? "text-foreground underline"
+                : "text-muted-foreground"
+            }`}
+          >
+            Popular
+          </Link>
+        </div>
+      </div>
+
+      {/* Filter panel */}
+      {open && (
+        <div className="flex flex-col gap-4 rounded-md border border-border p-3">
+          {/* Sensor */}
+          <div className="flex flex-col gap-1.5">
+            <span className="text-xs font-medium text-muted-foreground">
+              Sensor
+            </span>
+            <div className="flex flex-wrap gap-2">
+              <Link
+                href={buildUrl(params, { sensor: undefined })}
+                className={`${pillBase} ${!params.sensor ? pillActive : pillInactive}`}
+              >
+                All
+              </Link>
+              {sensorGenerations.map((gen) => (
+                <Link
+                  key={gen}
+                  href={buildUrl(params, { sensor: gen })}
+                  className={`${pillBase} ${params.sensor === gen ? pillActive : pillInactive}`}
+                >
+                  {gen}
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          {/* Camera */}
+          <div className="flex flex-col gap-1.5">
+            <span className="text-xs font-medium text-muted-foreground">
+              Camera
+            </span>
+            <div className="flex flex-wrap gap-2">
+              <Link
+                href={buildUrl(params, { camera: undefined })}
+                className={`${pillBase} ${!params.camera ? pillActive : pillInactive}`}
+              >
+                All
+              </Link>
+              {cameraModels.map((model) => (
+                <Link
+                  key={model}
+                  href={buildUrl(params, { camera: model })}
+                  className={`${pillBase} ${params.camera === model ? pillActive : pillInactive}`}
+                >
+                  {model}
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          {/* Simulation */}
+          <div className="flex flex-col gap-1.5">
+            <span className="text-xs font-medium text-muted-foreground">
+              Film
+            </span>
+            <div className="flex flex-wrap gap-2">
+              <Link
+                href={buildUrl(params, { simulation: undefined })}
+                className={`${pillBase} ${!params.simulation ? pillActive : pillInactive}`}
+              >
+                All
+              </Link>
+              {simulationOptions.map((opt) => (
+                <Link
+                  key={opt.value}
+                  href={buildUrl(params, { simulation: opt.value })}
+                  className={`${pillBase} ${params.simulation === opt.value ? pillActive : pillInactive}`}
+                >
+                  {opt.label}
+                </Link>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

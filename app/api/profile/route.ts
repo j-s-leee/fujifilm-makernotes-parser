@@ -15,7 +15,7 @@ export async function GET() {
 
   let { data: profile } = await supabase
     .from("profiles")
-    .select("display_name, avatar_path")
+    .select("display_name, username, avatar_path")
     .eq("id", user.id)
     .single();
 
@@ -30,7 +30,7 @@ export async function GET() {
         display_name: defaultName,
         avatar_path: null,
       })
-      .select("display_name, avatar_path")
+      .select("display_name, username, avatar_path")
       .single();
 
     profile = inserted;
@@ -45,6 +45,7 @@ export async function GET() {
 
   return NextResponse.json({
     display_name: profile?.display_name ?? null,
+    username: profile?.username ?? null,
     avatar_url: avatarUrl,
   });
 }
@@ -61,6 +62,7 @@ export async function PUT(request: NextRequest) {
 
   const formData = await request.formData();
   const displayName = formData.get("display_name") as string | null;
+  const username = formData.get("username") as string | null;
   const avatarFile = formData.get("avatar") as File | null;
 
   let avatarPath: string | undefined;
@@ -87,16 +89,46 @@ export async function PUT(request: NextRequest) {
     updated_at: new Date().toISOString(),
   };
 
+  if (username !== undefined) {
+    // Validate: lowercase, alphanumeric + underscore, 3-30 chars, not numeric-only, not UUID format
+    const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+    if (
+      username &&
+      (!/^[a-z0-9_]{3,30}$/.test(username) ||
+        /^\d+$/.test(username) ||
+        uuidPattern.test(username))
+    ) {
+      return NextResponse.json(
+        { error: "Username must be 3-30 characters, lowercase letters, numbers, and underscores only. Cannot be numbers only." },
+        { status: 400 },
+      );
+    }
+    updateData.username = username || null;
+  }
+
   if (avatarPath) {
     updateData.avatar_path = avatarPath;
   }
 
-  const { data: profile } = await supabase
+  const { data: profile, error } = await supabase
     .from("profiles")
     .update(updateData)
     .eq("id", user.id)
-    .select("display_name, avatar_path")
+    .select("display_name, username, avatar_path")
     .single();
+
+  if (error) {
+    if (error.code === "23505") {
+      return NextResponse.json(
+        { error: "Username is already taken" },
+        { status: 409 },
+      );
+    }
+    return NextResponse.json(
+      { error: "Failed to update profile" },
+      { status: 500 },
+    );
+  }
 
   const r2PublicUrl = process.env.NEXT_PUBLIC_R2_PUBLIC_URL ?? "";
   const oauthAvatarUrl = user.user_metadata?.avatar_url ?? null;
@@ -107,6 +139,7 @@ export async function PUT(request: NextRequest) {
 
   return NextResponse.json({
     display_name: profile?.display_name ?? null,
+    username: profile?.username ?? null,
     avatar_url: avatarUrl,
   });
 }

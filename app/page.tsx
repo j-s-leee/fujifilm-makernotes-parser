@@ -1,159 +1,41 @@
-"use client";
+import Link from "next/link";
+import { createClient } from "@/lib/supabase/server";
+import { TrendingGrid } from "@/components/trending-grid";
 
-import { ImageDropzone } from "@/components/image-dropzone";
-import {
-  FujifilmSimulation,
-  getFujifilmSimulationFromMakerNote,
-} from "@/fujifilm/simulation";
-import {
-  FujifilmRecipe,
-  getFujifilmRecipeFromMakerNote,
-} from "@/fujifilm/recipe";
-import { useState, useCallback } from "react";
-import { RecipeCard } from "@/components/recipe-card";
-import { useToast } from "@/hooks/use-toast";
-import { isRafFile, extractJpegFromRaf } from "@/lib/raf-parser";
-//
-// Main Component
-//
-export default function Home() {
-  const [image, setImage] = useState<string | null>(null);
-  const [recipe, setRecipe] = useState<FujifilmRecipe | null>(null);
-  const [simulation, setSimulation] = useState<FujifilmSimulation | null>(null);
-  const [imageSource, setImageSource] = useState<File | Blob | null>(null);
-  const [cameraModel, setCameraModel] = useState<string | null>(null);
-  const [lensModel, setLensModel] = useState<string | null>(null);
-  const { toast } = useToast();
+export default async function Home() {
+  const supabase = await createClient();
 
-  const onDrop = useCallback(
-    async (acceptedFiles: File[]) => {
-      const file = acceptedFiles[0];
-      if (!file) return;
-
-      setRecipe(null);
-      setSimulation(null);
-      setImageSource(null);
-      setCameraModel(null);
-      setLensModel(null);
-
-      // RAF 파일인 경우 임베디드 JPEG 추출
-      let parseTarget: File | Blob = file;
-      if (isRafFile(file)) {
-        try {
-          const jpegBlob = await extractJpegFromRaf(file);
-          parseTarget = jpegBlob;
-          setImageSource(jpegBlob);
-          const imageUrl = URL.createObjectURL(jpegBlob);
-          setImage(imageUrl);
-        } catch (error) {
-          console.error("RAF parsing error:", error);
-          toast({
-            variant: "destructive",
-            title: "Error",
-            description:
-              error instanceof Error
-                ? error.message
-                : "Failed to extract JPEG preview from RAF file",
-          });
-          return;
-        }
-      } else {
-        setImageSource(file);
-        const imageUrl = URL.createObjectURL(file);
-        setImage(imageUrl);
-      }
-
-      try {
-        // 이미지 메타데이터 추출
-        const exifr = await import("exifr");
-        const exifrData = await exifr.parse(parseTarget, {
-          tiff: true,
-          exif: true,
-          makerNote: true,
-        });
-
-        if (exifrData.Make && exifrData.Model) {
-          setCameraModel(`${exifrData.Make} ${exifrData.Model}`.trim());
-        } else {
-          setCameraModel(null);
-        }
-        setLensModel(exifrData.LensModel ?? null);
-
-        if (exifrData.makerNote) {
-          const makerNoteBytes = new Uint8Array(
-            Object.values(exifrData.makerNote),
-          );
-
-          try {
-            const parsedRecipe = getFujifilmRecipeFromMakerNote(makerNoteBytes);
-            setRecipe(parsedRecipe);
-
-            const parsedSimulation =
-              getFujifilmSimulationFromMakerNote(makerNoteBytes);
-            if (parsedSimulation) {
-              setSimulation(parsedSimulation);
-            }
-          } catch (error) {
-            console.error("Error parsing Fujifilm MakerNote:", error);
-            toast({
-              variant: "destructive",
-              title: "Error",
-              description: "Failed to parse Fujifilm MakerNote data",
-            });
-          }
-        } else {
-          toast({
-            variant: "destructive",
-            title: "Error",
-            description: "Please check if this is a Fujifilm camera image",
-          });
-        }
-      } catch (error) {
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description:
-            "Failed to extract metadata. Please check if this is a Fujifilm camera image",
-        });
-        console.error("Error extracting Fujifilm metadata:", error);
-      }
-    },
-    [toast],
-  );
+  const { data: recipes } = await supabase
+    .rpc("get_trending_recipes", { p_limit: 24 });
 
   return (
     <div className="flex flex-1 justify-center px-4 py-8 sm:px-6 md:px-10 md:py-12">
-      <div className="flex w-full max-w-5xl flex-col gap-8">
-        <ImageDropzone onFileDrop={onDrop} hasImage={!!image} />
-        {(image || recipe) && (
-          <div className="grid grid-cols-1 items-start gap-8 md:grid-cols-2">
-            {image && (
-              <img
-                src={image}
-                alt="Selected photo"
-                className="h-auto max-h-[80vh] w-full rounded-lg object-contain shadow-sm animate-in fade-in duration-300"
-              />
-            )}
-            {recipe && (
-              <div className="w-full">
-                <RecipeCard
-                  {...recipe}
-                  simulation={simulation}
-                  imageSource={imageSource}
-                  cameraModel={cameraModel}
-                  lensModel={lensModel}
-                />
-              </div>
-            )}
-          </div>
-        )}
-        {!image && !recipe && (
+      <div className="flex w-full max-w-6xl flex-col gap-6">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">
+            Trending Recipes
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Most engaging recipes from the community
+          </p>
+        </div>
+
+        {recipes && recipes.length > 0 ? (
           <>
-            <p className="text-center text-sm text-muted-foreground">
-              Drop a Fujifilm JPEG or RAF to check its film recipe and share it
-              with others.
-            </p>
+            <TrendingGrid recipes={recipes} />
+            <div className="flex justify-center pt-4">
+              <Link
+                href="/recipes?sort=popular"
+                className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+              >
+                View all recipes &rarr;
+              </Link>
+            </div>
           </>
+        ) : (
+          <p className="text-center text-sm text-muted-foreground py-20">
+            No recipes yet. Be the first to share a film recipe!
+          </p>
         )}
       </div>
     </div>

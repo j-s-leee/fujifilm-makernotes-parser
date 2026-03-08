@@ -1,37 +1,22 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Bookmark, Heart, Loader2 } from "lucide-react";
-import Image from "next/image";
-import Link from "next/link";
+import { Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useUserInteractions } from "@/contexts/user-interactions-context";
-import {
-  SENSOR_GENERATIONS,
-  type SensorGeneration,
-} from "@/fujifilm/cameras";
-import { getThumbnailUrl } from "@/lib/get-thumbnail-url";
+import { SENSOR_GENERATIONS, type SensorGeneration } from "@/fujifilm/cameras";
+import { GalleryCard, type GalleryRecipe } from "@/components/gallery-card";
 
 const PAGE_SIZE = 24;
-
-interface GalleryRecipe {
-  id: number;
-  simulation: string | null;
-  thumbnail_path: string | null;
-  blur_data_url: string | null;
-  thumbnail_width: number | null;
-  thumbnail_height: number | null;
-  bookmark_count: number;
-  like_count: number;
-  camera_model: string | null;
-  created_at: string | null;
-}
 
 interface GalleryGridProps {
   initialRecipes: GalleryRecipe[];
   simulation?: string;
   sort?: string;
   sensor?: string;
+  camera?: string;
+  userId?: string;
+  recipeIds?: number[];
 }
 
 export function GalleryGrid({
@@ -39,6 +24,9 @@ export function GalleryGrid({
   simulation,
   sort,
   sensor,
+  camera,
+  userId,
+  recipeIds,
 }: GalleryGridProps) {
   const [recipes, setRecipes] = useState<GalleryRecipe[]>(initialRecipes);
   const [loading, setLoading] = useState(false);
@@ -49,8 +37,7 @@ export function GalleryGrid({
       : null,
   );
   const sentinelRef = useRef<HTMLDivElement>(null);
-  const { bookmarks, likes, likeCounts, toggleBookmark, toggleLike, mergeLikeCounts } =
-    useUserInteractions();
+  const { mergeLikeCounts } = useUserInteractions();
 
   // Reset when filters change
   useEffect(() => {
@@ -70,9 +57,7 @@ export function GalleryGrid({
     setLoading(true);
 
     const supabase = createClient();
-    let query = supabase
-      .from("recipes_with_stats")
-      .select("*");
+    let query = supabase.from("recipes_with_stats").select("*");
 
     if (simulation) {
       query = query.eq("simulation", simulation);
@@ -80,6 +65,18 @@ export function GalleryGrid({
 
     if (sensor && SENSOR_GENERATIONS.includes(sensor as SensorGeneration)) {
       query = query.eq("sensor_generation", sensor);
+    }
+
+    if (camera) {
+      query = query.eq("camera_model", camera);
+    }
+
+    if (userId) {
+      query = query.eq("user_id", userId);
+    }
+
+    if (recipeIds) {
+      query = query.in("id", recipeIds);
     }
 
     // Cursor-based pagination
@@ -115,7 +112,17 @@ export function GalleryGrid({
     setRecipes((prev) => [...prev, ...newRecipes]);
     mergeLikeCounts(newRecipes);
     setLoading(false);
-  }, [loading, hasMore, simulation, sort, sensor, mergeLikeCounts]);
+  }, [
+    loading,
+    hasMore,
+    simulation,
+    sort,
+    sensor,
+    camera,
+    userId,
+    recipeIds,
+    mergeLikeCounts,
+  ]);
 
   useEffect(() => {
     const sentinel = sentinelRef.current;
@@ -136,84 +143,15 @@ export function GalleryGrid({
 
   return (
     <div>
-      <div className="columns-2 gap-4 md:columns-3 lg:columns-4 [&>*]:mb-4 [&>*]:break-inside-avoid">
-        {recipes.map((recipe) => {
-          // New images (have thumbnail_width) → pass path for loader to resolve variants
-          // Legacy images (no thumbnail_width) → pass full R2 URL so loader returns as-is
-          const src = recipe.thumbnail_width
-            ? recipe.thumbnail_path
-            : getThumbnailUrl(recipe.thumbnail_path);
-          return (
-            <Link
-              key={recipe.id}
-              href={`/recipes/${recipe.id}`}
-              className="group relative block overflow-hidden rounded-lg bg-muted"
-            >
-              {src ? (
-                <Image
-                  src={src}
-                  alt={recipe.simulation ?? "Recipe"}
-                  width={recipe.thumbnail_width ?? 300}
-                  height={recipe.thumbnail_height ?? 300}
-                  className="w-full object-cover rounded-lg"
-                  style={
-                    recipe.thumbnail_width && recipe.thumbnail_height
-                      ? { aspectRatio: `${recipe.thumbnail_width}/${recipe.thumbnail_height}` }
-                      : { aspectRatio: "1/1" }
-                  }
-                  sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                  placeholder={recipe.blur_data_url ? "blur" : "empty"}
-                  blurDataURL={recipe.blur_data_url ?? undefined}
-                />
-              ) : (
-                <div className="flex aspect-square items-center justify-center text-muted-foreground text-sm">
-                  No image
-                </div>
-              )}
-              {/* Bottom left: simulation badge + like count */}
-              <div className="absolute bottom-2 left-2 flex flex-col items-start gap-1">
-                <button
-                  onClick={(e) => toggleLike(recipe.id, e)}
-                  className="flex items-center gap-1 rounded-md bg-black/60 px-1.5 py-0.5 text-xs text-white backdrop-blur-sm transition-colors hover:bg-black/80"
-                >
-                  <Heart
-                    className={`h-3 w-3 ${
-                      likes.has(recipe.id)
-                        ? "fill-red-500 text-red-500"
-                        : "text-white"
-                    }`}
-                  />
-                  <span>{likeCounts.get(recipe.id) ?? recipe.like_count}</span>
-                </button>
-                <span className="flex items-center gap-1.5 rounded-md bg-black/60 px-2 py-0.5 text-xs font-medium text-white backdrop-blur-sm">
-                  {recipe.simulation ?? "Unknown"}
-                  {recipe.camera_model && (
-                    <>
-                      <span className="opacity-50">&middot;</span>
-                      <span className="opacity-80">{recipe.camera_model}</span>
-                    </>
-                  )}
-                </span>
-              </div>
-              {/* Top right: bookmark button */}
-              <button
-                onClick={(e) => toggleBookmark(recipe.id, e)}
-                className="absolute right-2 top-2 rounded-md bg-black/30 p-1.5 backdrop-blur-sm transition-colors hover:bg-black/50"
-              >
-                <Bookmark
-                  className={`h-4 w-4 ${
-                    bookmarks.has(recipe.id)
-                      ? "fill-white text-white"
-                      : "text-white"
-                  }`}
-                />
-              </button>
-            </Link>
-          );
-        })}
+      <div className="flex flex-col gap-4 sm:block sm:columns-2 sm:gap-4 lg:columns-3 [&>*]:sm:mb-4 [&>*]:sm:break-inside-avoid">
+        {recipes.map((recipe) => (
+          <GalleryCard key={recipe.id} recipe={recipe} />
+        ))}
       </div>
       <div ref={sentinelRef} className="flex justify-center py-8">
-        {loading && <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />}
+        {loading && (
+          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        )}
       </div>
     </div>
   );

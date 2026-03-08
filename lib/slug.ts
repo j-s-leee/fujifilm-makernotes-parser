@@ -40,3 +40,11 @@ export function fromSensorSlug(slug: string): SensorGeneration | null {
 export function fromCameraSlug(slug: string): string | null {
   return ALL_CAMERA_MODELS.find((m) => toSlug(m) === slug) ?? null;
 }
+
+/** Resolve a lens slug back to a lens name from a list of known names */
+export function fromLensSlug(
+  slug: string,
+  knownNames: string[],
+): string | null {
+  return knownNames.find((n) => toSlug(n) === slug) ?? null;
+}

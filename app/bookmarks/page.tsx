@@ -1,7 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
-import { GroupedRecipeGrid } from "@/components/grouped-recipe-grid";
+import { GalleryGrid } from "@/components/gallery-grid";
 import { AuthPrompt } from "@/components/auth-prompt";
-import type { GalleryRecipe } from "@/lib/group-recipes";
 
 export default async function BookmarksPage() {
   const supabase = await createClient();
@@ -24,7 +23,7 @@ export default async function BookmarksPage() {
     .eq("user_id", user.id);
   const bookmarkIds = bmarks?.map((b) => b.recipe_id) ?? [];
 
-  let typedRecipes: GalleryRecipe[] = [];
+  let typedRecipes: Parameters<typeof GalleryGrid>[0]["initialRecipes"] = [];
   if (bookmarkIds.length > 0) {
     const { data: recipes } = await supabase
       .from("recipes_with_stats")
@@ -33,7 +32,7 @@ export default async function BookmarksPage() {
       .order("created_at", { ascending: false })
       .order("id", { ascending: false })
       .limit(24);
-    typedRecipes = (recipes ?? []) as GalleryRecipe[];
+    typedRecipes = (recipes ?? []) as typeof typedRecipes;
   }
 
   return (
@@ -46,10 +45,9 @@ export default async function BookmarksPage() {
           </p>
         </div>
         {typedRecipes.length > 0 ? (
-          <GroupedRecipeGrid
+          <GalleryGrid
             initialRecipes={typedRecipes}
-            fetchConfig={{ type: "bookmarks", bookmarkIds }}
-            basePath="/recipes"
+            recipeIds={bookmarkIds}
           />
         ) : (
           <p className="text-center text-sm text-muted-foreground py-20">
