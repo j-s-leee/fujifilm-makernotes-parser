@@ -17,29 +17,31 @@ import {
 import { addSign } from "@/lib/utils";
 import { useState, type ReactNode } from "react";
 
+export interface RecipeSettingsRecipe {
+  id: number;
+  simulation: string | null;
+  sensor_generation: string | null;
+  dynamic_range_development: number | null;
+  grain_roughness: string | null;
+  grain_size: string | null;
+  color_chrome: string | null;
+  color_chrome_fx_blue: string | null;
+  wb_type: string | null;
+  wb_color_temperature: number | null;
+  wb_red: number | null;
+  wb_blue: number | null;
+  highlight: number | null;
+  shadow: number | null;
+  color: number | null;
+  sharpness: number | null;
+  noise_reduction: number | null;
+  clarity: number | null;
+  bw_adjustment: number | null;
+  bw_magenta_green: number | null;
+}
+
 interface RecipeSettingsProps {
-  recipe: {
-    id: number;
-    simulation: string | null;
-    sensor_generation: string | null;
-    dynamic_range_development: number | null;
-    grain_roughness: string | null;
-    grain_size: string | null;
-    color_chrome: string | null;
-    color_chrome_fx_blue: string | null;
-    wb_type: string | null;
-    wb_color_temperature: number | null;
-    wb_red: number | null;
-    wb_blue: number | null;
-    highlight: number | null;
-    shadow: number | null;
-    color: number | null;
-    sharpness: number | null;
-    noise_reduction: number | null;
-    clarity: number | null;
-    bw_adjustment: number | null;
-    bw_magenta_green: number | null;
-  };
+  recipe: RecipeSettingsRecipe;
 }
 
 function SettingRow({
@@ -114,7 +116,7 @@ export function RecipeSettings({ recipe }: RecipeSettingsProps) {
   const iconSize = "h-4 w-4";
 
   return (
-    <div className="rounded-xl border border-border bg-card p-6 lg:sticky lg:top-24">
+    <div className="rounded-xl border border-border bg-card p-6">
       {/* Header */}
       <div className="mb-6 flex items-center justify-between">
         <h2 className="text-xl font-bold tracking-tight">Recipe Settings</h2>

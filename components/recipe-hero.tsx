@@ -1,13 +1,15 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Heart, Bookmark, Share2 } from "lucide-react";
+import { Heart, Bookmark, Share2, SlidersHorizontal } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useUserInteractions } from "@/contexts/user-interactions-context";
 import { getThumbnailUrl } from "@/lib/get-thumbnail-url";
 import { toSlug } from "@/lib/slug";
+import { RecipeSettingsModal } from "@/components/recipe-settings-modal";
+import type { RecipeSettingsRecipe } from "@/components/recipe-settings";
 
 interface RecipeHeroProps {
   recipe: {
@@ -21,6 +23,7 @@ interface RecipeHeroProps {
     bookmark_count: number;
     like_count: number;
   };
+  settingsRecipe: RecipeSettingsRecipe;
   sharer: {
     userId: string;
     displayName: string;
@@ -29,7 +32,8 @@ interface RecipeHeroProps {
   } | null;
 }
 
-export function RecipeHero({ recipe, sharer }: RecipeHeroProps) {
+export function RecipeHero({ recipe, settingsRecipe, sharer }: RecipeHeroProps) {
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const {
     bookmarks,
     likes,
@@ -173,6 +177,12 @@ export function RecipeHero({ recipe, sharer }: RecipeHeroProps) {
             >
               <Share2 className="h-4 w-4" />
             </button>
+            <button
+              onClick={() => setSettingsOpen(true)}
+              className="flex items-center justify-center rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            >
+              <SlidersHorizontal className="h-4 w-4" />
+            </button>
           </div>
         </div>
 
@@ -198,6 +208,12 @@ export function RecipeHero({ recipe, sharer }: RecipeHeroProps) {
           </div>
         )}
       </div>
+
+      <RecipeSettingsModal
+        recipe={settingsRecipe}
+        open={settingsOpen}
+        onOpenChange={setSettingsOpen}
+      />
     </div>
   );
 }

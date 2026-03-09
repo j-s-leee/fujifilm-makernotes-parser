@@ -3,7 +3,6 @@ import { createStaticClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import { RecipeHero } from "@/components/recipe-hero";
 import { BackButton } from "@/components/back-button";
-import { RecipeSettings } from "@/components/recipe-settings";
 import { SimilarRecipes } from "@/components/similar-recipes";
 import { SimilarRecipesSkeleton } from "@/components/skeletons";
 
@@ -92,20 +91,19 @@ export default async function RecipePage({ params }: RecipePageProps) {
         <BackButton label="Back to Recipes" fallbackHref="/recipes" />
 
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-          {/* Left column: Hero + Similar */}
-          <div className="flex flex-col gap-8">
-            <RecipeHero recipe={recipe} sharer={sharer} />
+          {/* Left column: Hero (sticky on desktop) */}
+          <div className="md:sticky md:top-24 md:self-start">
+            <RecipeHero recipe={recipe} settingsRecipe={recipe} sharer={sharer} />
+          </div>
+
+          {/* Right column: Similar Recipes */}
+          <div>
             <Suspense fallback={<SimilarRecipesSkeleton />}>
               <SimilarRecipesSection
                 recipeId={recipeId}
                 recipeHash={recipe.recipe_hash}
               />
             </Suspense>
-          </div>
-
-          {/* Right column: Settings (sticky) */}
-          <div>
-            <RecipeSettings recipe={recipe} />
           </div>
         </div>
       </div>

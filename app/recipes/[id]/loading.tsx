@@ -1,6 +1,6 @@
 import {
   RecipeHeroSkeleton,
-  RecipeSettingsSkeleton,
+  GalleryGridSkeleton,
 } from "@/components/skeletons";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -12,13 +12,13 @@ export default function Loading() {
         <Skeleton className="h-5 w-32" />
 
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-          {/* Left column */}
-          <div className="flex flex-col gap-8">
+          {/* Left column: Hero (sticky) */}
+          <div className="md:sticky md:top-24 md:self-start">
             <RecipeHeroSkeleton />
           </div>
-          {/* Right column */}
+          {/* Right column: Similar Recipes */}
           <div>
-            <RecipeSettingsSkeleton />
+            <GalleryGridSkeleton count={4} />
           </div>
         </div>
       </div>
