@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { notFound, redirect } from "next/navigation";
+import { Search } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { BackButton } from "@/components/back-button";
@@ -63,32 +64,48 @@ export default async function HistoryDetailPage({
     .sort((a, b) => b.similarity - a.similarity) as (Record<string, unknown> & { similarity: number })[];
 
   const r2Url = process.env.NEXT_PUBLIC_R2_PUBLIC_URL;
-  const uploadedImageSrc = r2Url
-    ? `${r2Url}/${recommendation.image_path}`
-    : recommendation.image_path;
+  const isTextSearch = !recommendation.image_path && recommendation.query_text;
 
   return (
     <div className="flex flex-1 justify-center px-4 py-8 sm:px-6 md:px-10 md:py-12">
       <div className="flex w-full max-w-6xl flex-col gap-6">
         <BackButton label="Back to History" fallbackHref="/recommend/history" />
 
-        {/* Uploaded photo */}
-        <div className="flex flex-col items-center gap-2">
-          <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-            Your Photo
-          </p>
-          <div className="overflow-hidden rounded-lg border border-border">
-            <Image
-              src={uploadedImageSrc}
-              alt="Uploaded photo"
-              width={recommendation.image_width ?? 300}
-              height={recommendation.image_height ?? 300}
-              className="max-h-60 w-auto object-contain"
-              placeholder={recommendation.blur_data_url ? "blur" : "empty"}
-              blurDataURL={recommendation.blur_data_url ?? undefined}
-            />
+        {/* Query preview */}
+        {isTextSearch ? (
+          <div className="flex flex-col items-center gap-2">
+            <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+              Your Search
+            </p>
+            <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/50 px-4 py-2">
+              <Search className="h-4 w-4 text-muted-foreground" />
+              <p className="text-sm text-foreground">
+                &ldquo;{recommendation.query_text}&rdquo;
+              </p>
+            </div>
           </div>
-        </div>
+        ) : recommendation.image_path ? (
+          <div className="flex flex-col items-center gap-2">
+            <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+              Your Photo
+            </p>
+            <div className="overflow-hidden rounded-lg border border-border">
+              <Image
+                src={
+                  r2Url
+                    ? `${r2Url}/${recommendation.image_path}`
+                    : recommendation.image_path
+                }
+                alt="Uploaded photo"
+                width={recommendation.image_width ?? 300}
+                height={recommendation.image_height ?? 300}
+                className="max-h-60 w-auto object-contain"
+                placeholder={recommendation.blur_data_url ? "blur" : "empty"}
+                blurDataURL={recommendation.blur_data_url ?? undefined}
+              />
+            </div>
+          </div>
+        ) : null}
 
         {/* Results grid */}
         {rankedRecipes.length > 0 ? (

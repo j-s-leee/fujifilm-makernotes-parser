@@ -385,10 +385,11 @@ CREATE INDEX recipes_image_embedding_idx
 CREATE TABLE public.recommendations (
   id           bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
   user_id      uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  image_path   text NOT NULL,
+  image_path   text,
   image_width  smallint,
   image_height smallint,
   blur_data_url text,
+  query_text   text,
   created_at   timestamptz DEFAULT now()
 );
 
