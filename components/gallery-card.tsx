@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Bookmark, Heart } from "lucide-react";
@@ -26,7 +27,7 @@ export interface GalleryRecipe {
   user_avatar_path: string | null;
 }
 
-export function GalleryCard({ recipe }: { recipe: GalleryRecipe }) {
+export const GalleryCard = memo(function GalleryCard({ recipe }: { recipe: GalleryRecipe }) {
   const { bookmarks, likes, likeCounts, toggleBookmark, toggleLike } =
     useUserInteractions();
 
@@ -186,4 +187,4 @@ export function GalleryCard({ recipe }: { recipe: GalleryRecipe }) {
       </div>
     </div>
   );
-}
+});

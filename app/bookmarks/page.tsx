@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { GalleryGrid } from "@/components/gallery-grid";
 import { AuthPrompt } from "@/components/auth-prompt";
+import { GALLERY_SELECT } from "@/lib/queries";
 
 export default async function BookmarksPage() {
   const supabase = await createClient();
@@ -27,7 +28,7 @@ export default async function BookmarksPage() {
   if (bookmarkIds.length > 0) {
     const { data: recipes } = await supabase
       .from("recipes_with_stats")
-      .select("*")
+      .select(GALLERY_SELECT)
       .in("id", bookmarkIds)
       .order("created_at", { ascending: false })
       .order("id", { ascending: false })

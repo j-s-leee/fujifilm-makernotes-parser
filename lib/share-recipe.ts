@@ -38,49 +38,31 @@ export async function shareRecipe(
 
   const { key: fileName, blurDataUrl, width, height, embedding, colorHistogram } = await uploadRes.json();
 
-  // Resolve FK: simulation_id
-  let simulationId: number | null = null;
-  if (simulation) {
-    const { data: sim } = await supabase
-      .from("simulations")
-      .select("id")
-      .eq("slug", simulation)
-      .single();
-    simulationId = sim?.id ?? null;
-  }
-
-  // Resolve FK: camera_model_id
-  let cameraModelId: number | null = null;
-  if (cameraModel) {
-    const normalizedCamera = cameraModel.replace(/^FUJIFILM\s*/i, "").trim();
-    const { data: cm } = await supabase
-      .from("camera_models")
-      .select("id")
-      .eq("name", normalizedCamera)
-      .single();
-    cameraModelId = cm?.id ?? null;
-  }
-
-  // Resolve FK: lens_id (upsert via DB function)
-  let lensId: number | null = null;
-  if (lensModel) {
-    const { data } = await supabase.rpc("resolve_lens_id", {
-      lens_name: lensModel,
-    });
-    lensId = data ?? null;
-  }
-
-  // Resolve FK: wb_type_id
-  let wbTypeId: number | null = null;
+  // Resolve all FK lookups in parallel
   const wbSlug = recipe.whiteBalance?.type ?? null;
-  if (wbSlug) {
-    const { data: wb } = await supabase
-      .from("wb_types")
-      .select("id")
-      .eq("slug", wbSlug)
-      .single();
-    wbTypeId = wb?.id ?? null;
-  }
+  const normalizedCamera = cameraModel
+    ? cameraModel.replace(/^FUJIFILM\s*/i, "").trim()
+    : null;
+
+  const [simResult, camResult, lensResult, wbResult] = await Promise.all([
+    simulation
+      ? supabase.from("simulations").select("id").eq("slug", simulation).single()
+      : Promise.resolve({ data: null }),
+    normalizedCamera
+      ? supabase.from("camera_models").select("id").eq("name", normalizedCamera).single()
+      : Promise.resolve({ data: null }),
+    lensModel
+      ? supabase.rpc("resolve_lens_id", { lens_name: lensModel })
+      : Promise.resolve({ data: null }),
+    wbSlug
+      ? supabase.from("wb_types").select("id").eq("slug", wbSlug).single()
+      : Promise.resolve({ data: null }),
+  ]);
+
+  const simulationId = simResult.data?.id ?? null;
+  const cameraModelId = camResult.data?.id ?? null;
+  const lensId = lensResult.data ?? null;
+  const wbTypeId = wbResult.data?.id ?? null;
 
   // Insert recipe with FK references and enum values
   const { data: inserted, error: insertError } = await supabase.from("recipes").insert({

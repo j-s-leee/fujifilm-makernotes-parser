@@ -4,6 +4,7 @@ import { createStaticClient } from "@/lib/supabase/server";
 import { GalleryGrid } from "@/components/gallery-grid";
 import { fromCameraSlug, toSlug } from "@/lib/slug";
 import { ALL_CAMERA_MODELS } from "@/fujifilm/cameras";
+import { GALLERY_SELECT } from "@/lib/queries";
 
 export const revalidate = 3600;
 
@@ -32,7 +33,7 @@ export default async function CameraPage({ params }: Props) {
 
   const { data: recipes } = await supabase
     .from("recipes_with_stats")
-    .select("*")
+    .select(GALLERY_SELECT)
     .eq("camera_model", camera)
     .order("created_at", { ascending: false })
     .limit(24);

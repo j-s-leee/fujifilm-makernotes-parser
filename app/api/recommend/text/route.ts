@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getTextEmbedding } from "@/lib/embedding";
+import { RECOMMEND_SELECT } from "@/lib/queries";
 
 export async function POST(request: NextRequest) {
   // 1. Auth check
@@ -91,7 +92,7 @@ export async function POST(request: NextRequest) {
   if (matchedIds.length > 0) {
     const { data } = await supabase
       .from("recipes_with_stats")
-      .select("*")
+      .select(RECOMMEND_SELECT)
       .in("id", matchedIds);
     recipes = (data ?? []) as (Record<string, unknown> & { id: number })[];
   }

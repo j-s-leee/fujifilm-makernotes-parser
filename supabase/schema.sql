@@ -349,21 +349,47 @@ DROP VIEW IF EXISTS public.recipes_with_stats;
 CREATE VIEW public.recipes_with_stats
 WITH (security_invoker = on) AS
 SELECT
-  r.*,
-  s.slug AS simulation,
-  cm.name AS camera_model,
+  r.id,
+  r.user_id,
+  r.grain_roughness,
+  r.grain_size,
+  r.color_chrome,
+  r.color_chrome_fx_blue,
+  r.dynamic_range_setting,
+  r.wb_color_temperature,
+  r.wb_red,
+  r.wb_blue,
+  r.dynamic_range_development,
+  r.highlight,
+  r.shadow,
+  r.color,
+  r.sharpness,
+  r.noise_reduction,
+  r.clarity,
+  r.bw_adjustment,
+  r.bw_magenta_green,
+  r.thumbnail_path,
+  r.blur_data_url,
+  r.recipe_hash,
+  r.thumbnail_width,
+  r.thumbnail_height,
+  r.bookmark_count,
+  r.like_count,
+  r.created_at,
+  s.slug        AS simulation,
+  cm.name       AS camera_model,
   cm.sensor_generation,
-  l.name AS lens_model,
-  w.slug AS wb_type,
+  l.name        AS lens_model,
+  w.slug        AS wb_type,
   p.display_name AS user_display_name,
-  p.username AS user_username,
-  p.avatar_path AS user_avatar_path
+  p.username     AS user_username,
+  p.avatar_path  AS user_avatar_path
 FROM public.recipes r
-LEFT JOIN public.simulations s ON s.id = r.simulation_id
+LEFT JOIN public.simulations s   ON s.id  = r.simulation_id
 LEFT JOIN public.camera_models cm ON cm.id = r.camera_model_id
-LEFT JOIN public.lenses l ON l.id = r.lens_id
-LEFT JOIN public.wb_types w ON w.id = r.wb_type_id
-LEFT JOIN public.profiles p ON p.id = r.user_id;
+LEFT JOIN public.lenses l         ON l.id  = r.lens_id
+LEFT JOIN public.wb_types w       ON w.id  = r.wb_type_id
+LEFT JOIN public.profiles p       ON p.id  = r.user_id;
 
 -- ============================================================
 -- PGVECTOR EXTENSION
@@ -374,10 +400,10 @@ CREATE EXTENSION IF NOT EXISTS vector;
 ALTER TABLE public.recipes ADD COLUMN image_embedding vector(768);
 ALTER TABLE public.recipes ADD COLUMN color_histogram vector(48);
 
--- ivfflat index for cosine similarity search
+-- HNSW index for cosine similarity search
 CREATE INDEX recipes_image_embedding_idx
-  ON public.recipes USING ivfflat (image_embedding vector_cosine_ops)
-  WITH (lists = 100);
+  ON public.recipes USING hnsw (image_embedding vector_cosine_ops)
+  WITH (m = 16, ef_construction = 100);
 
 -- ============================================================
 -- RECOMMENDATIONS TABLE
@@ -454,8 +480,7 @@ CREATE POLICY "Users can create recommendation results"
 -- ============================================================
 -- SIMILARITY SEARCH FUNCTION
 -- ============================================================
--- Weighted average: 0.4 × CLIP cosine + 0.6 × histogram cosine
--- Falls back to CLIP-only when histogram is unavailable
+-- Two-phase search: HNSW ANN candidates → re-rank with histogram + sensor filter
 CREATE OR REPLACE FUNCTION match_recipes_by_image(
   query_embedding vector(768),
   match_count int DEFAULT 10,
@@ -465,27 +490,31 @@ CREATE OR REPLACE FUNCTION match_recipes_by_image(
 RETURNS TABLE (id bigint, similarity float)
 LANGUAGE sql STABLE
 AS $$
+  WITH candidates AS (
+    SELECT
+      r.id,
+      r.image_embedding,
+      r.color_histogram,
+      r.camera_model_id
+    FROM public.recipes r
+    WHERE r.image_embedding IS NOT NULL
+    ORDER BY r.image_embedding <=> query_embedding
+    LIMIT match_count * 5
+  )
   SELECT
-    r.id,
+    c.id,
     CASE
-      WHEN query_histogram IS NOT NULL AND r.color_histogram IS NOT NULL THEN
-        0.4 * (1 - (r.image_embedding <=> query_embedding))
-        + 0.6 * (1 - (r.color_histogram <=> query_histogram))
+      WHEN query_histogram IS NOT NULL AND c.color_histogram IS NOT NULL THEN
+        0.4 * (1 - (c.image_embedding <=> query_embedding))
+        + 0.6 * (1 - (c.color_histogram <=> query_histogram))
       ELSE
-        1 - (r.image_embedding <=> query_embedding)
-    END AS similarity
-  FROM recipes r
-  LEFT JOIN camera_models cm ON cm.id = r.camera_model_id
-  WHERE r.image_embedding IS NOT NULL
-    AND (filter_sensor_generation IS NULL OR cm.sensor_generation = filter_sensor_generation)
-  ORDER BY
-    CASE
-      WHEN query_histogram IS NOT NULL AND r.color_histogram IS NOT NULL THEN
-        0.4 * (r.image_embedding <=> query_embedding)
-        + 0.6 * (r.color_histogram <=> query_histogram)
-      ELSE
-        r.image_embedding <=> query_embedding
-    END
+        1 - (c.image_embedding <=> query_embedding)
+    END::float AS similarity
+  FROM candidates c
+  LEFT JOIN public.camera_models cm ON cm.id = c.camera_model_id
+  WHERE filter_sensor_generation IS NULL
+     OR cm.sensor_generation = filter_sensor_generation
+  ORDER BY similarity DESC
   LIMIT match_count;
 $$;
 

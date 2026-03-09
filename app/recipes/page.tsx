@@ -9,6 +9,7 @@ import {
   FUJIFILM_SIMULATION_FORM_INPUT_OPTIONS,
   isStringFujifilmSimulation,
 } from "@/fujifilm/simulation";
+import { GALLERY_SELECT } from "@/lib/queries";
 
 interface RecipesPageProps {
   searchParams: Promise<{
@@ -23,41 +24,44 @@ export default async function RecipesPage({ searchParams }: RecipesPageProps) {
   const params = await searchParams;
   const supabase = await createClient();
 
-  // Fetch distinct camera models from DB
-  const { data: cameraRows } = await supabase
-    .from("camera_models")
-    .select("name")
-    .order("name");
+  // Build recipes query
+  const buildRecipesQuery = () => {
+    let query = supabase
+      .from("recipes_with_stats")
+      .select(GALLERY_SELECT)
+      .limit(24);
+
+    if (params.simulation && isStringFujifilmSimulation(params.simulation)) {
+      query = query.eq("simulation", params.simulation);
+    }
+
+    if (
+      params.sensor &&
+      SENSOR_GENERATIONS.includes(params.sensor as SensorGeneration)
+    ) {
+      query = query.eq("sensor_generation", params.sensor);
+    }
+
+    if (params.camera) {
+      query = query.eq("camera_model", params.camera);
+    }
+
+    if (params.sort === "popular") {
+      query = query.order("like_count", { ascending: false });
+    } else {
+      query = query.order("created_at", { ascending: false });
+    }
+    query = query.order("id", { ascending: false });
+
+    return query;
+  };
+
+  // Fetch camera models and recipes in parallel
+  const [{ data: cameraRows }, { data: recipes }] = await Promise.all([
+    supabase.from("camera_models").select("name").order("name"),
+    buildRecipesQuery(),
+  ]);
   const cameraModels = (cameraRows ?? []).map((r) => r.name);
-
-  let query = supabase
-    .from("recipes_with_stats")
-    .select("*")
-    .limit(24);
-
-  if (params.simulation && isStringFujifilmSimulation(params.simulation)) {
-    query = query.eq("simulation", params.simulation);
-  }
-
-  if (
-    params.sensor &&
-    SENSOR_GENERATIONS.includes(params.sensor as SensorGeneration)
-  ) {
-    query = query.eq("sensor_generation", params.sensor);
-  }
-
-  if (params.camera && cameraModels.includes(params.camera)) {
-    query = query.eq("camera_model", params.camera);
-  }
-
-  if (params.sort === "popular") {
-    query = query.order("like_count", { ascending: false });
-  } else {
-    query = query.order("created_at", { ascending: false });
-  }
-  query = query.order("id", { ascending: false });
-
-  const { data: recipes } = await query;
 
   return (
     <div className="flex flex-1 justify-center px-4 py-8 sm:px-6 md:px-10 md:py-12">

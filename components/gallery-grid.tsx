@@ -5,6 +5,7 @@ import { Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useUserInteractions } from "@/contexts/user-interactions-context";
 import { SENSOR_GENERATIONS, type SensorGeneration } from "@/fujifilm/cameras";
+import { GALLERY_SELECT } from "@/lib/queries";
 import { GalleryCard, type GalleryRecipe } from "@/components/gallery-card";
 
 const PAGE_SIZE = 24;
@@ -57,7 +58,7 @@ export function GalleryGrid({
     setLoading(true);
 
     const supabase = createClient();
-    let query = supabase.from("recipes_with_stats").select("*");
+    let query = supabase.from("recipes_with_stats").select(GALLERY_SELECT);
 
     if (simulation) {
       query = query.eq("simulation", simulation);

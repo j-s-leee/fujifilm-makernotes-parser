@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { GalleryGrid } from "@/components/gallery-grid";
 import { AuthPrompt } from "@/components/auth-prompt";
+import { GALLERY_SELECT } from "@/lib/queries";
 
 export default async function LikesPage() {
   const supabase = await createClient();
@@ -27,7 +28,7 @@ export default async function LikesPage() {
   if (likeIds.length > 0) {
     const { data: recipes } = await supabase
       .from("recipes_with_stats")
-      .select("*")
+      .select(GALLERY_SELECT)
       .in("id", likeIds)
       .order("created_at", { ascending: false })
       .order("id", { ascending: false })
