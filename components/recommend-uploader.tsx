@@ -2,8 +2,9 @@
 
 import { useState, type FormEvent } from "react";
 import { useDropzone } from "react-dropzone";
-import { Upload, Loader2, Search } from "lucide-react";
+import { Upload, Loader2, Search, Camera } from "lucide-react";
 import { compressImageToThumbnail } from "@/lib/compress-image";
+import { ALL_CAMERA_MODELS } from "@/fujifilm/cameras";
 
 interface RecommendedRecipe {
   id: number;
@@ -41,6 +42,7 @@ export function RecommendUploader({ onResult }: RecommendUploaderProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [query, setQuery] = useState("");
+  const [cameraModel, setCameraModel] = useState("");
 
   const handleDrop = async (acceptedFiles: File[]) => {
     const file = acceptedFiles[0];
@@ -60,6 +62,9 @@ export function RecommendUploader({ onResult }: RecommendUploaderProps) {
         { type: compressed.contentType },
       );
       formData.append("file", compressedFile);
+      if (cameraModel) {
+        formData.append("cameraModel", cameraModel);
+      }
 
       const res = await fetch("/api/recommend", {
         method: "POST",
@@ -92,7 +97,7 @@ export function RecommendUploader({ onResult }: RecommendUploaderProps) {
       const res = await fetch("/api/recommend/text", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: trimmed }),
+        body: JSON.stringify({ text: trimmed, cameraModel: cameraModel || undefined }),
       });
 
       if (!res.ok) {
@@ -136,30 +141,48 @@ export function RecommendUploader({ onResult }: RecommendUploaderProps) {
 
   return (
     <div className="flex flex-col gap-3">
-      {/* Mode tabs */}
-      <div className="flex gap-1 rounded-lg bg-muted p-1 self-start">
-        <button
-          onClick={() => setMode("image")}
-          className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
-            mode === "image"
-              ? "bg-background text-foreground shadow-sm"
-              : "text-muted-foreground hover:text-foreground"
-          }`}
-        >
-          <Upload className="h-3.5 w-3.5" />
-          Image
-        </button>
-        <button
-          onClick={() => setMode("text")}
-          className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
-            mode === "text"
-              ? "bg-background text-foreground shadow-sm"
-              : "text-muted-foreground hover:text-foreground"
-          }`}
-        >
-          <Search className="h-3.5 w-3.5" />
-          Text
-        </button>
+      {/* Mode tabs + camera filter */}
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="flex gap-1 rounded-lg bg-muted p-1">
+          <button
+            onClick={() => setMode("image")}
+            className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+              mode === "image"
+                ? "bg-background text-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <Upload className="h-3.5 w-3.5" />
+            Image
+          </button>
+          <button
+            onClick={() => setMode("text")}
+            className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+              mode === "text"
+                ? "bg-background text-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <Search className="h-3.5 w-3.5" />
+            Text
+          </button>
+        </div>
+
+        <div className="relative">
+          <Camera className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+          <select
+            value={cameraModel}
+            onChange={(e) => setCameraModel(e.target.value)}
+            className="h-8 appearance-none rounded-lg border border-border bg-background pl-8 pr-8 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+          >
+            <option value="">All cameras</option>
+            {ALL_CAMERA_MODELS.map((model) => (
+              <option key={model} value={model}>
+                {model}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
       {mode === "image" ? (

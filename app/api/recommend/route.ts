@@ -41,6 +41,8 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  const cameraModel = (formData.get("cameraModel") as string | null)?.trim() || null;
+
   const buffer = Buffer.from(await file.arrayBuffer());
 
   // 3. Generate blur placeholder
@@ -83,7 +85,18 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // 6. Query pgvector for similar recipes
+  // 6. Resolve sensor generation from camera model (if provided)
+  let sensorGeneration: string | null = null;
+  if (cameraModel) {
+    const { data: cam } = await supabase
+      .from("camera_models")
+      .select("sensor_generation")
+      .eq("name", cameraModel)
+      .single();
+    sensorGeneration = cam?.sensor_generation ?? null;
+  }
+
+  // 7. Query pgvector for similar recipes
   const matchCountParam = request.nextUrl.searchParams.get("count");
   const matchCount = Math.min(
     Math.max(parseInt(matchCountParam ?? "10", 10) || 10, 1),
@@ -96,6 +109,7 @@ export async function POST(request: NextRequest) {
       query_embedding: JSON.stringify(embedding),
       match_count: matchCount,
       query_histogram: JSON.stringify(colorHistogram),
+      filter_sensor_generation: sensorGeneration,
     }
   );
 

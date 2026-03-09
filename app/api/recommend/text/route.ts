@@ -16,6 +16,7 @@ export async function POST(request: NextRequest) {
   // 2. Parse text input
   const body = await request.json().catch(() => null);
   const text = body?.text?.trim();
+  const cameraModel = (body?.cameraModel as string | undefined)?.trim() || null;
 
   if (!text || typeof text !== "string") {
     return NextResponse.json(
@@ -41,7 +42,18 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // 4. Query pgvector for similar recipes (CLIP-only, no color histogram)
+  // 4. Resolve sensor generation from camera model (if provided)
+  let sensorGeneration: string | null = null;
+  if (cameraModel) {
+    const { data: cam } = await supabase
+      .from("camera_models")
+      .select("sensor_generation")
+      .eq("name", cameraModel)
+      .single();
+    sensorGeneration = cam?.sensor_generation ?? null;
+  }
+
+  // 5. Query pgvector for similar recipes (CLIP-only, no color histogram)
   const matchCountParam = request.nextUrl.searchParams.get("count");
   const matchCount = Math.min(
     Math.max(parseInt(matchCountParam ?? "10", 10) || 10, 1),
@@ -54,6 +66,7 @@ export async function POST(request: NextRequest) {
       query_embedding: JSON.stringify(embedding),
       match_count: matchCount,
       query_histogram: null,
+      filter_sensor_generation: sensorGeneration,
     },
   );
 
