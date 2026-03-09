@@ -385,10 +385,11 @@ CREATE INDEX recipes_image_embedding_idx
 CREATE TABLE public.recommendations (
   id           bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
   user_id      uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  image_path   text NOT NULL,
+  image_path   text,
   image_width  smallint,
   image_height smallint,
   blur_data_url text,
+  query_text   text,
   created_at   timestamptz DEFAULT now()
 );
 
@@ -458,7 +459,8 @@ CREATE POLICY "Users can create recommendation results"
 CREATE OR REPLACE FUNCTION match_recipes_by_image(
   query_embedding vector(768),
   match_count int DEFAULT 10,
-  query_histogram vector(48) DEFAULT NULL
+  query_histogram vector(48) DEFAULT NULL,
+  filter_sensor_generation text DEFAULT NULL
 )
 RETURNS TABLE (id bigint, similarity float)
 LANGUAGE sql STABLE
@@ -473,7 +475,9 @@ AS $$
         1 - (r.image_embedding <=> query_embedding)
     END AS similarity
   FROM recipes r
+  LEFT JOIN camera_models cm ON cm.id = r.camera_model_id
   WHERE r.image_embedding IS NOT NULL
+    AND (filter_sensor_generation IS NULL OR cm.sensor_generation = filter_sensor_generation)
   ORDER BY
     CASE
       WHEN query_histogram IS NOT NULL AND r.color_histogram IS NOT NULL THEN

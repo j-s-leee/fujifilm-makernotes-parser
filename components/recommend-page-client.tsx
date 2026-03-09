@@ -10,8 +10,10 @@ export function RecommendPageClient() {
   const [result, setResult] = useState<RecommendResult | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
-  const handleResult = (newResult: RecommendResult, newPreviewUrl: string) => {
-    // Revoke previous preview URL to avoid memory leaks
+  const handleResult = (
+    newResult: RecommendResult,
+    newPreviewUrl: string | null,
+  ) => {
     if (previewUrl) {
       URL.revokeObjectURL(previewUrl);
     }
@@ -19,7 +21,6 @@ export function RecommendPageClient() {
     setPreviewUrl(newPreviewUrl);
   };
 
-  // Clean up preview URL on unmount
   useEffect(() => {
     return () => {
       if (previewUrl) URL.revokeObjectURL(previewUrl);
@@ -34,7 +35,8 @@ export function RecommendPageClient() {
             Recipe Recommendations
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Upload any photo to find Fujifilm recipes with a similar look
+            Upload a photo or describe the look you want to find matching
+            recipes
           </p>
           <Link
             href="/recommend/history"
@@ -46,10 +48,11 @@ export function RecommendPageClient() {
 
         <RecommendUploader onResult={handleResult} />
 
-        {result && previewUrl && (
+        {result && (
           <RecommendResults
             recipes={result.recipes}
             uploadedImageUrl={previewUrl}
+            queryText={result.queryText}
           />
         )}
       </div>
