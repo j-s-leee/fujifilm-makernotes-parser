@@ -2,6 +2,8 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { TrendingGrid } from "@/components/trending-grid";
 
+export const revalidate = 3600;
+
 export default async function Home() {
   const supabase = await createClient();
 
