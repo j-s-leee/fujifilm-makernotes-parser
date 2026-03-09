@@ -3,7 +3,13 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Heart, Bookmark, Share2, SlidersHorizontal } from "lucide-react";
+import {
+  Heart,
+  Bookmark,
+  Share2,
+  SlidersHorizontal,
+  NotebookText,
+} from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useUserInteractions } from "@/contexts/user-interactions-context";
 import { getThumbnailUrl } from "@/lib/get-thumbnail-url";
@@ -32,7 +38,11 @@ interface RecipeHeroProps {
   } | null;
 }
 
-export function RecipeHero({ recipe, settingsRecipe, sharer }: RecipeHeroProps) {
+export function RecipeHero({
+  recipe,
+  settingsRecipe,
+  sharer,
+}: RecipeHeroProps) {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const {
     bookmarks,
@@ -181,7 +191,7 @@ export function RecipeHero({ recipe, settingsRecipe, sharer }: RecipeHeroProps) 
               onClick={() => setSettingsOpen(true)}
               className="flex items-center justify-center rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
             >
-              <SlidersHorizontal className="h-4 w-4" />
+              <NotebookText className="h-4 w-4" />
             </button>
           </div>
         </div>

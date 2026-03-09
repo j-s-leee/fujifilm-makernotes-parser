@@ -20,7 +20,7 @@ export function RecipeSettingsModal({
 }: RecipeSettingsModalProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto p-0">
+      <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto p-0 pt-8">
         <DialogTitle className="sr-only">Recipe Settings</DialogTitle>
         <RecipeSettings recipe={recipe} />
       </DialogContent>

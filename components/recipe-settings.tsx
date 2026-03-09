@@ -78,8 +78,7 @@ export function RecipeSettings({ recipe }: RecipeSettingsProps) {
       lines.push(
         `Grain Effect: ${recipe.grain_roughness}${recipe.grain_size ? `, ${recipe.grain_size}` : ""}`,
       );
-    if (recipe.color_chrome)
-      lines.push(`Color Chrome: ${recipe.color_chrome}`);
+    if (recipe.color_chrome) lines.push(`Color Chrome: ${recipe.color_chrome}`);
     if (recipe.color_chrome_fx_blue)
       lines.push(`Color Chrome FX Blue: ${recipe.color_chrome_fx_blue}`);
     if (recipe.wb_type) {
@@ -93,10 +92,8 @@ export function RecipeSettings({ recipe }: RecipeSettingsProps) {
     }
     if (recipe.highlight != null)
       lines.push(`Highlight: ${addSign(recipe.highlight)}`);
-    if (recipe.shadow != null)
-      lines.push(`Shadow: ${addSign(recipe.shadow)}`);
-    if (recipe.color != null)
-      lines.push(`Color: ${addSign(recipe.color)}`);
+    if (recipe.shadow != null) lines.push(`Shadow: ${addSign(recipe.shadow)}`);
+    if (recipe.color != null) lines.push(`Color: ${addSign(recipe.color)}`);
     if (recipe.sharpness != null)
       lines.push(`Sharpness: ${addSign(recipe.sharpness)}`);
     if (recipe.noise_reduction != null)
@@ -116,7 +113,7 @@ export function RecipeSettings({ recipe }: RecipeSettingsProps) {
   const iconSize = "h-4 w-4";
 
   return (
-    <div className="rounded-xl border border-border bg-card p-6">
+    <div className="p-6">
       {/* Header */}
       <div className="mb-6 flex items-center justify-between">
         <h2 className="text-xl font-bold tracking-tight">Recipe Settings</h2>
@@ -193,7 +190,8 @@ export function RecipeSettings({ recipe }: RecipeSettingsProps) {
             label="Tone Curve"
             value={
               <span>
-                H:{addSign(recipe.highlight ?? 0)}, S:{addSign(recipe.shadow ?? 0)}
+                H:{addSign(recipe.highlight ?? 0)}, S:
+                {addSign(recipe.shadow ?? 0)}
               </span>
             }
           />
