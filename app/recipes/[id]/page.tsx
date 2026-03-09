@@ -1,14 +1,52 @@
+import { Suspense } from "react";
 import { createStaticClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import { RecipeHero } from "@/components/recipe-hero";
 import { BackButton } from "@/components/back-button";
-import { RecipeSettings } from "@/components/recipe-settings";
 import { SimilarRecipes } from "@/components/similar-recipes";
+import { SimilarRecipesSkeleton } from "@/components/skeletons";
 
 export const revalidate = 60;
 
 interface RecipePageProps {
   params: Promise<{ id: string }>;
+}
+
+async function SimilarRecipesSection({
+  recipeId,
+  recipeHash,
+}: {
+  recipeId: number;
+  recipeHash: string | null;
+}) {
+  if (!recipeHash) {
+    return (
+      <p className="text-center text-sm text-muted-foreground py-20">
+        No similar recipes found.
+      </p>
+    );
+  }
+
+  const supabase = createStaticClient();
+  const { data } = await supabase
+    .from("recipes_with_stats")
+    .select("*")
+    .eq("recipe_hash", recipeHash)
+    .neq("id", recipeId)
+    .order("created_at", { ascending: false })
+    .limit(12);
+
+  const similarRecipes = data ?? [];
+
+  if (similarRecipes.length === 0) {
+    return (
+      <p className="text-center text-sm text-muted-foreground py-20">
+        No similar recipes found.
+      </p>
+    );
+  }
+
+  return <SimilarRecipes recipes={similarRecipes} />;
 }
 
 export default async function RecipePage({ params }: RecipePageProps) {
@@ -46,19 +84,6 @@ export default async function RecipePage({ params }: RecipePageProps) {
       }
     : null;
 
-  // Fetch similar recipes (same core settings via recipe_hash)
-  let similarRecipes: (typeof recipe)[] = [];
-  if (recipe.recipe_hash) {
-    const { data } = await supabase
-      .from("recipes_with_stats")
-      .select("*")
-      .eq("recipe_hash", recipe.recipe_hash)
-      .neq("id", recipeId)
-      .order("created_at", { ascending: false })
-      .limit(12);
-    similarRecipes = data ?? [];
-  }
-
   return (
     <div className="flex flex-1 justify-center px-4 py-8 sm:px-6 md:px-10 md:py-12">
       <div className="flex w-full max-w-6xl flex-col gap-8">
@@ -66,21 +91,19 @@ export default async function RecipePage({ params }: RecipePageProps) {
         <BackButton label="Back to Recipes" fallbackHref="/recipes" />
 
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-          {/* Left column: Hero + Similar */}
-          <div className="flex flex-col gap-8">
-            <RecipeHero recipe={recipe} sharer={sharer} />
-            {similarRecipes.length > 0 ? (
-              <SimilarRecipes recipes={similarRecipes} />
-            ) : (
-              <p className="text-center text-sm text-muted-foreground py-20">
-                No similar recipes found.
-              </p>
-            )}
+          {/* Left column: Hero (sticky on desktop) */}
+          <div className="md:sticky md:top-24 md:self-start">
+            <RecipeHero recipe={recipe} settingsRecipe={recipe} sharer={sharer} />
           </div>
 
-          {/* Right column: Settings (sticky) */}
+          {/* Right column: Similar Recipes */}
           <div>
-            <RecipeSettings recipe={recipe} />
+            <Suspense fallback={<SimilarRecipesSkeleton />}>
+              <SimilarRecipesSection
+                recipeId={recipeId}
+                recipeHash={recipe.recipe_hash}
+              />
+            </Suspense>
           </div>
         </div>
       </div>
