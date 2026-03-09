@@ -3,13 +3,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import {
-  Heart,
-  Bookmark,
-  Share2,
-  SlidersHorizontal,
-  NotebookText,
-} from "lucide-react";
+import { Heart, Bookmark, Share2, NotebookText } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useUserInteractions } from "@/contexts/user-interactions-context";
 import { getThumbnailUrl } from "@/lib/get-thumbnail-url";
