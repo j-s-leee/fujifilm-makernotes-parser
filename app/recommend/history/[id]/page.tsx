@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { BackButton } from "@/components/back-button";
 import { getThumbnailUrl } from "@/lib/get-thumbnail-url";
+import { RECOMMEND_SELECT } from "@/lib/queries";
 
 interface HistoryDetailPageProps {
   params: Promise<{ id: string }>;
@@ -24,22 +25,22 @@ export default async function HistoryDetailPage({
 
   if (!user) redirect("/login");
 
-  // Fetch recommendation
-  const { data: recommendation } = await supabase
-    .from("recommendations")
-    .select("*")
-    .eq("id", recId)
-    .eq("user_id", user.id)
-    .single();
+  // Fetch recommendation and results in parallel
+  const [{ data: recommendation }, { data: results }] = await Promise.all([
+    supabase
+      .from("recommendations")
+      .select("id, image_path, image_width, image_height, blur_data_url, query_text")
+      .eq("id", recId)
+      .eq("user_id", user.id)
+      .single(),
+    supabase
+      .from("recommendation_results")
+      .select("recipe_id, similarity, rank")
+      .eq("recommendation_id", recId)
+      .order("rank", { ascending: true }),
+  ]);
 
   if (!recommendation) notFound();
-
-  // Fetch results with recipe data
-  const { data: results } = await supabase
-    .from("recommendation_results")
-    .select("recipe_id, similarity, rank")
-    .eq("recommendation_id", recId)
-    .order("rank", { ascending: true });
 
   const recipeIds = (results ?? []).map((r) => r.recipe_id);
   const similarityMap = new Map(
@@ -50,7 +51,7 @@ export default async function HistoryDetailPage({
   if (recipeIds.length > 0) {
     const { data } = await supabase
       .from("recipes_with_stats")
-      .select("*")
+      .select(RECOMMEND_SELECT)
       .in("id", recipeIds);
     recipes = data ?? [];
   }

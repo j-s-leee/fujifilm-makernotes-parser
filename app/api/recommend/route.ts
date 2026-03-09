@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { r2, R2_BUCKET } from "@/lib/r2";
 import { getImageEmbedding } from "@/lib/embedding";
 import { computeColorHistogram } from "@/lib/color-histogram";
+import { RECOMMEND_SELECT } from "@/lib/queries";
 
 export async function POST(request: NextRequest) {
   // 1. Auth check
@@ -134,7 +135,7 @@ export async function POST(request: NextRequest) {
   if (matchedIds.length > 0) {
     const { data } = await supabase
       .from("recipes_with_stats")
-      .select("*")
+      .select(RECOMMEND_SELECT)
       .in("id", matchedIds);
     recipes = (data ?? []) as (Record<string, unknown> & { id: number })[];
   }

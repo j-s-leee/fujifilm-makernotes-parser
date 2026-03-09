@@ -4,6 +4,7 @@ import { createStaticClient } from "@/lib/supabase/server";
 import { GalleryGrid } from "@/components/gallery-grid";
 import { fromSensorSlug, toSlug } from "@/lib/slug";
 import { SENSOR_GENERATIONS } from "@/fujifilm/cameras";
+import { GALLERY_SELECT } from "@/lib/queries";
 
 export const revalidate = 3600;
 
@@ -32,7 +33,7 @@ export default async function SensorPage({ params }: Props) {
 
   const { data: recipes } = await supabase
     .from("recipes_with_stats")
-    .select("*")
+    .select(GALLERY_SELECT)
     .eq("sensor_generation", sensor)
     .order("created_at", { ascending: false })
     .limit(24);

@@ -2,6 +2,7 @@ import { createStaticClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import { UserProfileHeader } from "@/components/user-profile-header";
 import { GalleryGrid } from "@/components/gallery-grid";
+import { GALLERY_SELECT } from "@/lib/queries";
 
 export const revalidate = 60;
 
@@ -27,33 +28,36 @@ export default async function UserProfilePage({ params }: UserProfilePageProps) 
 
   if (!profile) notFound();
 
-  // Fetch stats: recipe count + total likes
-  const { count: recipeCount } = await supabase
-    .from("recipes")
-    .select("id", { count: "exact", head: true })
-    .eq("user_id", profile.id);
+  // Fetch stats and recipes in parallel
+  const [{ count: recipeCount }, { data: likeAgg }, { data: recipes }] =
+    await Promise.all([
+      supabase
+        .from("recipes")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", profile.id),
+      supabase
+        .from("recipes")
+        .select("like_count")
+        .eq("user_id", profile.id),
+      supabase
+        .from("recipes_with_stats")
+        .select(GALLERY_SELECT)
+        .eq("user_id", profile.id)
+        .order("created_at", { ascending: false })
+        .order("id", { ascending: false })
+        .limit(24),
+    ]);
 
-  const { data: likeAgg } = await supabase
-    .from("recipes")
-    .select("like_count")
-    .eq("user_id", profile.id);
-
-  const totalLikes = (likeAgg ?? []).reduce((sum, r) => sum + (r.like_count ?? 0), 0);
+  const totalLikes = (likeAgg ?? []).reduce(
+    (sum, r) => sum + (r.like_count ?? 0),
+    0,
+  );
 
   // Resolve avatar URL
   const r2PublicUrl = process.env.NEXT_PUBLIC_R2_PUBLIC_URL ?? "";
   const avatarUrl = profile.avatar_path
     ? `${r2PublicUrl}/${profile.avatar_path}`
     : null;
-
-  // Fetch user's recipes
-  const { data: recipes } = await supabase
-    .from("recipes_with_stats")
-    .select("*")
-    .eq("user_id", profile.id)
-    .order("created_at", { ascending: false })
-    .order("id", { ascending: false })
-    .limit(24);
 
   const typedRecipes = (recipes ?? []) as Parameters<typeof GalleryGrid>[0]["initialRecipes"];
 

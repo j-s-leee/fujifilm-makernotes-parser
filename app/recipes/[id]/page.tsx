@@ -5,6 +5,7 @@ import { RecipeHero } from "@/components/recipe-hero";
 import { BackButton } from "@/components/back-button";
 import { SimilarRecipes } from "@/components/similar-recipes";
 import { SimilarRecipesSkeleton } from "@/components/skeletons";
+import { RECIPE_DETAIL_SELECT, GALLERY_SELECT } from "@/lib/queries";
 
 export const revalidate = 60;
 
@@ -30,7 +31,7 @@ async function SimilarRecipesSection({
   const supabase = createStaticClient();
   const { data } = await supabase
     .from("recipes_with_stats")
-    .select("*")
+    .select(GALLERY_SELECT)
     .eq("recipe_hash", recipeHash)
     .neq("id", recipeId)
     .order("created_at", { ascending: false })
@@ -56,30 +57,23 @@ export default async function RecipePage({ params }: RecipePageProps) {
 
   const supabase = createStaticClient();
 
-  // Fetch recipe with stats
+  // Fetch recipe with stats (view already JOINs profiles)
   const { data: recipe } = await supabase
     .from("recipes_with_stats")
-    .select("*")
+    .select(RECIPE_DETAIL_SELECT)
     .eq("id", recipeId)
     .single();
 
   if (!recipe) notFound();
 
-  // Fetch sharer profile
-  const { data: sharerProfile } = await supabase
-    .from("profiles")
-    .select("display_name, username, avatar_path")
-    .eq("id", recipe.user_id)
-    .single();
-
   const r2PublicUrl = process.env.NEXT_PUBLIC_R2_PUBLIC_URL ?? "";
-  const sharer = sharerProfile
+  const sharer = recipe.user_display_name
     ? {
         userId: recipe.user_id as string,
-        displayName: sharerProfile.display_name ?? "Anonymous",
-        username: sharerProfile.username as string | null,
-        avatarUrl: sharerProfile.avatar_path
-          ? `${r2PublicUrl}/${sharerProfile.avatar_path}`
+        displayName: (recipe.user_display_name as string) ?? "Anonymous",
+        username: recipe.user_username as string | null,
+        avatarUrl: recipe.user_avatar_path
+          ? `${r2PublicUrl}/${recipe.user_avatar_path}`
           : null,
       }
     : null;

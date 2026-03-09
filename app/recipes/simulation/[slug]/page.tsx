@@ -4,6 +4,7 @@ import { createStaticClient } from "@/lib/supabase/server";
 import { GalleryGrid } from "@/components/gallery-grid";
 import { fromSimulationSlug } from "@/lib/slug";
 import { FUJIFILM_SIMULATION_FORM_INPUT_OPTIONS } from "@/fujifilm/simulation";
+import { GALLERY_SELECT } from "@/lib/queries";
 
 export const revalidate = 3600;
 
@@ -31,7 +32,7 @@ export default async function SimulationPage({ params }: Props) {
 
   const { data: recipes } = await supabase
     .from("recipes_with_stats")
-    .select("*")
+    .select(GALLERY_SELECT)
     .eq("simulation", result.dbValue)
     .order("created_at", { ascending: false })
     .limit(24);

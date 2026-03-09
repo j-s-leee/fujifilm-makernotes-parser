@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { createStaticClient } from "@/lib/supabase/server";
 import { GalleryGrid } from "@/components/gallery-grid";
 import { fromLensSlug, toSlug } from "@/lib/slug";
+import { GALLERY_SELECT } from "@/lib/queries";
 
 export const revalidate = 3600;
 
@@ -39,7 +40,7 @@ export default async function LensPage({ params }: Props) {
 
   const { data: recipes } = await supabase
     .from("recipes_with_stats")
-    .select("*")
+    .select(GALLERY_SELECT)
     .eq("lens_model", lens)
     .order("created_at", { ascending: false })
     .limit(24);
