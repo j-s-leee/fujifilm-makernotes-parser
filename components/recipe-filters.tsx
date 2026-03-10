@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
-import { ChevronDown, SlidersHorizontal, X } from "lucide-react";
+import { ChevronDown, Loader2, SlidersHorizontal, X } from "lucide-react";
 
 interface RecipeFiltersProps {
   params: {
@@ -14,6 +13,8 @@ interface RecipeFiltersProps {
   sensorGenerations: string[];
   cameraModels: string[];
   simulationOptions: { value: string; label: string }[];
+  navigate: (url: string) => void;
+  isPending: boolean;
 }
 
 function buildUrl(
@@ -35,8 +36,10 @@ export function RecipeFilters({
   sensorGenerations,
   cameraModels,
   simulationOptions,
+  navigate,
+  isPending,
 }: RecipeFiltersProps) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(true);
 
   const activeFilters: { label: string; clearUrl: string }[] = [];
   if (params.sensor) {
@@ -60,7 +63,7 @@ export function RecipeFilters({
   }
 
   const pillBase =
-    "shrink-0 rounded-md border px-3 py-1 text-xs font-medium whitespace-nowrap transition-colors";
+    "shrink-0 rounded-md border px-3 py-1 text-xs font-medium whitespace-nowrap transition-colors cursor-pointer";
   const pillActive = "bg-foreground text-background";
   const pillInactive =
     "border-border text-muted-foreground hover:text-foreground";
@@ -77,7 +80,11 @@ export function RecipeFilters({
               : "border-border text-muted-foreground hover:text-foreground"
           }`}
         >
-          <SlidersHorizontal className="h-3 w-3" />
+          {isPending ? (
+            <Loader2 className="h-3 w-3 animate-spin" />
+          ) : (
+            <SlidersHorizontal className="h-3 w-3" />
+          )}
           Filter
           {activeFilters.length > 0 && (
             <span className="ml-0.5 rounded-full bg-background text-foreground px-1.5 text-[10px] leading-4">
@@ -91,20 +98,20 @@ export function RecipeFilters({
 
         {/* Active filter chips */}
         {activeFilters.map((f) => (
-          <Link
+          <button
             key={f.label}
-            href={f.clearUrl}
+            onClick={() => navigate(f.clearUrl)}
             className="flex items-center gap-1 rounded-md bg-muted px-2.5 py-1 text-xs font-medium text-foreground transition-colors hover:bg-muted/80"
           >
             {f.label}
             <X className="h-3 w-3" />
-          </Link>
+          </button>
         ))}
 
         {/* Sort — pushed to right */}
         <div className="ml-auto flex gap-2">
-          <Link
-            href={buildUrl(params, { sort: undefined })}
+          <button
+            onClick={() => navigate(buildUrl(params, { sort: undefined }))}
             className={`text-xs font-medium ${
               params.sort !== "popular"
                 ? "text-foreground underline"
@@ -112,9 +119,9 @@ export function RecipeFilters({
             }`}
           >
             Newest
-          </Link>
-          <Link
-            href={buildUrl(params, { sort: "popular" })}
+          </button>
+          <button
+            onClick={() => navigate(buildUrl(params, { sort: "popular" }))}
             className={`text-xs font-medium ${
               params.sort === "popular"
                 ? "text-foreground underline"
@@ -122,7 +129,7 @@ export function RecipeFilters({
             }`}
           >
             Popular
-          </Link>
+          </button>
         </div>
       </div>
 
@@ -134,21 +141,21 @@ export function RecipeFilters({
             <span className="text-xs font-medium text-muted-foreground">
               Sensor
             </span>
-            <div className="flex flex-wrap gap-2">
-              <Link
-                href={buildUrl(params, { sensor: undefined })}
+            <div className="flex gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:flex-wrap sm:overflow-visible">
+              <button
+                onClick={() => navigate(buildUrl(params, { sensor: undefined }))}
                 className={`${pillBase} ${!params.sensor ? pillActive : pillInactive}`}
               >
                 All
-              </Link>
+              </button>
               {sensorGenerations.map((gen) => (
-                <Link
+                <button
                   key={gen}
-                  href={buildUrl(params, { sensor: gen })}
+                  onClick={() => navigate(buildUrl(params, { sensor: params.sensor === gen ? undefined : gen }))}
                   className={`${pillBase} ${params.sensor === gen ? pillActive : pillInactive}`}
                 >
                   {gen}
-                </Link>
+                </button>
               ))}
             </div>
           </div>
@@ -158,21 +165,21 @@ export function RecipeFilters({
             <span className="text-xs font-medium text-muted-foreground">
               Camera
             </span>
-            <div className="flex flex-wrap gap-2">
-              <Link
-                href={buildUrl(params, { camera: undefined })}
+            <div className="flex gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:flex-wrap sm:overflow-visible">
+              <button
+                onClick={() => navigate(buildUrl(params, { camera: undefined }))}
                 className={`${pillBase} ${!params.camera ? pillActive : pillInactive}`}
               >
                 All
-              </Link>
+              </button>
               {cameraModels.map((model) => (
-                <Link
+                <button
                   key={model}
-                  href={buildUrl(params, { camera: model })}
+                  onClick={() => navigate(buildUrl(params, { camera: params.camera === model ? undefined : model }))}
                   className={`${pillBase} ${params.camera === model ? pillActive : pillInactive}`}
                 >
                   {model}
-                </Link>
+                </button>
               ))}
             </div>
           </div>
@@ -182,21 +189,21 @@ export function RecipeFilters({
             <span className="text-xs font-medium text-muted-foreground">
               Film
             </span>
-            <div className="flex flex-wrap gap-2">
-              <Link
-                href={buildUrl(params, { simulation: undefined })}
+            <div className="flex gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:flex-wrap sm:overflow-visible">
+              <button
+                onClick={() => navigate(buildUrl(params, { simulation: undefined }))}
                 className={`${pillBase} ${!params.simulation ? pillActive : pillInactive}`}
               >
                 All
-              </Link>
+              </button>
               {simulationOptions.map((opt) => (
-                <Link
+                <button
                   key={opt.value}
-                  href={buildUrl(params, { simulation: opt.value })}
+                  onClick={() => navigate(buildUrl(params, { simulation: params.simulation === opt.value ? undefined : opt.value }))}
                   className={`${pillBase} ${params.simulation === opt.value ? pillActive : pillInactive}`}
                 >
                   {opt.label}
-                </Link>
+                </button>
               ))}
             </div>
           </div>

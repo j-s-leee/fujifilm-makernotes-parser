@@ -15,6 +15,7 @@ CREATE TABLE public.profiles (
   display_name text,
   username     text UNIQUE,
   avatar_path  text,
+  is_admin     boolean DEFAULT false,
   created_at   timestamptz DEFAULT now(),
   updated_at   timestamptz DEFAULT now()
 );
@@ -177,7 +178,8 @@ CREATE TABLE public.recipes (
   thumbnail_height smallint,
   bookmark_count integer NOT NULL DEFAULT 0,
   like_count integer NOT NULL DEFAULT 0,
-  created_at  timestamptz DEFAULT now()
+  created_at  timestamptz DEFAULT now(),
+  deleted_at  timestamptz DEFAULT NULL
 );
 
 ALTER TABLE public.recipes ENABLE ROW LEVEL SECURITY;
@@ -208,6 +210,13 @@ CREATE POLICY "Users can delete their own recipes"
   ON public.recipes FOR DELETE
   TO authenticated
   USING ((SELECT auth.uid()) = user_id);
+
+-- Users can soft-delete their own recipes (UPDATE deleted_at)
+CREATE POLICY "Users can soft-delete own recipes"
+  ON public.recipes FOR UPDATE
+  TO authenticated
+  USING ((SELECT auth.uid()) = user_id)
+  WITH CHECK ((SELECT auth.uid()) = user_id);
 
 -- ============================================================
 -- BOOKMARKS TABLE
@@ -389,7 +398,8 @@ LEFT JOIN public.simulations s   ON s.id  = r.simulation_id
 LEFT JOIN public.camera_models cm ON cm.id = r.camera_model_id
 LEFT JOIN public.lenses l         ON l.id  = r.lens_id
 LEFT JOIN public.wb_types w       ON w.id  = r.wb_type_id
-LEFT JOIN public.profiles p       ON p.id  = r.user_id;
+LEFT JOIN public.profiles p       ON p.id  = r.user_id
+WHERE r.deleted_at IS NULL;
 
 -- ============================================================
 -- PGVECTOR EXTENSION
@@ -498,6 +508,7 @@ AS $$
       r.camera_model_id
     FROM public.recipes r
     WHERE r.image_embedding IS NOT NULL
+      AND r.deleted_at IS NULL
     ORDER BY r.image_embedding <=> query_embedding
     LIMIT match_count * 5
   )
@@ -536,3 +547,103 @@ AS $$
     created_at DESC
   LIMIT p_limit;
 $$;
+
+-- ============================================================
+-- REPORTS TABLE
+-- ============================================================
+CREATE TABLE public.reports (
+  id         bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+  user_id    uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  recipe_id  bigint NOT NULL REFERENCES public.recipes(id) ON DELETE CASCADE,
+  reason     text NOT NULL,
+  detail     text,
+  created_at timestamptz DEFAULT now(),
+  UNIQUE (user_id, recipe_id)
+);
+
+ALTER TABLE public.reports ENABLE ROW LEVEL SECURITY;
+
+CREATE INDEX reports_recipe_id_idx ON public.reports (recipe_id);
+
+CREATE POLICY "Users can read own reports"
+  ON public.reports FOR SELECT
+  TO authenticated
+  USING ((SELECT auth.uid()) = user_id);
+
+CREATE POLICY "Users can create reports"
+  ON public.reports FOR INSERT
+  TO authenticated
+  WITH CHECK ((SELECT auth.uid()) = user_id);
+
+-- Admins can read ALL reports
+CREATE POLICY "Admins can read all reports"
+  ON public.reports FOR SELECT
+  TO authenticated
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.profiles
+      WHERE id = (SELECT auth.uid())
+        AND is_admin = true
+    )
+  );
+
+-- Admins can delete (dismiss) any report
+CREATE POLICY "Admins can delete reports"
+  ON public.reports FOR DELETE
+  TO authenticated
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.profiles
+      WHERE id = (SELECT auth.uid())
+        AND is_admin = true
+    )
+  );
+
+-- Admins can update any recipe (restore soft-deleted)
+CREATE POLICY "Admins can update any recipe"
+  ON public.recipes FOR UPDATE
+  TO authenticated
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.profiles
+      WHERE id = (SELECT auth.uid())
+        AND is_admin = true
+    )
+  )
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM public.profiles
+      WHERE id = (SELECT auth.uid())
+        AND is_admin = true
+    )
+  );
+
+-- ============================================================
+-- AUTO-HIDE TRIGGER: soft-delete recipe after 3+ reports
+-- ============================================================
+CREATE OR REPLACE FUNCTION public.auto_hide_reported_recipe()
+RETURNS trigger
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  report_count int;
+BEGIN
+  SELECT COUNT(*) INTO report_count
+  FROM public.reports
+  WHERE recipe_id = NEW.recipe_id;
+
+  IF report_count >= 3 THEN
+    UPDATE public.recipes
+    SET deleted_at = now()
+    WHERE id = NEW.recipe_id
+      AND deleted_at IS NULL;
+  END IF;
+
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_auto_hide_reported_recipe
+  AFTER INSERT ON public.reports
+  FOR EACH ROW EXECUTE FUNCTION public.auto_hide_reported_recipe();

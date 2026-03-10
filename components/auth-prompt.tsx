@@ -1,6 +1,5 @@
-import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { GoogleSignInButton } from "@/components/google-sign-in-button";
 
 interface AuthPromptProps {
   title: string;
@@ -14,9 +13,9 @@ export function AuthPrompt({ title, description }: AuthPromptProps) {
         <CardContent className="pt-6">
           <h2 className="text-lg font-semibold">{title}</h2>
           <p className="mt-2 text-sm text-muted-foreground">{description}</p>
-          <Link href="/login" className="mt-4 inline-block">
-            <Button>Sign In</Button>
-          </Link>
+          <div className="mt-4">
+            <GoogleSignInButton className="w-full" />
+          </div>
         </CardContent>
       </Card>
     </div>

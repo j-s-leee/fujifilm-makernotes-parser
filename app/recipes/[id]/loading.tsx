@@ -6,8 +6,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function Loading() {
   return (
-    <div className="flex flex-1 justify-center px-4 py-8 sm:px-6 md:px-10 md:py-12">
-      <div className="flex w-full max-w-6xl flex-col gap-8">
+    <div className="container py-8 md:py-12">
+      <div className="flex flex-col gap-8">
         {/* Back button placeholder */}
         <Skeleton className="h-5 w-32" />
 
