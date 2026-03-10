@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Bookmark, Film, Heart, LogOut, Menu, ScanSearch, SlidersHorizontal, Upload, User, X } from "lucide-react";
+import { Bookmark, Film, Heart, LogIn, LogOut, Menu, ScanLine, ScanSearch, SlidersHorizontal, User, X } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,13 +12,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ModeToggle } from "@/components/mode-toggle";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { UploadRecipeModal } from "@/components/upload-recipe-modal";
+import { LoginPromptModal, type LoginFeature } from "@/components/login-prompt-modal";
 import { useUser } from "@/hooks/use-user";
 import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
@@ -39,6 +34,7 @@ export function Header() {
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
+  const [loginPromptFeature, setLoginPromptFeature] = useState<LoginFeature | null>(null);
   const [profile, setProfile] = useState<{
     display_name: string | null;
     username: string | null;
@@ -87,195 +83,183 @@ export function Header() {
     <div className="h-8 w-8 animate-pulse rounded-full bg-muted" />
   );
 
+  /** Navigate if logged in, otherwise show login prompt modal */
+  const navOrPrompt = (href: string, feature: LoginFeature) => {
+    if (user) {
+      router.push(href);
+    } else {
+      setLoginPromptFeature(feature);
+    }
+  };
+
+  const navLinkClass =
+    "flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground cursor-pointer";
+  const mobileNavLinkClass =
+    "flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground cursor-pointer";
+
   return (
-    <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="flex items-center justify-between px-6 py-3 md:px-10">
-        <div className="flex items-center gap-6">
-          <Link href="/" className="flex items-center gap-2">
-            <Film className="h-5 w-5" />
-          </Link>
-          <nav className="hidden items-center gap-4 md:flex">
-            <TooltipProvider delayDuration={300}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Link
-                    href="/recipes"
-                    className="text-muted-foreground transition-colors hover:text-foreground"
-                    aria-label="Recipes"
-                  >
-                    <SlidersHorizontal className="h-5 w-5" />
-                  </Link>
-                </TooltipTrigger>
-                <TooltipContent>Recipes</TooltipContent>
-              </Tooltip>
-              {user && (
-                <>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Link
-                        href="/recommend"
-                        className="text-muted-foreground transition-colors hover:text-foreground"
-                        aria-label="Recommend"
-                      >
-                        <ScanSearch className="h-5 w-5" />
-                      </Link>
-                    </TooltipTrigger>
-                    <TooltipContent>Recommend</TooltipContent>
-                  </Tooltip>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Link
-                        href="/bookmarks"
-                        className="text-muted-foreground transition-colors hover:text-foreground"
-                        aria-label="Bookmarks"
-                      >
-                        <Bookmark className="h-5 w-5" />
-                      </Link>
-                    </TooltipTrigger>
-                    <TooltipContent>Bookmarks</TooltipContent>
-                  </Tooltip>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Link
-                        href="/likes"
-                        className="text-muted-foreground transition-colors hover:text-foreground"
-                        aria-label="Likes"
-                      >
-                        <Heart className="h-5 w-5" />
-                      </Link>
-                    </TooltipTrigger>
-                    <TooltipContent>Likes</TooltipContent>
-                  </Tooltip>
-                </>
-              )}
-            </TooltipProvider>
-          </nav>
-        </div>
-        <div className="flex items-center gap-4">
-          {!loading && (
-            <>
-              {user ? (
-                <>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 md:hidden"
-                    onClick={() => setUploadModalOpen(true)}
-                  >
-                    <Upload className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="hidden md:inline-flex"
-                    onClick={() => setUploadModalOpen(true)}
-                  >
-                    <Upload className="mr-2 h-4 w-4" />
-                    Upload
-                  </Button>
-                  <UploadRecipeModal
-                    open={uploadModalOpen}
-                    onOpenChange={setUploadModalOpen}
-                  />
-                </>
-              ) : null}
-              {user ? (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    {avatarElement}
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem asChild>
-                      <Link href={`/u/${profile?.username ?? user?.id}`}>
-                        <User className="mr-2 h-4 w-4" />
-                        Profile
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      onClick={async () => {
-                        await createClient().auth.signOut();
-                        router.push("/");
-                        router.refresh();
-                      }}
-                    >
-                      <LogOut className="mr-2 h-4 w-4" />
-                      Sign Out
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              ) : (
-                <Link href="/login">
-                  <Button variant="ghost" size="sm">
-                    Sign In
-                  </Button>
-                </Link>
-              )}
-            </>
-          )}
-          <ModeToggle />
-          <button
-            className="md:hidden"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            aria-label="Toggle menu"
-          >
-            {mobileMenuOpen ? (
-              <X className="h-5 w-5" />
-            ) : (
-              <Menu className="h-5 w-5" />
-            )}
-          </button>
-        </div>
-      </div>
-      {mobileMenuOpen && (
-        <nav className="flex flex-col gap-1 border-t border-border px-6 py-3 md:hidden">
-          <Link
-            href="/recipes"
-            onClick={() => setMobileMenuOpen(false)}
-            className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-          >
-            <SlidersHorizontal className="h-4 w-4" />
-            Recipes
-          </Link>
-          {user && (
-            <>
+    <>
+      <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container flex items-center justify-between py-3">
+          <div className="flex items-center gap-6">
+            <Link href="/" className="flex items-center gap-2">
+              <Film className="h-5 w-5" />
+            </Link>
+            <nav className="hidden items-center gap-5 md:flex">
               <Link
-                href="/recommend"
-                onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                href="/recipes"
+                className={navLinkClass}
+              >
+                <SlidersHorizontal className="h-4 w-4" />
+                Recipes
+              </Link>
+              <button
+                onClick={() => navOrPrompt("/recommend", "recommend")}
+                className={navLinkClass}
               >
                 <ScanSearch className="h-4 w-4" />
                 Recommend
-              </Link>
-              <Link
-                href="/bookmarks"
-                onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              </button>
+              <button
+                onClick={() => navOrPrompt("/bookmarks", "bookmarks")}
+                className={navLinkClass}
               >
                 <Bookmark className="h-4 w-4" />
                 Bookmarks
-              </Link>
-              <Link
-                href="/likes"
-                onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              </button>
+              <button
+                onClick={() => navOrPrompt("/likes", "likes")}
+                className={navLinkClass}
               >
                 <Heart className="h-4 w-4" />
                 Likes
-              </Link>
-            </>
-          )}
-          {!loading && !user && (
-            <Link
-              href="/login"
-              onClick={() => setMobileMenuOpen(false)}
-              className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              </button>
+            </nav>
+          </div>
+          <div className="flex items-center gap-4">
+            {!loading && (
+              <>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 md:hidden"
+                  onClick={() => setUploadModalOpen(true)}
+                >
+                  <ScanLine className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="hidden md:inline-flex"
+                  onClick={() => setUploadModalOpen(true)}
+                >
+                  <ScanLine className="mr-2 h-4 w-4" />
+                  Scan
+                </Button>
+                <UploadRecipeModal
+                  open={uploadModalOpen}
+                  onOpenChange={setUploadModalOpen}
+                />
+                {user ? (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      {avatarElement}
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem asChild>
+                        <Link href={`/u/${profile?.username ?? user?.id}`}>
+                          <User className="mr-2 h-4 w-4" />
+                          Profile
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onClick={async () => {
+                          await createClient().auth.signOut();
+                          router.push("/");
+                          router.refresh();
+                        }}
+                      >
+                        <LogOut className="mr-2 h-4 w-4" />
+                        Sign Out
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                ) : (
+                  <Link href="/login">
+                    <Button variant="ghost" size="sm">
+                      <LogIn className="mr-2 h-4 w-4" />
+                      Sign In
+                    </Button>
+                  </Link>
+                )}
+              </>
+            )}
+            <ModeToggle />
+            <button
+              className="md:hidden"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              aria-label="Toggle menu"
             >
-              Sign In
+              {mobileMenuOpen ? (
+                <X className="h-5 w-5" />
+              ) : (
+                <Menu className="h-5 w-5" />
+              )}
+            </button>
+          </div>
+        </div>
+        {mobileMenuOpen && (
+          <nav className="container flex flex-col gap-1 border-t border-border py-3 md:hidden">
+            <Link
+              href="/recipes"
+              onClick={() => setMobileMenuOpen(false)}
+              className={mobileNavLinkClass}
+            >
+              <SlidersHorizontal className="h-4 w-4" />
+              Recipes
             </Link>
-          )}
-        </nav>
-      )}
-    </header>
+            <button
+              onClick={() => {
+                setMobileMenuOpen(false);
+                navOrPrompt("/recommend", "recommend");
+              }}
+              className={mobileNavLinkClass}
+            >
+              <ScanSearch className="h-4 w-4" />
+              Recommend
+            </button>
+            <button
+              onClick={() => {
+                setMobileMenuOpen(false);
+                navOrPrompt("/bookmarks", "bookmarks");
+              }}
+              className={mobileNavLinkClass}
+            >
+              <Bookmark className="h-4 w-4" />
+              Bookmarks
+            </button>
+            <button
+              onClick={() => {
+                setMobileMenuOpen(false);
+                navOrPrompt("/likes", "likes");
+              }}
+              className={mobileNavLinkClass}
+            >
+              <Heart className="h-4 w-4" />
+              Likes
+            </button>
+          </nav>
+        )}
+      </header>
+
+      <LoginPromptModal
+        open={loginPromptFeature !== null}
+        onOpenChange={(open) => {
+          if (!open) setLoginPromptFeature(null);
+        }}
+        feature={loginPromptFeature ?? "recommend"}
+      />
+    </>
   );
 }

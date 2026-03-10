@@ -106,7 +106,8 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="mx-auto max-w-sm px-6 py-12 md:px-10">
+    <div className="container py-8 md:py-12">
+    <div className="w-full max-w-sm">
       <h1 className="mb-8 text-2xl font-bold tracking-tight">Edit Profile</h1>
 
       <div className="flex flex-col items-center gap-8">
@@ -161,6 +162,7 @@ export default function ProfilePage() {
           {saving ? "Saving..." : "Save"}
         </Button>
       </div>
+    </div>
     </div>
   );
 }

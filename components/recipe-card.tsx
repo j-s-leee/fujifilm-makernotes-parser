@@ -1,12 +1,13 @@
 import { FujifilmRecipe } from "@/fujifilm/recipe";
 import { FujifilmSimulation } from "@/fujifilm/simulation";
-import { Copy, Share2 } from "lucide-react";
+import { Copy, Upload } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { addSign } from "@/lib/utils";
 import { RecipeItem } from "@/components/recipe-item";
 import { useUser } from "@/hooks/use-user";
+import { useRouter } from "next/navigation";
 import { shareRecipe } from "@/lib/share-recipe";
 import { compressImageToThumbnail } from "@/lib/compress-image";
 import { useState } from "react";
@@ -27,6 +28,7 @@ export function RecipeCard({
 }) {
   const { toast } = useToast();
   const { user } = useUser();
+  const router = useRouter();
   const [sharing, setSharing] = useState(false);
 
   const getRecipeText = () => {
@@ -123,15 +125,15 @@ export function RecipeCard({
             </p>
           </div>
           <div className="flex items-center gap-1">
-            {user && imageSource && (
+            {imageSource && (
               <Button
                 variant="ghost"
                 size="icon"
                 className="h-8 w-8 text-muted-foreground hover:text-foreground"
-                onClick={handleShare}
+                onClick={() => user ? handleShare() : router.push("/login")}
                 disabled={sharing}
               >
-                <Share2 className="h-4 w-4" />
+                <Upload className="h-4 w-4" />
               </Button>
             )}
             <Button

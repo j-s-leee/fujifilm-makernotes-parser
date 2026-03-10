@@ -202,12 +202,6 @@ export function RecipeHero({
             >
               <Share2 className="h-4 w-4" />
             </button>
-            <button
-              onClick={() => setSettingsOpen(true)}
-              className="flex items-center justify-center rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-            >
-              <NotebookText className="h-4 w-4" />
-            </button>
             {user && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -257,6 +251,15 @@ export function RecipeHero({
             )}
           </div>
         )}
+
+        {/* Row 3: View Recipe Settings button */}
+        <button
+          onClick={() => setSettingsOpen(true)}
+          className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+        >
+          <NotebookText className="h-4 w-4" />
+          View Recipe
+        </button>
       </div>
 
       <RecipeSettingsModal

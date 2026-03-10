@@ -75,8 +75,8 @@ export default async function RecipePage({ params }: RecipePageProps) {
 
     if (deleted) {
       return (
-        <div className="flex flex-1 justify-center px-4 py-8 sm:px-6 md:px-10 md:py-12">
-          <div className="flex w-full max-w-6xl flex-col items-center gap-4 py-20">
+        <div className="container py-8 md:py-12">
+          <div className="flex flex-col items-center gap-4 py-20">
             <p className="text-lg font-medium">이 레시피는 삭제되었습니다</p>
             <p className="text-sm text-muted-foreground">
               해당 레시피는 소유자에 의해 삭제되었거나 신고로 인해 숨김 처리되었습니다.
@@ -103,8 +103,8 @@ export default async function RecipePage({ params }: RecipePageProps) {
     : null;
 
   return (
-    <div className="flex flex-1 justify-center px-4 py-8 sm:px-6 md:px-10 md:py-12">
-      <div className="flex w-full max-w-6xl flex-col gap-8">
+    <div className="container py-8 md:py-12">
+      <div className="flex flex-col gap-8">
         {/* Back link */}
         <BackButton label="Back to Recipes" fallbackHref="/recipes" />
 

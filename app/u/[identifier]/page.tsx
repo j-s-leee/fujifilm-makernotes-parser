@@ -29,7 +29,7 @@ export default async function UserProfilePage({ params }: UserProfilePageProps) 
   if (!profile) notFound();
 
   // Fetch stats and recipes in parallel
-  const [{ count: recipeCount }, { data: likeAgg }, { data: recipes }] =
+  const [{ count: recipeCount }, { data: statsAgg }, { data: recipes }] =
     await Promise.all([
       supabase
         .from("recipes")
@@ -37,7 +37,7 @@ export default async function UserProfilePage({ params }: UserProfilePageProps) 
         .eq("user_id", profile.id),
       supabase
         .from("recipes")
-        .select("like_count")
+        .select("like_count, bookmark_count")
         .eq("user_id", profile.id),
       supabase
         .from("recipes_with_stats")
@@ -48,8 +48,12 @@ export default async function UserProfilePage({ params }: UserProfilePageProps) 
         .limit(24),
     ]);
 
-  const totalLikes = (likeAgg ?? []).reduce(
+  const totalLikes = (statsAgg ?? []).reduce(
     (sum, r) => sum + (r.like_count ?? 0),
+    0,
+  );
+  const totalBookmarks = (statsAgg ?? []).reduce(
+    (sum, r) => sum + (r.bookmark_count ?? 0),
     0,
   );
 
@@ -62,8 +66,8 @@ export default async function UserProfilePage({ params }: UserProfilePageProps) 
   const typedRecipes = (recipes ?? []) as Parameters<typeof GalleryGrid>[0]["initialRecipes"];
 
   return (
-    <div className="flex flex-1 justify-center px-4 py-8 sm:px-6 md:px-10 md:py-12">
-      <div className="flex w-full max-w-6xl flex-col gap-8">
+    <div className="container py-8 md:py-12">
+      <div className="flex flex-col gap-8">
         <UserProfileHeader
           profile={{
             id: profile.id,
@@ -74,6 +78,7 @@ export default async function UserProfilePage({ params }: UserProfilePageProps) 
           stats={{
             recipeCount: recipeCount ?? 0,
             totalLikes,
+            totalBookmarks,
             joinedAt: profile.created_at,
           }}
         />

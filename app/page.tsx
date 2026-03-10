@@ -11,8 +11,8 @@ export default async function Home() {
     .rpc("get_trending_recipes", { p_limit: 24 });
 
   return (
-    <div className="flex flex-1 justify-center px-4 py-8 sm:px-6 md:px-10 md:py-12">
-      <div className="flex w-full max-w-6xl flex-col gap-6">
+    <div className="container py-8 md:py-12">
+      <div className="flex flex-col gap-6">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">
             Trending Recipes

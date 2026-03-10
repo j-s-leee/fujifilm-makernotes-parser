@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { GalleryGrid } from "@/components/gallery-grid";
-import { RecipeFilters } from "@/components/recipe-filters";
+import { RecipesContent } from "@/components/recipes-content";
 import {
   SENSOR_GENERATIONS,
   type SensorGeneration,
@@ -64,30 +64,30 @@ export default async function RecipesPage({ searchParams }: RecipesPageProps) {
   const cameraModels = (cameraRows ?? []).map((r) => r.name);
 
   return (
-    <div className="flex flex-1 justify-center px-4 py-8 sm:px-6 md:px-10 md:py-12">
-      <div className="flex w-full max-w-6xl flex-col gap-4">
+    <div className="container py-8 md:py-12">
+      <div className="flex flex-col gap-4">
         <h1 className="text-2xl font-bold tracking-tight">Recipes</h1>
 
-        <RecipeFilters
+        <RecipesContent
           params={params}
           sensorGenerations={SENSOR_GENERATIONS as unknown as string[]}
           cameraModels={cameraModels}
           simulationOptions={FUJIFILM_SIMULATION_FORM_INPUT_OPTIONS}
-        />
-
-        {recipes && recipes.length > 0 ? (
-          <GalleryGrid
-            initialRecipes={recipes}
-            simulation={params.simulation}
-            sort={params.sort}
-            sensor={params.sensor}
-            camera={params.camera}
-          />
-        ) : (
-          <p className="text-center text-sm text-muted-foreground py-20">
-            No recipes found. Try a different filter or be the first to share!
-          </p>
-        )}
+        >
+          {recipes && recipes.length > 0 ? (
+            <GalleryGrid
+              initialRecipes={recipes}
+              simulation={params.simulation}
+              sort={params.sort}
+              sensor={params.sensor}
+              camera={params.camera}
+            />
+          ) : (
+            <p className="text-center text-sm text-muted-foreground py-20">
+              No recipes found. Try a different filter or be the first to share!
+            </p>
+          )}
+        </RecipesContent>
       </div>
     </div>
   );
