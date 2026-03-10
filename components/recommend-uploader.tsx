@@ -1,27 +1,16 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useState, useEffect, type FormEvent } from "react";
 import { useDropzone } from "react-dropzone";
-import { Upload, Loader2, Search, Camera } from "lucide-react";
+import { Upload, Loader2, Search, Camera, X } from "lucide-react";
+import Image from "next/image";
 import { compressImageToThumbnail } from "@/lib/compress-image";
 import { ALL_CAMERA_MODELS } from "@/fujifilm/cameras";
-
-interface RecommendedRecipe {
-  id: number;
-  simulation: string | null;
-  thumbnail_path: string | null;
-  blur_data_url: string | null;
-  thumbnail_width: number | null;
-  thumbnail_height: number | null;
-  bookmark_count: number;
-  like_count: number;
-  camera_model: string | null;
-  similarity: number;
-}
+import type { GalleryRecipe } from "@/components/gallery-card";
 
 interface RecommendResult {
   recommendationId: number | null;
-  recipes: RecommendedRecipe[];
+  recipes: GalleryRecipe[];
   // Image search fields (optional)
   imagePath?: string;
   blurDataUrl?: string;
@@ -43,17 +32,40 @@ export function RecommendUploader({ onResult }: RecommendUploaderProps) {
   const [error, setError] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [cameraModel, setCameraModel] = useState("");
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
-  const handleDrop = async (acceptedFiles: File[]) => {
+  useEffect(() => {
+    return () => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+    };
+  }, [previewUrl]);
+
+  const handleDrop = (acceptedFiles: File[]) => {
     const file = acceptedFiles[0];
     if (!file) return;
+
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    setSelectedFile(file);
+    setPreviewUrl(URL.createObjectURL(file));
+    setError(null);
+  };
+
+  const handleClearImage = () => {
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    setSelectedFile(null);
+    setPreviewUrl(null);
+    setError(null);
+  };
+
+  const handleImageSearch = async () => {
+    if (!selectedFile) return;
 
     setLoading(true);
     setError(null);
 
     try {
-      const previewUrl = URL.createObjectURL(file);
-      const compressed = await compressImageToThumbnail(file);
+      const compressed = await compressImageToThumbnail(selectedFile);
 
       const formData = new FormData();
       const compressedFile = new File(
@@ -78,6 +90,8 @@ export function RecommendUploader({ onResult }: RecommendUploaderProps) {
 
       const result: RecommendResult = await res.json();
       onResult(result, previewUrl);
+      setSelectedFile(null);
+      setPreviewUrl(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
@@ -124,20 +138,6 @@ export function RecommendUploader({ onResult }: RecommendUploaderProps) {
     multiple: false,
     disabled: loading,
   });
-
-  if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-border p-12">
-        <Loader2 className="h-10 w-10 mb-4 animate-spin text-muted-foreground" />
-        <p className="text-sm text-foreground mb-1">
-          Finding similar recipes...
-        </p>
-        <p className="text-xs text-muted-foreground">
-          This may take a few seconds
-        </p>
-      </div>
-    );
-  }
 
   return (
     <div className="flex flex-col gap-3">
@@ -186,23 +186,55 @@ export function RecommendUploader({ onResult }: RecommendUploaderProps) {
       </div>
 
       {mode === "image" ? (
-        <div
-          {...getRootProps()}
-          className={`flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-12 cursor-pointer transition-all ${
-            isDragActive
-              ? "border-foreground bg-muted scale-[1.01]"
-              : "border-border hover:border-foreground/30 hover:bg-muted/50"
-          }`}
-        >
-          <input {...getInputProps()} />
-          <Upload className="h-10 w-10 mb-4 text-muted-foreground" />
-          <p className="text-sm text-foreground mb-1">
-            Upload any photo to find matching Fujifilm recipes
-          </p>
-          <p className="text-xs text-muted-foreground">
-            Supports JPG, PNG, and WebP
-          </p>
-        </div>
+        selectedFile && previewUrl ? (
+          <div className="flex flex-col gap-3">
+            <div className="relative overflow-hidden rounded-lg border border-border bg-muted">
+              <Image
+                src={previewUrl}
+                alt="Selected image"
+                width={400}
+                height={300}
+                className="mx-auto max-h-64 w-auto object-contain"
+              />
+              <button
+                onClick={handleClearImage}
+                className="absolute right-2 top-2 rounded-full bg-black/60 p-1.5 text-white backdrop-blur-sm transition-colors hover:bg-black/80"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <button
+              onClick={handleImageSearch}
+              disabled={loading}
+              className="flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Search className="h-4 w-4" />
+              )}
+              Search similar recipes
+            </button>
+          </div>
+        ) : (
+          <div
+            {...getRootProps()}
+            className={`flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-12 cursor-pointer transition-all ${
+              isDragActive
+                ? "border-foreground bg-muted scale-[1.01]"
+                : "border-border hover:border-foreground/30 hover:bg-muted/50"
+            }`}
+          >
+            <input {...getInputProps()} />
+            <Upload className="h-10 w-10 mb-4 text-muted-foreground" />
+            <p className="text-sm text-foreground mb-1">
+              Upload any photo to find matching Fujifilm recipes
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Supports JPG, PNG, and WebP
+            </p>
+          </div>
+        )
       ) : (
         <form onSubmit={handleTextSearch} className="flex flex-col gap-3">
           <div className="flex gap-2">
@@ -216,10 +248,14 @@ export function RecommendUploader({ onResult }: RecommendUploaderProps) {
             />
             <button
               type="submit"
-              disabled={!query.trim()}
+              disabled={!query.trim() || loading}
               className="rounded-lg bg-primary px-4 py-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <Search className="h-4 w-4" />
+              {loading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Search className="h-4 w-4" />
+              )}
             </button>
           </div>
           <p className="text-xs text-muted-foreground">
@@ -233,4 +269,4 @@ export function RecommendUploader({ onResult }: RecommendUploaderProps) {
   );
 }
 
-export type { RecommendResult, RecommendedRecipe };
+export type { RecommendResult };
