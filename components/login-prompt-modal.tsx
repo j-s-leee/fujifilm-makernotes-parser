@@ -15,12 +15,13 @@ import { useMediaQuery } from "@/hooks/use-media-query";
 import {
   Bookmark,
   Check,
+  FolderOpen,
   Heart,
   ScanSearch,
   Upload,
 } from "lucide-react";
 
-export type LoginFeature = "recommend" | "bookmarks" | "likes" | "upload";
+export type LoginFeature = "recommend" | "bookmarks" | "likes" | "upload" | "collections";
 
 interface FeatureConfig {
   icon: ReactNode;
@@ -76,6 +77,17 @@ const FEATURES: Record<LoginFeature, FeatureConfig> = {
       "Build your recipe portfolio",
     ],
     next: "/",
+  },
+  collections: {
+    icon: <FolderOpen className={iconClass} />,
+    title: "Collections",
+    description: "Organize your favorite recipes into curated collections.",
+    benefits: [
+      "Create themed recipe collections",
+      "Share collections with the community",
+      "Keep your recipes organized",
+    ],
+    next: "/collections",
   },
 };
 

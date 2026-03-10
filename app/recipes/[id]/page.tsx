@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import type { Metadata } from "next";
 import { createStaticClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import { RecipeHero } from "@/components/recipe-hero";
@@ -11,6 +12,46 @@ export const revalidate = 60;
 
 interface RecipePageProps {
   params: Promise<{ id: string }>;
+}
+
+export async function generateMetadata({
+  params,
+}: RecipePageProps): Promise<Metadata> {
+  const { id } = await params;
+  const recipeId = parseInt(id, 10);
+  if (isNaN(recipeId)) return {};
+
+  const supabase = createStaticClient();
+  const { data: recipe } = await supabase
+    .from("recipes_with_stats")
+    .select("simulation, camera_model, thumbnail_path, user_display_name")
+    .eq("id", recipeId)
+    .single();
+
+  if (!recipe) return {};
+
+  const title = `${recipe.simulation} Recipe`;
+  const description = `${recipe.simulation} recipe shot on ${recipe.camera_model ?? "Fujifilm"}${recipe.user_display_name ? ` by ${recipe.user_display_name}` : ""}`;
+  const r2PublicUrl = process.env.NEXT_PUBLIC_R2_PUBLIC_URL ?? "";
+  const image = recipe.thumbnail_path
+    ? `${r2PublicUrl}/${recipe.thumbnail_path}`
+    : undefined;
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      ...(image && { images: [{ url: image }] }),
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      ...(image && { images: [image] }),
+    },
+  };
 }
 
 async function SimilarRecipesSection({

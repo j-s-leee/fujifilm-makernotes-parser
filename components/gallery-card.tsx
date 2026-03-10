@@ -3,10 +3,11 @@
 import { memo } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Bookmark, Heart } from "lucide-react";
+import { Bookmark, FolderPlus, Heart } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useUserInteractions } from "@/contexts/user-interactions-context";
 import { getThumbnailUrl } from "@/lib/get-thumbnail-url";
+import { CollectionPopover } from "@/components/bookmark-popover";
 
 const r2Base = process.env.NEXT_PUBLIC_R2_PUBLIC_URL ?? "";
 
@@ -128,7 +129,7 @@ export const GalleryCard = memo(function GalleryCard({ recipe }: { recipe: Galle
           </Link>
         </div>
 
-        {/* Desktop hover: bottom-right like + bookmark */}
+        {/* Desktop hover: bottom-right like + bookmark + collection */}
         <div className="absolute bottom-3 right-3 z-10 hidden items-center gap-2 opacity-0 transition-opacity duration-200 sm:flex sm:group-hover:opacity-100">
           <button
             onClick={(e) => toggleLike(recipe.id, e)}
@@ -155,10 +156,17 @@ export const GalleryCard = memo(function GalleryCard({ recipe }: { recipe: Galle
               }`}
             />
           </button>
+          <CollectionPopover recipeId={recipe.id}>
+            <button
+              className="rounded-full bg-black/40 p-1.5 backdrop-blur-sm transition-colors hover:bg-black/60"
+            >
+              <FolderPlus className="h-3.5 w-3.5 text-white" />
+            </button>
+          </CollectionPopover>
         </div>
       </div>
 
-      {/* Mobile: bottom bar with like + bookmark */}
+      {/* Mobile: bottom bar with like + bookmark + collection */}
       <div className="flex items-center justify-between px-2.5 py-2 sm:hidden">
         <button
           onClick={(e) => toggleLike(recipe.id, e)}
@@ -175,15 +183,22 @@ export const GalleryCard = memo(function GalleryCard({ recipe }: { recipe: Galle
             {likeCounts.get(recipe.id) ?? recipe.like_count}
           </span>
         </button>
-        <button onClick={(e) => toggleBookmark(recipe.id, e)}>
-          <Bookmark
-            className={`h-4 w-4 ${
-              bookmarks.has(recipe.id)
-                ? "fill-foreground text-foreground"
-                : "text-muted-foreground"
-            }`}
-          />
-        </button>
+        <div className="flex items-center gap-2">
+          <button onClick={(e) => toggleBookmark(recipe.id, e)}>
+            <Bookmark
+              className={`h-4 w-4 ${
+                bookmarks.has(recipe.id)
+                  ? "fill-foreground text-foreground"
+                  : "text-muted-foreground"
+              }`}
+            />
+          </button>
+          <CollectionPopover recipeId={recipe.id}>
+            <button onClick={(e) => e.stopPropagation()}>
+              <FolderPlus className="h-4 w-4 text-muted-foreground" />
+            </button>
+          </CollectionPopover>
+        </div>
       </div>
     </div>
   );
