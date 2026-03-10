@@ -27,6 +27,7 @@ interface FeatureConfig {
   title: string;
   description: string;
   benefits: string[];
+  next: string;
 }
 
 const iconClass = "h-8 w-8";
@@ -41,6 +42,7 @@ const FEATURES: Record<LoginFeature, FeatureConfig> = {
       "AI-powered image similarity search",
       "Discover new film simulation styles",
     ],
+    next: "/recommend",
   },
   bookmarks: {
     icon: <Bookmark className={iconClass} />,
@@ -51,6 +53,7 @@ const FEATURES: Record<LoginFeature, FeatureConfig> = {
       "Quick access to saved recipes",
       "Organize recipes you want to try",
     ],
+    next: "/bookmarks",
   },
   likes: {
     icon: <Heart className={iconClass} />,
@@ -61,6 +64,7 @@ const FEATURES: Record<LoginFeature, FeatureConfig> = {
       "Keep track of recipes you enjoyed",
       "Help others discover great recipes",
     ],
+    next: "/likes",
   },
   upload: {
     icon: <Upload className={iconClass} />,
@@ -71,6 +75,7 @@ const FEATURES: Record<LoginFeature, FeatureConfig> = {
       "Get likes and feedback from others",
       "Build your recipe portfolio",
     ],
+    next: "/",
   },
 };
 
@@ -114,7 +119,7 @@ export function LoginPromptModal({
       </ul>
 
       {/* CTA */}
-      <GoogleSignInButton className="w-full" size="lg" />
+      <GoogleSignInButton className="w-full" size="lg" next={config.next} />
     </div>
   );
 
