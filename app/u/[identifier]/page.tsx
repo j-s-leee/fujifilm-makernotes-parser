@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { createStaticClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import { UserProfileHeader } from "@/components/user-profile-header";
@@ -13,6 +14,55 @@ const UUID_REGEX =
 
 interface UserProfilePageProps {
   params: Promise<{ identifier: string }>;
+}
+
+export async function generateMetadata({
+  params,
+}: UserProfilePageProps): Promise<Metadata> {
+  const { identifier } = await params;
+  const supabase = createStaticClient();
+  const isUuid = UUID_REGEX.test(identifier);
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("id, display_name, username, avatar_path")
+    .eq(isUuid ? "id" : "username", identifier)
+    .single();
+
+  if (!profile) return {};
+
+  const displayName = profile.display_name ?? profile.username ?? "User";
+  const title = profile.username
+    ? `${displayName} (@${profile.username})`
+    : displayName;
+
+  const r2PublicUrl = process.env.NEXT_PUBLIC_R2_PUBLIC_URL ?? "";
+  const image = profile.avatar_path
+    ? `${r2PublicUrl}/${profile.avatar_path}`
+    : undefined;
+
+  const { count } = await supabase
+    .from("recipes")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", profile.id);
+
+  const description = `${count ?? 0} recipes shared on film-simulation.site`;
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      ...(image && { images: [{ url: image }] }),
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      ...(image && { images: [image] }),
+    },
+  };
 }
 
 export default async function UserProfilePage({ params }: UserProfilePageProps) {

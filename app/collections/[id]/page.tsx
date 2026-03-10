@@ -1,4 +1,6 @@
+import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
+import { createStaticClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import { CollectionHeader } from "@/components/collection-header";
 import { GalleryGrid } from "@/components/gallery-grid";
@@ -7,6 +9,34 @@ import type { GalleryRecipe } from "@/components/gallery-card";
 
 interface CollectionPageProps {
   params: Promise<{ id: string }>;
+}
+
+export async function generateMetadata({
+  params,
+}: CollectionPageProps): Promise<Metadata> {
+  const { id } = await params;
+  const collectionId = parseInt(id, 10);
+  if (isNaN(collectionId)) return {};
+
+  const supabase = createStaticClient();
+  const { data: collection } = await supabase
+    .from("collections")
+    .select("name, description, item_count")
+    .eq("id", collectionId)
+    .single();
+
+  if (!collection) return {};
+
+  const title = collection.name;
+  const description =
+    collection.description || `${collection.item_count ?? 0} recipes`;
+
+  return {
+    title,
+    description,
+    openGraph: { title, description },
+    twitter: { card: "summary_large_image", title, description },
+  };
 }
 
 export default async function CollectionPage({ params }: CollectionPageProps) {

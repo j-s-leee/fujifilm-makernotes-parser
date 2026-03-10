@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { GalleryGrid } from "@/components/gallery-grid";
 import { RecipesContent } from "@/components/recipes-content";
@@ -10,6 +11,15 @@ import {
   isStringFujifilmSimulation,
 } from "@/fujifilm/simulation";
 import { GALLERY_SELECT } from "@/lib/queries";
+
+export const metadata: Metadata = {
+  title: "Recipes",
+  description: "Browse Fujifilm film simulation recipes",
+  openGraph: {
+    title: "Recipes",
+    description: "Browse Fujifilm film simulation recipes",
+  },
+};
 
 interface RecipesPageProps {
   searchParams: Promise<{
