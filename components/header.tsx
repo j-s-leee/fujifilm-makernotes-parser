@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Bookmark, Film, Heart, LogIn, LogOut, Menu, ScanLine, ScanSearch, SlidersHorizontal, User, X } from "lucide-react";
+import { Bookmark, Film, FolderOpen, Heart, LogIn, LogOut, Menu, ScanLine, ScanSearch, SlidersHorizontal, User, X } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -134,6 +134,13 @@ export function Header() {
                 <Heart className="h-4 w-4" />
                 Likes
               </button>
+              <button
+                onClick={() => navOrPrompt("/collections", "collections")}
+                className={navLinkClass}
+              >
+                <FolderOpen className="h-4 w-4" />
+                Collections
+              </button>
             </nav>
           </div>
           <div className="flex items-center gap-4">
@@ -248,6 +255,16 @@ export function Header() {
             >
               <Heart className="h-4 w-4" />
               Likes
+            </button>
+            <button
+              onClick={() => {
+                setMobileMenuOpen(false);
+                navOrPrompt("/collections", "collections");
+              }}
+              className={mobileNavLinkClass}
+            >
+              <FolderOpen className="h-4 w-4" />
+              Collections
             </button>
           </nav>
         )}

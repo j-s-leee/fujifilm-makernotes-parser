@@ -6,6 +6,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { UserInteractionsProvider } from "@/contexts/user-interactions-context";
+import { CollectionsProvider } from "@/contexts/collections-context";
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
@@ -51,12 +52,14 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <UserInteractionsProvider>
-            <div className="flex min-h-screen flex-col">
-              <Header />
-              <main className="flex flex-1 flex-col">{children}</main>
-              <Footer />
-            </div>
-            <Toaster />
+            <CollectionsProvider>
+              <div className="flex min-h-screen flex-col">
+                <Header />
+                <main className="flex flex-1 flex-col">{children}</main>
+                <Footer />
+              </div>
+              <Toaster />
+            </CollectionsProvider>
           </UserInteractionsProvider>
         </ThemeProvider>
       </body>

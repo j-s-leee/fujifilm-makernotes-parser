@@ -6,6 +6,7 @@ import Link from "next/link";
 import {
   Heart,
   Bookmark,
+  FolderPlus,
   Share2,
   NotebookText,
   MoreHorizontal,
@@ -26,6 +27,7 @@ import { toSlug } from "@/lib/slug";
 import { RecipeSettingsModal } from "@/components/recipe-settings-modal";
 import { DeleteRecipeDialog } from "@/components/delete-recipe-dialog";
 import { ReportRecipeDialog } from "@/components/report-recipe-dialog";
+import { CollectionPopover } from "@/components/bookmark-popover";
 import type { RecipeSettingsRecipe } from "@/components/recipe-settings";
 
 interface RecipeHeroProps {
@@ -196,6 +198,13 @@ export function RecipeHero({
                 <span className="text-xs">{bookmarkCount}</span>
               )}
             </button>
+            <CollectionPopover recipeId={recipe.id}>
+              <button
+                className="flex items-center justify-center rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              >
+                <FolderPlus className="h-4 w-4" />
+              </button>
+            </CollectionPopover>
             <button
               onClick={handleShare}
               className="flex items-center justify-center rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
