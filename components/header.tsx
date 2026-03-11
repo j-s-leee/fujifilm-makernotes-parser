@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Film, LogOut, Menu, User, X } from "lucide-react";
+import { Bookmark, Film, FolderOpen, Heart, LogIn, LogOut, Menu, ScanLine, ScanSearch, SlidersHorizontal, User, X } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,6 +12,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ModeToggle } from "@/components/mode-toggle";
+import { UploadRecipeModal } from "@/components/upload-recipe-modal";
+import { LoginPromptModal, type LoginFeature } from "@/components/login-prompt-modal";
 import { useUser } from "@/hooks/use-user";
 import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
@@ -31,8 +33,11 @@ export function Header() {
   const { user, loading } = useUser();
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [uploadModalOpen, setUploadModalOpen] = useState(false);
+  const [loginPromptFeature, setLoginPromptFeature] = useState<LoginFeature | null>(null);
   const [profile, setProfile] = useState<{
     display_name: string | null;
+    username: string | null;
     avatar_url: string | null;
   } | null>(null);
   const [profileLoaded, setProfileLoaded] = useState(false);
@@ -78,156 +83,200 @@ export function Header() {
     <div className="h-8 w-8 animate-pulse rounded-full bg-muted" />
   );
 
+  /** Navigate if logged in, otherwise show login prompt modal */
+  const navOrPrompt = (href: string, feature: LoginFeature) => {
+    if (user) {
+      router.push(href);
+    } else {
+      setLoginPromptFeature(feature);
+    }
+  };
+
+  const navLinkClass =
+    "flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground cursor-pointer";
+  const mobileNavLinkClass =
+    "flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground cursor-pointer";
+
   return (
-    <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="flex items-center justify-between px-6 py-3 md:px-10">
-        <div className="flex items-center gap-6">
-          <Link href="/" className="flex items-center gap-2">
-            <Film className="h-5 w-5" />
-            <h1 className="text-lg font-bold tracking-tight">
-              Film Recipe Viewer
-            </h1>
-          </Link>
-          <nav className="hidden items-center gap-4 md:flex">
-            <Link
-              href="/gallery"
-              className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-            >
-              Gallery
+    <>
+      <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container flex items-center justify-between py-3">
+          <div className="flex items-center gap-6">
+            <Link href="/" className="flex items-center gap-2">
+              <Film className="h-5 w-5" />
             </Link>
-            <Link
-              href="/stats"
-              className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-            >
-              Stats
-            </Link>
-            {user && (
+            <nav className="hidden items-center gap-5 md:flex">
+              <Link
+                href="/recipes"
+                className={navLinkClass}
+              >
+                <SlidersHorizontal className="h-4 w-4" />
+                Recipes
+              </Link>
+              <button
+                onClick={() => navOrPrompt("/recommend", "recommend")}
+                className={navLinkClass}
+              >
+                <ScanSearch className="h-4 w-4" />
+                Recommend
+              </button>
+              <button
+                onClick={() => navOrPrompt("/bookmarks", "bookmarks")}
+                className={navLinkClass}
+              >
+                <Bookmark className="h-4 w-4" />
+                Bookmarks
+              </button>
+              <button
+                onClick={() => navOrPrompt("/likes", "likes")}
+                className={navLinkClass}
+              >
+                <Heart className="h-4 w-4" />
+                Likes
+              </button>
+              <button
+                onClick={() => navOrPrompt("/collections", "collections")}
+                className={navLinkClass}
+              >
+                <FolderOpen className="h-4 w-4" />
+                Collections
+              </button>
+            </nav>
+          </div>
+          <div className="flex items-center gap-4">
+            {!loading && (
               <>
-                <Link
-                  href="/my-recipes"
-                  className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 md:hidden"
+                  onClick={() => setUploadModalOpen(true)}
                 >
-                  My Recipes
-                </Link>
-                <Link
-                  href="/bookmarks"
-                  className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+                  <ScanLine className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="hidden md:inline-flex"
+                  onClick={() => setUploadModalOpen(true)}
                 >
-                  Bookmarks
-                </Link>
-                <Link
-                  href="/likes"
-                  className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-                >
-                  Likes
-                </Link>
+                  <ScanLine className="mr-2 h-4 w-4" />
+                  Scan
+                </Button>
+                <UploadRecipeModal
+                  open={uploadModalOpen}
+                  onOpenChange={setUploadModalOpen}
+                />
+                {user ? (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      {avatarElement}
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem asChild>
+                        <Link href={`/u/${profile?.username ?? user?.id}`}>
+                          <User className="mr-2 h-4 w-4" />
+                          Profile
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onClick={async () => {
+                          await createClient().auth.signOut();
+                          router.push("/");
+                          router.refresh();
+                        }}
+                      >
+                        <LogOut className="mr-2 h-4 w-4" />
+                        Sign Out
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                ) : (
+                  <Link href="/login">
+                    <Button variant="ghost" size="sm">
+                      <LogIn className="mr-2 h-4 w-4" />
+                      Sign In
+                    </Button>
+                  </Link>
+                )}
               </>
             )}
-          </nav>
-        </div>
-        <div className="flex items-center gap-4">
-          {!loading && (
-            <>
-              {user ? (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    {avatarElement}
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem asChild>
-                      <Link href="/profile">
-                        <User className="mr-2 h-4 w-4" />
-                        Edit Profile
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      onClick={async () => {
-                        await createClient().auth.signOut();
-                        router.push("/");
-                        router.refresh();
-                      }}
-                    >
-                      <LogOut className="mr-2 h-4 w-4" />
-                      Sign Out
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              ) : (
-                <Link href="/login">
-                  <Button variant="ghost" size="sm">
-                    Sign In
-                  </Button>
-                </Link>
-              )}
-            </>
-          )}
-          <ModeToggle />
-          <button
-            className="md:hidden"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            aria-label="Toggle menu"
-          >
-            {mobileMenuOpen ? (
-              <X className="h-5 w-5" />
-            ) : (
-              <Menu className="h-5 w-5" />
-            )}
-          </button>
-        </div>
-      </div>
-      {mobileMenuOpen && (
-        <nav className="flex flex-col gap-1 border-t border-border px-6 py-3 md:hidden">
-          <Link
-            href="/gallery"
-            onClick={() => setMobileMenuOpen(false)}
-            className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-          >
-            Gallery
-          </Link>
-          <Link
-            href="/stats"
-            onClick={() => setMobileMenuOpen(false)}
-            className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-          >
-            Stats
-          </Link>
-          {user && (
-            <>
-              <Link
-                href="/my-recipes"
-                onClick={() => setMobileMenuOpen(false)}
-                className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-              >
-                My Recipes
-              </Link>
-              <Link
-                href="/bookmarks"
-                onClick={() => setMobileMenuOpen(false)}
-                className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-              >
-                Bookmarks
-              </Link>
-              <Link
-                href="/likes"
-                onClick={() => setMobileMenuOpen(false)}
-                className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-              >
-                Likes
-              </Link>
-            </>
-          )}
-          {!loading && !user && (
-            <Link
-              href="/login"
-              onClick={() => setMobileMenuOpen(false)}
-              className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            <ModeToggle />
+            <button
+              className="md:hidden"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              aria-label="Toggle menu"
             >
-              Sign In
+              {mobileMenuOpen ? (
+                <X className="h-5 w-5" />
+              ) : (
+                <Menu className="h-5 w-5" />
+              )}
+            </button>
+          </div>
+        </div>
+        {mobileMenuOpen && (
+          <nav className="container flex flex-col gap-1 border-t border-border py-3 md:hidden">
+            <Link
+              href="/recipes"
+              onClick={() => setMobileMenuOpen(false)}
+              className={mobileNavLinkClass}
+            >
+              <SlidersHorizontal className="h-4 w-4" />
+              Recipes
             </Link>
-          )}
-        </nav>
-      )}
-    </header>
+            <button
+              onClick={() => {
+                setMobileMenuOpen(false);
+                navOrPrompt("/recommend", "recommend");
+              }}
+              className={mobileNavLinkClass}
+            >
+              <ScanSearch className="h-4 w-4" />
+              Recommend
+            </button>
+            <button
+              onClick={() => {
+                setMobileMenuOpen(false);
+                navOrPrompt("/bookmarks", "bookmarks");
+              }}
+              className={mobileNavLinkClass}
+            >
+              <Bookmark className="h-4 w-4" />
+              Bookmarks
+            </button>
+            <button
+              onClick={() => {
+                setMobileMenuOpen(false);
+                navOrPrompt("/likes", "likes");
+              }}
+              className={mobileNavLinkClass}
+            >
+              <Heart className="h-4 w-4" />
+              Likes
+            </button>
+            <button
+              onClick={() => {
+                setMobileMenuOpen(false);
+                navOrPrompt("/collections", "collections");
+              }}
+              className={mobileNavLinkClass}
+            >
+              <FolderOpen className="h-4 w-4" />
+              Collections
+            </button>
+          </nav>
+        )}
+      </header>
+
+      <LoginPromptModal
+        open={loginPromptFeature !== null}
+        onOpenChange={(open) => {
+          if (!open) setLoginPromptFeature(null);
+        }}
+        feature={loginPromptFeature ?? "recommend"}
+      />
+    </>
   );
 }

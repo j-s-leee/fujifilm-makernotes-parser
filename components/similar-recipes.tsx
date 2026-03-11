@@ -1,47 +1,29 @@
-import Image from "next/image";
-import Link from "next/link";
-import { getThumbnailUrl } from "@/lib/get-thumbnail-url";
+"use client";
+
+import { useEffect } from "react";
+import { useUserInteractions } from "@/contexts/user-interactions-context";
+import { GalleryCard, type GalleryRecipe } from "@/components/gallery-card";
 
 interface SimilarRecipesProps {
-  recipes: {
-    id: number;
-    simulation: string | null;
-    thumbnail_path: string | null;
-  }[];
+  recipes: GalleryRecipe[];
 }
 
 export function SimilarRecipes({ recipes }: SimilarRecipesProps) {
+  const { mergeLikeCounts } = useUserInteractions();
+
+  useEffect(() => {
+    mergeLikeCounts(recipes);
+  }, [recipes, mergeLikeCounts]);
+
   return (
     <div className="flex flex-col gap-4">
       <h2 className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
         Similar Recipes
       </h2>
-      <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-6">
-        {recipes.map((recipe) => {
-          const url = getThumbnailUrl(recipe.thumbnail_path);
-          return (
-            <Link
-              key={recipe.id}
-              href={`/gallery/${recipe.id}`}
-              className="group relative overflow-hidden rounded-lg bg-muted"
-            >
-              {url ? (
-                <Image
-                  src={url}
-                  alt={recipe.simulation ?? "Recipe"}
-                  width={200}
-                  height={200}
-                  className="aspect-square w-full object-cover"
-                  sizes="(max-width: 640px) 33vw, (max-width: 768px) 25vw, 16vw"
-                />
-              ) : (
-                <div className="flex aspect-square items-center justify-center text-xs text-muted-foreground">
-                  No image
-                </div>
-              )}
-            </Link>
-          );
-        })}
+      <div className="flex flex-col gap-4 sm:block sm:columns-2 sm:gap-4 [&>*]:sm:mb-4 [&>*]:sm:break-inside-avoid">
+        {recipes.map((recipe) => (
+          <GalleryCard key={recipe.id} recipe={recipe} />
+        ))}
       </div>
     </div>
   );

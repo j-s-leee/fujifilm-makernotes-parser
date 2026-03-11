@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
-import { GroupedRecipeGrid } from "@/components/grouped-recipe-grid";
+import { GalleryGrid } from "@/components/gallery-grid";
 import { AuthPrompt } from "@/components/auth-prompt";
-import type { GalleryRecipe } from "@/lib/group-recipes";
+import { GALLERY_SELECT } from "@/lib/queries";
 
 export default async function BookmarksPage() {
   const supabase = await createClient();
@@ -24,26 +24,21 @@ export default async function BookmarksPage() {
     .eq("user_id", user.id);
   const bookmarkIds = bmarks?.map((b) => b.recipe_id) ?? [];
 
-  const { data: lks } = await supabase
-    .from("likes")
-    .select("recipe_id")
-    .eq("user_id", user.id);
-  const likeIds = lks?.map((l) => l.recipe_id) ?? [];
-
-  let typedRecipes: GalleryRecipe[] = [];
+  let typedRecipes: Parameters<typeof GalleryGrid>[0]["initialRecipes"] = [];
   if (bookmarkIds.length > 0) {
     const { data: recipes } = await supabase
       .from("recipes_with_stats")
-      .select("*")
+      .select(GALLERY_SELECT)
       .in("id", bookmarkIds)
       .order("created_at", { ascending: false })
+      .order("id", { ascending: false })
       .limit(24);
-    typedRecipes = (recipes ?? []) as GalleryRecipe[];
+    typedRecipes = (recipes ?? []) as typeof typedRecipes;
   }
 
   return (
-    <div className="flex flex-1 justify-center px-4 py-8 sm:px-6 md:px-10 md:py-12">
-      <div className="flex w-full max-w-6xl flex-col gap-6">
+    <div className="container py-8 md:py-12">
+      <div className="flex flex-col gap-6">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Bookmarks</h1>
           <p className="text-sm text-muted-foreground mt-1">
@@ -51,12 +46,9 @@ export default async function BookmarksPage() {
           </p>
         </div>
         {typedRecipes.length > 0 ? (
-          <GroupedRecipeGrid
+          <GalleryGrid
             initialRecipes={typedRecipes}
-            userBookmarks={bookmarkIds}
-            userLikes={likeIds}
-            fetchConfig={{ type: "bookmarks", bookmarkIds }}
-            basePath="/bookmarks"
+            recipeIds={bookmarkIds}
           />
         ) : (
           <p className="text-center text-sm text-muted-foreground py-20">

@@ -1,0 +1,58 @@
+# 프로덕션 배포 워크플로우 (Method 3)
+# main에 PR이 머지되면: 타입 체크 → DB 마이그레이션 → Vercel 프로덕션 배포
+# 마이그레이션 실패 시 배포가 중단되므로 서비스 안전이 보장됩니다.
+#
+# 전환 시 필요한 작업:
+# 1. Vercel Ignored Build Step 설정:
+#    [ "$VERCEL_GIT_COMMIT_REF" = "main" ] && exit 0 || exit 1
+# 2. GitHub Secrets 6개 등록 (아래 env 참고)
+# 3. Vercel Build Command를 기본값(next build)으로 되돌리기
+#
+# [현재 비활성] Method 3 전환 시 활성화
+
+name: Deploy Production
+
+on:
+  pull_request:
+    branches: [main]
+    types: [closed]
+
+jobs:
+  deploy:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # ---- Type Check ----
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: Type check
+        run: npx tsc --noEmit
+
+      # ---- DB Migration ----
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Push migrations to production DB
+        run: |
+          supabase link --project-ref "$SUPABASE_PROD_REF"
+          supabase db push
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_PROD_DB_PASSWORD }}
+          SUPABASE_PROD_REF: ${{ secrets.SUPABASE_PROD_REF }}
+
+      # ---- Deploy to Vercel ----
+      - name: Deploy to Vercel Production
+        run: npx vercel deploy --prod --token="$VERCEL_TOKEN"
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}

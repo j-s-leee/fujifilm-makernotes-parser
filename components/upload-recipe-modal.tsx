@@ -1,0 +1,294 @@
+"use client";
+
+import { useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerDescription,
+} from "@/components/ui/drawer";
+import { Button } from "@/components/ui/button";
+import { ImageDropzone } from "@/components/image-dropzone";
+import { RecipeSettings } from "@/components/recipe-settings";
+import { LoginPromptModal } from "@/components/login-prompt-modal";
+import { useMediaQuery } from "@/hooks/use-media-query";
+import { useToast } from "@/hooks/use-toast";
+import { useUser } from "@/hooks/use-user";
+import { isRafFile, extractJpegFromRaf } from "@/lib/raf-parser";
+import { shareRecipe } from "@/lib/share-recipe";
+import { compressImageToThumbnail } from "@/lib/compress-image";
+import { Upload } from "lucide-react";
+import type { FujifilmRecipe } from "@/fujifilm/recipe";
+import type { FujifilmSimulation } from "@/fujifilm/simulation";
+import type { RecipeSettingsRecipe } from "@/components/recipe-settings";
+
+interface UploadRecipeModalProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+export function UploadRecipeModal({
+  open,
+  onOpenChange,
+}: UploadRecipeModalProps) {
+  const router = useRouter();
+  const { toast } = useToast();
+  const { user } = useUser();
+  const isDesktop = useMediaQuery("(min-width: 640px)");
+  const [image, setImage] = useState<string | null>(null);
+  const [recipe, setRecipe] = useState<FujifilmRecipe | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [loginPromptOpen, setLoginPromptOpen] = useState(false);
+  const [simulation, setSimulation] = useState<FujifilmSimulation | null>(
+    null,
+  );
+  const [imageSource, setImageSource] = useState<File | Blob | null>(null);
+  const [cameraModel, setCameraModel] = useState<string | null>(null);
+  const [lensModel, setLensModel] = useState<string | null>(null);
+
+  const resetState = useCallback(() => {
+    setImage(null);
+    setRecipe(null);
+    setSimulation(null);
+    setImageSource(null);
+    setCameraModel(null);
+    setLensModel(null);
+  }, []);
+
+  const handleOpenChange = useCallback(
+    (nextOpen: boolean) => {
+      if (!nextOpen) {
+        resetState();
+      }
+      onOpenChange(nextOpen);
+    },
+    [onOpenChange, resetState],
+  );
+
+  const handleUpload = useCallback(async () => {
+    if (!recipe || !imageSource || !user) return;
+    setUploading(true);
+    try {
+      const thumbnail = await compressImageToThumbnail(imageSource);
+      const result = await shareRecipe(recipe, simulation, thumbnail, cameraModel, lensModel);
+      if (result.success) {
+        toast({ title: "Uploaded", description: "Recipe uploaded successfully" });
+        handleOpenChange(false);
+        router.push(`/recipes/${result.recipeId}`);
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: result.error ?? "Failed to upload recipe",
+        });
+      }
+    } catch (err) {
+      console.error(err);
+      toast({ variant: "destructive", description: "Failed to upload recipe" });
+    } finally {
+      setUploading(false);
+    }
+  }, [recipe, simulation, imageSource, cameraModel, lensModel, user, handleOpenChange, router, toast]);
+
+  const onDrop = useCallback(
+    async (acceptedFiles: File[]) => {
+      const file = acceptedFiles[0];
+      if (!file) return;
+
+      resetState();
+
+      let parseTarget: File | Blob = file;
+      if (isRafFile(file)) {
+        try {
+          const jpegBlob = await extractJpegFromRaf(file);
+          parseTarget = jpegBlob;
+          setImageSource(jpegBlob);
+          setImage(URL.createObjectURL(jpegBlob));
+        } catch (error) {
+          console.error("RAF parsing error:", error);
+          toast({
+            variant: "destructive",
+            title: "Error",
+            description:
+              error instanceof Error
+                ? error.message
+                : "Failed to extract JPEG preview from RAF file",
+          });
+          return;
+        }
+      } else {
+        setImageSource(file);
+        setImage(URL.createObjectURL(file));
+      }
+
+      try {
+        const exifr = await import("exifr");
+        const exifrData = await exifr.parse(parseTarget, {
+          tiff: true,
+          exif: true,
+          makerNote: true,
+        });
+
+        if (exifrData.Make && exifrData.Model) {
+          setCameraModel(`${exifrData.Make} ${exifrData.Model}`.trim());
+        }
+        setLensModel(exifrData.LensModel ?? null);
+
+        if (exifrData.makerNote) {
+          const { getFujifilmRecipeFromMakerNote } = await import(
+            "@/fujifilm/recipe"
+          );
+          const { getFujifilmSimulationFromMakerNote } = await import(
+            "@/fujifilm/simulation"
+          );
+
+          const makerNoteBytes = new Uint8Array(
+            Object.values(exifrData.makerNote),
+          );
+
+          try {
+            setRecipe(getFujifilmRecipeFromMakerNote(makerNoteBytes));
+            const parsedSim =
+              getFujifilmSimulationFromMakerNote(makerNoteBytes);
+            if (parsedSim) setSimulation(parsedSim);
+          } catch (error) {
+            console.error("Error parsing Fujifilm MakerNote:", error);
+            toast({
+              variant: "destructive",
+              title: "Error",
+              description: "Failed to parse Fujifilm MakerNote data",
+            });
+          }
+        } else {
+          toast({
+            variant: "destructive",
+            title: "Error",
+            description: "Please check if this is a Fujifilm camera image",
+          });
+        }
+      } catch (error) {
+        console.error("Error extracting Fujifilm metadata:", error);
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description:
+            "Failed to extract metadata. Please check if this is a Fujifilm camera image",
+        });
+      }
+    },
+    [toast, resetState],
+  );
+
+  const settingsRecipe: RecipeSettingsRecipe | null = recipe
+    ? {
+        id: 0,
+        simulation: simulation ?? null,
+        sensor_generation: null,
+        dynamic_range_development: recipe.dynamicRange?.development ?? null,
+        grain_roughness: recipe.grainEffect?.roughness ?? null,
+        grain_size: recipe.grainEffect?.size ?? null,
+        color_chrome: recipe.colorChromeEffect ?? null,
+        color_chrome_fx_blue: recipe.colorChromeFXBlue ?? null,
+        wb_type: recipe.whiteBalance?.type ?? null,
+        wb_color_temperature: recipe.whiteBalance?.colorTemperature ?? null,
+        wb_red: recipe.whiteBalance?.red ?? null,
+        wb_blue: recipe.whiteBalance?.blue ?? null,
+        highlight: recipe.highlight ?? null,
+        shadow: recipe.shadow ?? null,
+        color: recipe.color ?? null,
+        sharpness: recipe.sharpness ?? null,
+        noise_reduction: recipe.highISONoiseReduction ?? null,
+        clarity: recipe.clarity ?? null,
+        bw_adjustment: recipe.bwAdjustment ?? null,
+        bw_magenta_green: recipe.bwMagentaGreen ?? null,
+      }
+    : null;
+
+  const body = (
+    <div className="flex flex-col gap-6">
+      <ImageDropzone onFileDrop={onDrop} hasImage={!!image} />
+
+      {(image || settingsRecipe) && (
+        <div className="grid grid-cols-1 items-start gap-6 md:grid-cols-2">
+          {image && (
+            <img
+              src={image}
+              alt="Selected photo"
+              className="h-auto max-h-[50vh] w-full rounded-lg object-contain shadow-sm animate-in fade-in duration-300"
+            />
+          )}
+          {settingsRecipe && (
+            <div className="w-full rounded-lg border border-border">
+              <RecipeSettings recipe={settingsRecipe} />
+              <div className="px-6 pb-6">
+                <Button
+                  className="w-full"
+                  onClick={() => user ? handleUpload() : setLoginPromptOpen(true)}
+                  disabled={uploading}
+                >
+                  <Upload className="mr-2 h-4 w-4" />
+                  {uploading ? "Uploading..." : "Upload"}
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+
+  const loginPrompt = (
+    <LoginPromptModal
+      open={loginPromptOpen}
+      onOpenChange={setLoginPromptOpen}
+      feature="upload"
+    />
+  );
+
+  if (isDesktop) {
+    return (
+      <>
+        <Dialog open={open} onOpenChange={handleOpenChange}>
+          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Upload Recipe</DialogTitle>
+              <DialogDescription>
+                Drop a Fujifilm JPEG or RAF to extract and share its film recipe.
+              </DialogDescription>
+            </DialogHeader>
+            {body}
+          </DialogContent>
+        </Dialog>
+        {loginPrompt}
+      </>
+    );
+  }
+
+  return (
+    <>
+      <Drawer open={open} onOpenChange={handleOpenChange}>
+        <DrawerContent className="max-h-[90dvh]">
+          <DrawerHeader className="text-left">
+            <DrawerTitle>Upload Recipe</DrawerTitle>
+            <DrawerDescription>
+              Drop a Fujifilm JPEG or RAF to extract and share its film recipe.
+            </DrawerDescription>
+          </DrawerHeader>
+          <div className="overflow-y-auto px-4 pb-4">
+            {body}
+          </div>
+        </DrawerContent>
+      </Drawer>
+      {loginPrompt}
+    </>
+  );
+}

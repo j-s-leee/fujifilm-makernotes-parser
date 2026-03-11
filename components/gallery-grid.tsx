@@ -1,163 +1,103 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Bookmark, Heart, Loader2 } from "lucide-react";
-import Image from "next/image";
-import Link from "next/link";
-import { useUser } from "@/hooks/use-user";
+import { Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
-import { useToast } from "@/hooks/use-toast";
-import {
-  getCameraModelsForGeneration,
-  SENSOR_GENERATIONS,
-  type SensorGeneration,
-} from "@/fujifilm/cameras";
-import { getThumbnailUrl } from "@/lib/get-thumbnail-url";
+import { useUserInteractions } from "@/contexts/user-interactions-context";
+import { SENSOR_GENERATIONS, type SensorGeneration } from "@/fujifilm/cameras";
+import { GALLERY_SELECT } from "@/lib/queries";
+import { GalleryCard, type GalleryRecipe } from "@/components/gallery-card";
 
 const PAGE_SIZE = 24;
 
-interface GalleryRecipe {
-  id: number;
-  simulation: string | null;
-  thumbnail_path: string | null;
-  bookmark_count: number;
-  like_count: number;
-  camera_model: string | null;
-}
-
 interface GalleryGridProps {
   initialRecipes: GalleryRecipe[];
-  userBookmarks: number[];
-  userLikes: number[];
   simulation?: string;
   sort?: string;
   sensor?: string;
+  camera?: string;
+  userId?: string;
+  recipeIds?: number[];
 }
 
 export function GalleryGrid({
   initialRecipes,
-  userBookmarks,
-  userLikes,
   simulation,
   sort,
   sensor,
+  camera,
+  userId,
+  recipeIds,
 }: GalleryGridProps) {
   const [recipes, setRecipes] = useState<GalleryRecipe[]>(initialRecipes);
-  const [bookmarks, setBookmarks] = useState<Set<number>>(
-    new Set(userBookmarks),
-  );
-  const [likes, setLikes] = useState<Set<number>>(new Set(userLikes));
-  const [likeCounts, setLikeCounts] = useState<Map<number, number>>(
-    () => new Map(initialRecipes.map((r) => [r.id, r.like_count])),
-  );
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(initialRecipes.length >= PAGE_SIZE);
+  const cursorRef = useRef<GalleryRecipe | null>(
+    initialRecipes.length > 0
+      ? initialRecipes[initialRecipes.length - 1]
+      : null,
+  );
   const sentinelRef = useRef<HTMLDivElement>(null);
-  const { user } = useUser();
-  const { toast } = useToast();
+  const { mergeLikeCounts } = useUserInteractions();
 
   // Reset when filters change
   useEffect(() => {
     setRecipes(initialRecipes);
     setHasMore(initialRecipes.length >= PAGE_SIZE);
-    setLikeCounts(
-      new Map(initialRecipes.map((r) => [r.id, r.like_count])),
-    );
-  }, [initialRecipes]);
-
-  const toggleBookmark = async (recipeId: number, e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (!user) {
-      toast({ description: "Sign in to bookmark recipes" });
-      return;
-    }
-
-    const supabase = createClient();
-    const isBookmarked = bookmarks.has(recipeId);
-
-    if (isBookmarked) {
-      await supabase
-        .from("bookmarks")
-        .delete()
-        .match({ user_id: user.id, recipe_id: recipeId });
-      setBookmarks((prev) => {
-        const next = new Set(prev);
-        next.delete(recipeId);
-        return next;
-      });
-    } else {
-      await supabase
-        .from("bookmarks")
-        .insert({ user_id: user.id, recipe_id: recipeId });
-      setBookmarks((prev) => new Set(prev).add(recipeId));
-    }
-  };
-
-  const toggleLike = async (recipeId: number, e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (!user) {
-      toast({ description: "Sign in to like recipes" });
-      return;
-    }
-
-    const supabase = createClient();
-    const isLiked = likes.has(recipeId);
-
-    if (isLiked) {
-      await supabase
-        .from("likes")
-        .delete()
-        .match({ user_id: user.id, recipe_id: recipeId });
-      setLikes((prev) => {
-        const next = new Set(prev);
-        next.delete(recipeId);
-        return next;
-      });
-      setLikeCounts((prev) => {
-        const next = new Map(prev);
-        next.set(recipeId, (next.get(recipeId) ?? 0) - 1);
-        return next;
-      });
-    } else {
-      await supabase
-        .from("likes")
-        .insert({ user_id: user.id, recipe_id: recipeId });
-      setLikes((prev) => new Set(prev).add(recipeId));
-      setLikeCounts((prev) => {
-        const next = new Map(prev);
-        next.set(recipeId, (next.get(recipeId) ?? 0) + 1);
-        return next;
-      });
-    }
-  };
+    cursorRef.current =
+      initialRecipes.length > 0
+        ? initialRecipes[initialRecipes.length - 1]
+        : null;
+    mergeLikeCounts(initialRecipes);
+  }, [initialRecipes, mergeLikeCounts]);
 
   const fetchMore = useCallback(async () => {
     if (loading || !hasMore) return;
+    const cursor = cursorRef.current;
+    if (!cursor) return;
     setLoading(true);
 
     const supabase = createClient();
-    let query = supabase
-      .from("recipes_with_stats")
-      .select("*")
-      .range(recipes.length, recipes.length + PAGE_SIZE - 1);
+    let query = supabase.from("recipes_with_stats").select(GALLERY_SELECT);
 
     if (simulation) {
       query = query.eq("simulation", simulation);
     }
 
     if (sensor && SENSOR_GENERATIONS.includes(sensor as SensorGeneration)) {
-      const models = getCameraModelsForGeneration(sensor as SensorGeneration);
-      const patterns = models.flatMap((m) => [m, `FUJIFILM ${m}`]);
-      query = query.in("camera_model", patterns);
+      query = query.eq("sensor_generation", sensor);
     }
 
-    if (sort === "popular") {
-      query = query.order("like_count", { ascending: false });
-    } else {
-      query = query.order("created_at", { ascending: false });
+    if (camera) {
+      query = query.eq("camera_model", camera);
     }
+
+    if (userId) {
+      query = query.eq("user_id", userId);
+    }
+
+    if (recipeIds) {
+      query = query.in("id", recipeIds);
+    }
+
+    // Cursor-based pagination
+    if (sort === "popular") {
+      query = query
+        .or(
+          `like_count.lt.${cursor.like_count},and(like_count.eq.${cursor.like_count},id.lt.${cursor.id})`,
+        )
+        .order("like_count", { ascending: false })
+        .order("id", { ascending: false });
+    } else {
+      query = query
+        .or(
+          `created_at.lt.${cursor.created_at},and(created_at.eq.${cursor.created_at},id.lt.${cursor.id})`,
+        )
+        .order("created_at", { ascending: false })
+        .order("id", { ascending: false });
+    }
+
+    query = query.limit(PAGE_SIZE);
 
     const { data } = await query;
     const newRecipes = (data ?? []) as GalleryRecipe[];
@@ -166,16 +106,24 @@ export function GalleryGrid({
       setHasMore(false);
     }
 
+    if (newRecipes.length > 0) {
+      cursorRef.current = newRecipes[newRecipes.length - 1];
+    }
+
     setRecipes((prev) => [...prev, ...newRecipes]);
-    setLikeCounts((prev) => {
-      const next = new Map(prev);
-      for (const r of newRecipes) {
-        if (!next.has(r.id)) next.set(r.id, r.like_count);
-      }
-      return next;
-    });
+    mergeLikeCounts(newRecipes);
     setLoading(false);
-  }, [loading, hasMore, recipes.length, simulation, sort, sensor]);
+  }, [
+    loading,
+    hasMore,
+    simulation,
+    sort,
+    sensor,
+    camera,
+    userId,
+    recipeIds,
+    mergeLikeCounts,
+  ]);
 
   useEffect(() => {
     const sentinel = sentinelRef.current;
@@ -196,73 +144,15 @@ export function GalleryGrid({
 
   return (
     <div>
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
-        {recipes.map((recipe) => {
-          const url = getThumbnailUrl(recipe.thumbnail_path);
-          return (
-            <Link
-              key={recipe.id}
-              href={`/gallery/${recipe.id}`}
-              className="group relative overflow-hidden rounded-lg bg-muted"
-            >
-              {url ? (
-                <Image
-                  src={url}
-                  alt={recipe.simulation ?? "Recipe"}
-                  width={300}
-                  height={300}
-                  className="aspect-square w-full object-cover"
-                  sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                />
-              ) : (
-                <div className="flex aspect-square items-center justify-center text-muted-foreground text-sm">
-                  No image
-                </div>
-              )}
-              {/* Bottom left: simulation badge + like count */}
-              <div className="absolute bottom-2 left-2 flex flex-col items-start gap-1">
-                <button
-                  onClick={(e) => toggleLike(recipe.id, e)}
-                  className="flex items-center gap-1 rounded-md bg-black/60 px-1.5 py-0.5 text-xs text-white backdrop-blur-sm transition-colors hover:bg-black/80"
-                >
-                  <Heart
-                    className={`h-3 w-3 ${
-                      likes.has(recipe.id)
-                        ? "fill-red-500 text-red-500"
-                        : "text-white"
-                    }`}
-                  />
-                  <span>{likeCounts.get(recipe.id) ?? recipe.like_count}</span>
-                </button>
-                <span className="flex items-center gap-1.5 rounded-md bg-black/60 px-2 py-0.5 text-xs font-medium text-white backdrop-blur-sm">
-                  {recipe.simulation ?? "Unknown"}
-                  {recipe.camera_model && (
-                    <>
-                      <span className="opacity-50">&middot;</span>
-                      <span className="opacity-80">{recipe.camera_model.replace(/^FUJIFILM\s*/i, "")}</span>
-                    </>
-                  )}
-                </span>
-              </div>
-              {/* Top right: bookmark button */}
-              <button
-                onClick={(e) => toggleBookmark(recipe.id, e)}
-                className="absolute right-2 top-2 rounded-md bg-black/30 p-1.5 backdrop-blur-sm transition-colors hover:bg-black/50"
-              >
-                <Bookmark
-                  className={`h-4 w-4 ${
-                    bookmarks.has(recipe.id)
-                      ? "fill-white text-white"
-                      : "text-white"
-                  }`}
-                />
-              </button>
-            </Link>
-          );
-        })}
+      <div className="flex flex-col gap-4 sm:block sm:columns-2 sm:gap-4 lg:columns-3 [&>*]:sm:mb-4 [&>*]:sm:break-inside-avoid">
+        {recipes.map((recipe) => (
+          <GalleryCard key={recipe.id} recipe={recipe} />
+        ))}
       </div>
       <div ref={sentinelRef} className="flex justify-center py-8">
-        {loading && <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />}
+        {loading && (
+          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        )}
       </div>
     </div>
   );

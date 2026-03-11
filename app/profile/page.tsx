@@ -16,6 +16,7 @@ export default function ProfilePage() {
   const router = useRouter();
   const { toast } = useToast();
   const [displayName, setDisplayName] = useState("");
+  const [username, setUsername] = useState("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
@@ -30,6 +31,7 @@ export default function ProfilePage() {
       if (res.ok) {
         const data = await res.json();
         setDisplayName(data.display_name ?? "");
+        setUsername(data.username ?? "");
         setAvatarUrl(data.avatar_url);
       }
     } finally {
@@ -58,6 +60,7 @@ export default function ProfilePage() {
     try {
       const formData = new FormData();
       formData.set("display_name", displayName);
+      formData.set("username", username);
       if (avatarFile) {
         const { blob, extension } = await compressImageToThumbnail(avatarFile, 256);
         formData.set("avatar", new File([blob], `avatar.${extension}`, { type: blob.type }));
@@ -71,6 +74,13 @@ export default function ProfilePage() {
       if (res.ok) {
         toast({ title: "Profile updated" });
         router.push("/");
+      } else {
+        const data = await res.json();
+        toast({
+          title: "Error",
+          description: data.error ?? "Failed to update profile",
+          variant: "destructive",
+        });
       }
     } finally {
       setSaving(false);
@@ -96,7 +106,8 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="mx-auto max-w-sm px-6 py-12 md:px-10">
+    <div className="container py-8 md:py-12">
+    <div className="w-full max-w-sm">
       <h1 className="mb-8 text-2xl font-bold tracking-tight">Edit Profile</h1>
 
       <div className="flex flex-col items-center gap-8">
@@ -131,10 +142,27 @@ export default function ProfilePage() {
           />
         </div>
 
+        <div className="w-full space-y-2">
+          <Label htmlFor="username">Username</Label>
+          <Input
+            id="username"
+            value={username}
+            onChange={(e) =>
+              setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ""))
+            }
+            placeholder="your_username"
+            maxLength={30}
+          />
+          <p className="text-xs text-muted-foreground">
+            Lowercase letters, numbers, and underscores. Your public profile will be at /u/{username || "..."}
+          </p>
+        </div>
+
         <Button onClick={handleSave} disabled={saving} className="w-full">
           {saving ? "Saving..." : "Save"}
         </Button>
       </div>
+    </div>
     </div>
   );
 }

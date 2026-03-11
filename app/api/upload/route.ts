@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
+import sharp from "sharp";
 import { createClient } from "@/lib/supabase/server";
 import { r2, R2_BUCKET } from "@/lib/r2";
+import { getImageEmbedding } from "@/lib/embedding";
+import { computeColorHistogram } from "@/lib/color-histogram";
 
 export async function POST(request: NextRequest) {
   const supabase = await createClient();
@@ -25,14 +28,58 @@ export async function POST(request: NextRequest) {
 
   const buffer = Buffer.from(await file.arrayBuffer());
 
+  // Upload original
   await r2.send(
     new PutObjectCommand({
       Bucket: R2_BUCKET,
       Key: key,
       Body: buffer,
       ContentType: file.type,
+      CacheControl: "public, max-age=31536000, immutable",
     }),
   );
 
-  return NextResponse.json({ key });
+  const metadata = await sharp(buffer).metadata();
+  const origWidth = metadata.width ?? 0;
+  const baseName = key.replace(/\.[^.]+$/, "");
+
+  // Generate and upload 480w thumbnail (original serves larger sizes)
+  if (origWidth > 480) {
+    const resized = await sharp(buffer)
+      .resize(480, undefined, { withoutEnlargement: true })
+      .webp({ quality: 80 })
+      .toBuffer();
+    await r2.send(
+      new PutObjectCommand({
+        Bucket: R2_BUCKET,
+        Key: `${baseName}_w480.webp`,
+        Body: resized,
+        ContentType: "image/webp",
+        CacheControl: "public, max-age=31536000, immutable",
+      }),
+    );
+  }
+
+  const blurBuffer = await sharp(buffer)
+    .resize(10, 10, { fit: "cover" })
+    .jpeg({ quality: 40 })
+    .toBuffer();
+  const blurDataUrl = `data:image/jpeg;base64,${blurBuffer.toString("base64")}`;
+
+  // Generate CLIP embedding and color histogram in parallel
+  const r2PublicUrl = process.env.NEXT_PUBLIC_R2_PUBLIC_URL;
+  const imageUrl = r2PublicUrl ? `${r2PublicUrl}/${key}` : null;
+  const [embedding, colorHistogram] = await Promise.all([
+    imageUrl ? getImageEmbedding(imageUrl) : Promise.resolve(null),
+    computeColorHistogram(buffer),
+  ]);
+
+  return NextResponse.json({
+    key,
+    blurDataUrl,
+    width: metadata.width ?? null,
+    height: metadata.height ?? null,
+    embedding,
+    colorHistogram,
+  });
 }
