@@ -10,12 +10,15 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { Drawer, DrawerContent } from "@/components/ui/drawer";
+import { useMediaQuery } from "@/hooks/use-media-query";
+import { Button } from "./ui/button";
 
 const REASONS = [
-  { value: "inappropriate", label: "부적절한 콘텐츠" },
-  { value: "spam", label: "스팸" },
-  { value: "copyright", label: "저작권 침해" },
-  { value: "other", label: "기타" },
+  { value: "inappropriate", label: "Inappropriate content" },
+  { value: "spam", label: "Spam" },
+  { value: "copyright", label: "Copyright infringement" },
+  { value: "other", label: "Other" },
 ] as const;
 
 interface ReportRecipeDialogProps {
@@ -33,6 +36,7 @@ export function ReportRecipeDialog({
   const [detail, setDetail] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<"success" | "duplicate" | null>(null);
+  const isDesktop = useMediaQuery("(min-width: 640px)");
 
   const reset = () => {
     setReason("");
@@ -67,69 +71,85 @@ export function ReportRecipeDialog({
     }
   };
 
-  return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-sm">
-        <DialogHeader>
-          <DialogTitle>신고하기</DialogTitle>
-          <DialogDescription>신고 사유를 선택해주세요.</DialogDescription>
-        </DialogHeader>
+  const content = (
+    <div className="flex flex-col gap-4">
+      <DialogHeader className="gap-2 pb-4">
+        <DialogTitle>Report this recipe</DialogTitle>
+        <DialogDescription>
+          Please select a reason for reporting.
+        </DialogDescription>
+      </DialogHeader>
 
-        {result ? (
-          <div className="py-4 text-center text-sm">
-            {result === "success"
-              ? "신고가 접수되었습니다."
-              : "이미 신고한 레시피입니다."}
-          </div>
-        ) : (
-          <>
-            <div className="flex flex-col gap-2">
-              {REASONS.map((r) => (
-                <label
-                  key={r.value}
-                  className="flex cursor-pointer items-center gap-3 rounded-lg border border-border px-3 py-2.5 transition-colors hover:bg-muted has-[:checked]:border-primary has-[:checked]:bg-primary/5"
-                >
-                  <input
-                    type="radio"
-                    name="reason"
-                    value={r.value}
-                    checked={reason === r.value}
-                    onChange={(e) => setReason(e.target.value)}
-                    className="accent-primary"
-                  />
-                  <span className="text-sm">{r.label}</span>
-                </label>
-              ))}
-              {reason === "other" && (
-                <textarea
-                  value={detail}
-                  onChange={(e) => setDetail(e.target.value)}
-                  placeholder="상세 설명을 입력해주세요"
-                  rows={3}
-                  className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+      {result ? (
+        <div className="py-4 text-center text-sm">
+          {result === "success"
+            ? "Report submitted successfully."
+            : "You have already reported this recipe."}
+        </div>
+      ) : (
+        <>
+          <div className="flex flex-col gap-2">
+            {REASONS.map((r) => (
+              <label
+                key={r.value}
+                className="flex cursor-pointer items-center gap-3 rounded-lg border border-border px-3 py-2.5 transition-colors hover:bg-muted has-[:checked]:border-primary has-[:checked]:bg-primary/5"
+              >
+                <input
+                  type="radio"
+                  name="reason"
+                  value={r.value}
+                  checked={reason === r.value}
+                  onChange={(e) => setReason(e.target.value)}
+                  className="accent-primary"
                 />
-              )}
-            </div>
-            <DialogFooter className="gap-2 sm:gap-0">
-              <button
-                onClick={() => handleOpenChange(false)}
-                disabled={loading}
-                className="rounded-lg border border-border px-4 py-2 text-sm font-medium transition-colors hover:bg-muted"
-              >
-                취소
-              </button>
-              <button
-                onClick={handleSubmit}
-                disabled={loading || !reason}
-                className="inline-flex items-center gap-2 rounded-lg bg-destructive px-4 py-2 text-sm font-medium text-destructive-foreground transition-colors hover:bg-destructive/90 disabled:opacity-50"
-              >
-                {loading && <Loader2 className="h-4 w-4 animate-spin" />}
-                신고하기
-              </button>
-            </DialogFooter>
-          </>
-        )}
-      </DialogContent>
-    </Dialog>
+                <span className="text-sm">{r.label}</span>
+              </label>
+            ))}
+            {reason === "other" && (
+              <textarea
+                value={detail}
+                onChange={(e) => setDetail(e.target.value)}
+                placeholder="Please enter a detailed description."
+                rows={3}
+                className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+              />
+            )}
+          </div>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              onClick={() => handleOpenChange(false)}
+              disabled={loading}
+              variant="outline"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSubmit}
+              disabled={loading || !reason}
+              variant="destructive"
+            >
+              {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+              Report
+            </Button>
+          </DialogFooter>
+        </>
+      )}
+    </div>
+  );
+
+  if (isDesktop) {
+    return (
+      <Dialog open={open} onOpenChange={handleOpenChange}>
+        <DialogContent className="max-w-sm">{content}</DialogContent>
+      </Dialog>
+    );
+  }
+
+  return (
+    <Drawer open={open} onOpenChange={handleOpenChange}>
+      <DrawerContent>
+        <div className="p-4 pb-8">{content}</div>
+      </DrawerContent>
+    </Drawer>
   );
 }

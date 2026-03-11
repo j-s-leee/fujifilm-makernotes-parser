@@ -11,6 +11,9 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { Drawer, DrawerContent } from "@/components/ui/drawer";
+import { useMediaQuery } from "@/hooks/use-media-query";
+import { Button } from "./ui/button";
 
 interface DeleteRecipeDialogProps {
   recipeId: number;
@@ -25,6 +28,7 @@ export function DeleteRecipeDialog({
 }: DeleteRecipeDialogProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const isDesktop = useMediaQuery("(min-width: 640px)");
 
   const handleDelete = async () => {
     setLoading(true);
@@ -40,33 +44,41 @@ export function DeleteRecipeDialog({
     }
   };
 
+  const content = (
+    <>
+      <DialogHeader className="gap-2 pb-4">
+        <DialogTitle>Are you sure you want to delete this recipe?</DialogTitle>
+        <DialogDescription>This action cannot be undone.</DialogDescription>
+      </DialogHeader>
+      <DialogFooter className="gap-2 sm:gap-0">
+        <Button
+          onClick={() => onOpenChange(false)}
+          disabled={loading}
+          variant="outline"
+        >
+          Cancel
+        </Button>
+        <Button onClick={handleDelete} disabled={loading} variant="destructive">
+          {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+          Delete
+        </Button>
+      </DialogFooter>
+    </>
+  );
+
+  if (isDesktop) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-sm">{content}</DialogContent>
+      </Dialog>
+    );
+  }
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-sm">
-        <DialogHeader>
-          <DialogTitle>정말 삭제하시겠습니까?</DialogTitle>
-          <DialogDescription>
-            이 작업은 되돌릴 수 있습니다.
-          </DialogDescription>
-        </DialogHeader>
-        <DialogFooter className="gap-2 sm:gap-0">
-          <button
-            onClick={() => onOpenChange(false)}
-            disabled={loading}
-            className="rounded-lg border border-border px-4 py-2 text-sm font-medium transition-colors hover:bg-muted"
-          >
-            취소
-          </button>
-          <button
-            onClick={handleDelete}
-            disabled={loading}
-            className="inline-flex items-center gap-2 rounded-lg bg-destructive px-4 py-2 text-sm font-medium text-destructive-foreground transition-colors hover:bg-destructive/90 disabled:opacity-50"
-          >
-            {loading && <Loader2 className="h-4 w-4 animate-spin" />}
-            삭제
-          </button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+    <Drawer open={open} onOpenChange={onOpenChange}>
+      <DrawerContent>
+        <div className="p-4 pb-8">{content}</div>
+      </DrawerContent>
+    </Drawer>
   );
 }
