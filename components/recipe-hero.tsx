@@ -199,9 +199,7 @@ export function RecipeHero({
               )}
             </button>
             <CollectionPopover recipeId={recipe.id}>
-              <button
-                className="flex items-center justify-center rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-              >
+              <button className="flex items-center justify-center rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
                 <FolderPlus className="h-4 w-4" />
               </button>
             </CollectionPopover>
@@ -212,7 +210,7 @@ export function RecipeHero({
               <Share2 className="h-4 w-4" />
             </button>
             {user && (
-              <DropdownMenu>
+              <DropdownMenu modal={false}>
                 <DropdownMenuTrigger asChild>
                   <button className="flex items-center justify-center rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
                     <MoreHorizontal className="h-4 w-4" />
@@ -220,17 +218,14 @@ export function RecipeHero({
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   {isOwner ? (
-                    <DropdownMenuItem
-                      onClick={() => setDeleteOpen(true)}
-                      className="text-destructive focus:text-destructive"
-                    >
+                    <DropdownMenuItem onClick={() => setDeleteOpen(true)}>
                       <Trash2 className="h-4 w-4" />
-                      삭제하기
+                      Delete
                     </DropdownMenuItem>
                   ) : (
                     <DropdownMenuItem onClick={() => setReportOpen(true)}>
                       <Flag className="h-4 w-4" />
-                      신고하기
+                      Report
                     </DropdownMenuItem>
                   )}
                 </DropdownMenuContent>

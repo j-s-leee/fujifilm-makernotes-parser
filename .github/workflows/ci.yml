@@ -1,0 +1,30 @@
+# PR 검증 워크플로우
+# develop 또는 main으로의 모든 PR에서 타입 체크 + 린트를 자동 실행합니다.
+# 실패 시 PR에 빨간 체크가 표시됩니다.
+#
+# [현재 비활성] Method 3 전환 시 활성화
+
+name: CI
+
+on:
+  pull_request:
+    branches: [develop, main]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: Type check
+        run: npx tsc --noEmit
+
+      - name: Lint
+        run: npx next lint
