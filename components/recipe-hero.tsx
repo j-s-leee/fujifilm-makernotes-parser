@@ -136,7 +136,7 @@ export function RecipeHero({
           <div className="flex items-center gap-3">
             {sharer ? (
               <Link href={profileHref!} className="shrink-0">
-                <Avatar className="h-8 w-8 ring-2 ring-primary/20">
+                <Avatar className="h-8 w-8">
                   {sharer.avatarUrl && (
                     <AvatarImage
                       src={sharer.avatarUrl}

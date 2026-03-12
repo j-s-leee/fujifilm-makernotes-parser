@@ -13,9 +13,10 @@ import Image from "next/image";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { useUser } from "@/hooks/use-user";
 import { useCollections } from "@/contexts/collections-context";
+import { useUserInteractions } from "@/contexts/user-interactions-context";
 import { createClient } from "@/lib/supabase/client";
 import { getThumbnailUrl } from "@/lib/get-thumbnail-url";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { CollectionCreateDialog } from "@/components/collection-create-dialog";
 
 interface CollectionPopoverProps {
@@ -27,7 +28,6 @@ export function CollectionPopover({ recipeId, children }: CollectionPopoverProps
   const isDesktop = useMediaQuery("(min-width: 640px)");
   const { user } = useUser();
   const { collections, isLoaded: collectionsLoaded } = useCollections();
-  const { toast } = useToast();
   const [open, setOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
   const [checkedIds, setCheckedIds] = useState<Set<number>>(new Set());
@@ -112,7 +112,7 @@ export function CollectionPopover({ recipeId, children }: CollectionPopoverProps
       }
     } catch {
       setCheckedIds(prev);
-      toast({ description: "Something went wrong. Please try again." });
+      toast.error("Something went wrong. Please try again.");
     }
   };
 
@@ -193,9 +193,21 @@ export function CollectionPopover({ recipeId, children }: CollectionPopoverProps
     </div>
   );
 
+  const { promptLogin } = useUserInteractions();
+
   if (!user) {
-    // If not logged in, just render the children as-is (they'll trigger login prompt via toggleBookmark)
-    return <>{children}</>;
+    return (
+      <span
+        className="inline-flex"
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          promptLogin("collections");
+        }}
+      >
+        {children}
+      </span>
+    );
   }
 
   if (isDesktop) {

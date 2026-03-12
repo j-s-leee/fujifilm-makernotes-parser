@@ -1,7 +1,19 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Bookmark, Film, FolderOpen, Heart, LogIn, LogOut, Menu, ScanLine, ScanSearch, SlidersHorizontal, User, X } from "lucide-react";
+import {
+  Bookmark,
+  FolderOpen,
+  Heart,
+  LogIn,
+  LogOut,
+  Menu,
+  ScanLine,
+  ScanSearch,
+  SlidersHorizontal,
+  User,
+  X,
+} from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,9 +25,13 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ModeToggle } from "@/components/mode-toggle";
 import { UploadRecipeModal } from "@/components/upload-recipe-modal";
-import { LoginPromptModal, type LoginFeature } from "@/components/login-prompt-modal";
+import {
+  LoginPromptModal,
+  type LoginFeature,
+} from "@/components/login-prompt-modal";
 import { useUser } from "@/hooks/use-user";
 import { createClient } from "@/lib/supabase/client";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
@@ -34,7 +50,8 @@ export function Header() {
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
-  const [loginPromptFeature, setLoginPromptFeature] = useState<LoginFeature | null>(null);
+  const [loginPromptFeature, setLoginPromptFeature] =
+    useState<LoginFeature | null>(null);
   const [profile, setProfile] = useState<{
     display_name: string | null;
     username: string | null;
@@ -103,13 +120,16 @@ export function Header() {
         <div className="container flex items-center justify-between py-3">
           <div className="flex items-center gap-6">
             <Link href="/" className="flex items-center gap-2">
-              <Film className="h-5 w-5" />
+              <Image
+                src="/logo/favicon-32x32.png"
+                alt="film-simulation.site"
+                width={20}
+                height={20}
+                unoptimized
+              />
             </Link>
-            <nav className="hidden items-center gap-5 md:flex">
-              <Link
-                href="/recipes"
-                className={navLinkClass}
-              >
+            <nav className="hidden items-center gap-5 lg:flex">
+              <Link href="/recipes" className={navLinkClass}>
                 <SlidersHorizontal className="h-4 w-4" />
                 Recipes
               </Link>
@@ -149,7 +169,7 @@ export function Header() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8 md:hidden"
+                  className="h-8 w-8 lg:hidden"
                   onClick={() => setUploadModalOpen(true)}
                 >
                   <ScanLine className="h-4 w-4" />
@@ -157,7 +177,7 @@ export function Header() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="hidden md:inline-flex"
+                  className="hidden lg:inline-flex"
                   onClick={() => setUploadModalOpen(true)}
                 >
                   <ScanLine className="mr-2 h-4 w-4" />
@@ -204,7 +224,7 @@ export function Header() {
             )}
             <ModeToggle />
             <button
-              className="md:hidden"
+              className="lg:hidden"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               aria-label="Toggle menu"
             >
@@ -217,7 +237,7 @@ export function Header() {
           </div>
         </div>
         {mobileMenuOpen && (
-          <nav className="container flex flex-col gap-1 border-t border-border py-3 md:hidden">
+          <nav className="container flex flex-col gap-1 border-t border-border py-3 lg:hidden">
             <Link
               href="/recipes"
               onClick={() => setMobileMenuOpen(false)}

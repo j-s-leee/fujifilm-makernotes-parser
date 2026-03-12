@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
-import { Toaster } from "@/components/ui/toaster";
+import { Toaster } from "sonner";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { UserInteractionsProvider } from "@/contexts/user-interactions-context";
@@ -69,7 +69,7 @@ export default function RootLayout({
                 <main className="flex flex-1 flex-col">{children}</main>
                 <Footer />
               </div>
-              <Toaster />
+              <Toaster position="top-center" richColors />
             </CollectionsProvider>
           </UserInteractionsProvider>
         </ThemeProvider>

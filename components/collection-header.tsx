@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { useUser } from "@/hooks/use-user";
 import { useCollections } from "@/contexts/collections-context";
 import { createClient } from "@/lib/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 
 interface CollectionHeaderProps {
   collection: {
@@ -26,7 +26,6 @@ interface CollectionHeaderProps {
 export function CollectionHeader({ collection }: CollectionHeaderProps) {
   const { user } = useUser();
   const router = useRouter();
-  const { toast } = useToast();
   const { deleteCollection, refreshCollections } = useCollections();
   const isOwner = user?.id === collection.user_id;
   const [editing, setEditing] = useState(false);
@@ -52,7 +51,7 @@ export function CollectionHeader({ collection }: CollectionHeaderProps) {
     setSaving(false);
 
     if (error) {
-      toast({ description: "Failed to update collection." });
+      toast.error("Failed to update collection.");
       return;
     }
 
@@ -152,7 +151,7 @@ export function CollectionHeader({ collection }: CollectionHeaderProps) {
                     navigator.share({ title: collection.name, url });
                   } else {
                     await navigator.clipboard.writeText(url);
-                    toast({ description: "Link copied to clipboard." });
+                    toast.success("Link copied to clipboard.");
                   }
                 }}
               >

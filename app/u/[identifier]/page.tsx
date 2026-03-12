@@ -44,7 +44,8 @@ export async function generateMetadata({
   const { count } = await supabase
     .from("recipes")
     .select("id", { count: "exact", head: true })
-    .eq("user_id", profile.id);
+    .eq("user_id", profile.id)
+    .is("deleted_at", null);
 
   const description = `${count ?? 0} recipes shared on film-simulation.site`;
 
@@ -86,11 +87,13 @@ export default async function UserProfilePage({ params }: UserProfilePageProps) 
       supabase
         .from("recipes")
         .select("id", { count: "exact", head: true })
-        .eq("user_id", profile.id),
+        .eq("user_id", profile.id)
+        .is("deleted_at", null),
       supabase
         .from("recipes")
         .select("like_count, bookmark_count")
-        .eq("user_id", profile.id),
+        .eq("user_id", profile.id)
+        .is("deleted_at", null),
       supabase
         .from("recipes_with_stats")
         .select(GALLERY_SELECT)
