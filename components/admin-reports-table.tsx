@@ -3,8 +3,19 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Loader2, Trash2, RotateCcw } from "lucide-react";
+import { Loader2, Trash2, RotateCcw, Ban } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface Report {
   id: number;
@@ -35,6 +46,18 @@ export function AdminReportsTable({ reports }: { reports: Report[] }) {
     try {
       const res = await fetch(`/api/admin/reports/${reportId}/dismiss`, {
         method: "DELETE",
+      });
+      if (res.ok) router.refresh();
+    } finally {
+      setLoadingId(null);
+    }
+  };
+
+  const handleDelete = async (recipeId: number) => {
+    setLoadingId(`delete-${recipeId}`);
+    try {
+      const res = await fetch(`/api/admin/recipes/${recipeId}/delete`, {
+        method: "PATCH",
       });
       if (res.ok) router.refresh();
     } finally {
@@ -131,33 +154,105 @@ export function AdminReportsTable({ reports }: { reports: Report[] }) {
               </td>
               <td className="px-4 py-3">
                 <div className="flex items-center gap-1">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleDismiss(report.id)}
-                    disabled={loadingId !== null}
-                    title="신고 삭제"
-                  >
-                    {loadingId === `dismiss-${report.id}` ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <Trash2 className="h-4 w-4" />
-                    )}
-                  </Button>
-                  {report.recipe_deleted && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleRestore(report.recipe_id)}
-                      disabled={loadingId !== null}
-                      title="레시피 복구"
-                    >
-                      {loadingId === `restore-${report.recipe_id}` ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <RotateCcw className="h-4 w-4" />
-                      )}
-                    </Button>
+                  {/* 신고 삭제 */}
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        disabled={loadingId !== null}
+                        title="신고 삭제"
+                      >
+                        {loadingId === `dismiss-${report.id}` ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Trash2 className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>신고 삭제</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          이 신고를 삭제하시겠습니까? 레시피는 유지됩니다.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>취소</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => handleDismiss(report.id)}>
+                          삭제
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+
+                  {/* 레시피 복구 / 삭제 */}
+                  {report.recipe_deleted ? (
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          disabled={loadingId !== null}
+                          title="레시피 복구"
+                        >
+                          {loadingId === `restore-${report.recipe_id}` ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <RotateCcw className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>레시피 복구</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            레시피 #{report.recipe_id}를 복구하시겠습니까? 다시 공개 상태로 전환됩니다.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>취소</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => handleRestore(report.recipe_id)}>
+                            복구
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  ) : (
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          disabled={loadingId !== null}
+                          title="레시피 삭제"
+                          className="text-destructive hover:text-destructive"
+                        >
+                          {loadingId === `delete-${report.recipe_id}` ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Ban className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>레시피 삭제</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            레시피 #{report.recipe_id}를 삭제(숨김) 처리하시겠습니까?
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>취소</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => handleDelete(report.recipe_id)}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          >
+                            삭제
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   )}
                 </div>
               </td>

@@ -21,7 +21,7 @@ import { ImageDropzone } from "@/components/image-dropzone";
 import { RecipeSettings } from "@/components/recipe-settings";
 import { LoginPromptModal } from "@/components/login-prompt-modal";
 import { useMediaQuery } from "@/hooks/use-media-query";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { useUser } from "@/hooks/use-user";
 import { isRafFile, extractJpegFromRaf } from "@/lib/raf-parser";
 import { shareRecipe } from "@/lib/share-recipe";
@@ -41,7 +41,6 @@ export function UploadRecipeModal({
   onOpenChange,
 }: UploadRecipeModalProps) {
   const router = useRouter();
-  const { toast } = useToast();
   const { user } = useUser();
   const isDesktop = useMediaQuery("(min-width: 640px)");
   const [image, setImage] = useState<string | null>(null);
@@ -81,23 +80,19 @@ export function UploadRecipeModal({
       const thumbnail = await compressImageToThumbnail(imageSource);
       const result = await shareRecipe(recipe, simulation, thumbnail, cameraModel, lensModel);
       if (result.success) {
-        toast({ title: "Uploaded", description: "Recipe uploaded successfully" });
+        toast.success("Recipe uploaded successfully");
         handleOpenChange(false);
         router.push(`/recipes/${result.recipeId}`);
       } else {
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: result.error ?? "Failed to upload recipe",
-        });
+        toast.error(result.error ?? "Failed to upload recipe");
       }
     } catch (err) {
       console.error(err);
-      toast({ variant: "destructive", description: "Failed to upload recipe" });
+      toast.error("Failed to upload recipe");
     } finally {
       setUploading(false);
     }
-  }, [recipe, simulation, imageSource, cameraModel, lensModel, user, handleOpenChange, router, toast]);
+  }, [recipe, simulation, imageSource, cameraModel, lensModel, user, handleOpenChange, router]);
 
   const onDrop = useCallback(
     async (acceptedFiles: File[]) => {
@@ -115,14 +110,11 @@ export function UploadRecipeModal({
           setImage(URL.createObjectURL(jpegBlob));
         } catch (error) {
           console.error("RAF parsing error:", error);
-          toast({
-            variant: "destructive",
-            title: "Error",
-            description:
-              error instanceof Error
-                ? error.message
-                : "Failed to extract JPEG preview from RAF file",
-          });
+          toast.error(
+            error instanceof Error
+              ? error.message
+              : "Failed to extract JPEG preview from RAF file",
+          );
           return;
         }
       } else {
@@ -162,30 +154,19 @@ export function UploadRecipeModal({
             if (parsedSim) setSimulation(parsedSim);
           } catch (error) {
             console.error("Error parsing Fujifilm MakerNote:", error);
-            toast({
-              variant: "destructive",
-              title: "Error",
-              description: "Failed to parse Fujifilm MakerNote data",
-            });
+            toast.error("Failed to parse Fujifilm MakerNote data");
           }
         } else {
-          toast({
-            variant: "destructive",
-            title: "Error",
-            description: "Please check if this is a Fujifilm camera image",
-          });
+          toast.error("Please check if this is a Fujifilm camera image");
         }
       } catch (error) {
         console.error("Error extracting Fujifilm metadata:", error);
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description:
-            "Failed to extract metadata. Please check if this is a Fujifilm camera image",
-        });
+        toast.error(
+          "Failed to extract metadata. Please check if this is a Fujifilm camera image",
+        );
       }
     },
-    [toast, resetState],
+    [resetState],
   );
 
   const settingsRecipe: RecipeSettingsRecipe | null = recipe

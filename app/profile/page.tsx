@@ -6,7 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { useUser } from "@/hooks/use-user";
 import { compressImageToThumbnail } from "@/lib/compress-image";
 import { useRouter } from "next/navigation";
@@ -14,7 +14,6 @@ import { useRouter } from "next/navigation";
 export default function ProfilePage() {
   const { user, loading: userLoading } = useUser();
   const router = useRouter();
-  const { toast } = useToast();
   const [displayName, setDisplayName] = useState("");
   const [username, setUsername] = useState("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
@@ -72,15 +71,11 @@ export default function ProfilePage() {
       });
 
       if (res.ok) {
-        toast({ title: "Profile updated" });
+        toast.success("Profile updated");
         router.push("/");
       } else {
         const data = await res.json();
-        toast({
-          title: "Error",
-          description: data.error ?? "Failed to update profile",
-          variant: "destructive",
-        });
+        toast.error(data.error ?? "Failed to update profile");
       }
     } finally {
       setSaving(false);

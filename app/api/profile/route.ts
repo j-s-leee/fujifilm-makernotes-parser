@@ -1,7 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
-import { PutObjectCommand } from "@aws-sdk/client-s3";
+import { DeleteObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 import { createClient } from "@/lib/supabase/server";
 import { r2, R2_BUCKET } from "@/lib/r2";
+
+function resolveAvatarUrl(
+  avatarPath: string | null | undefined,
+  oauthAvatarUrl: string | null,
+): string | null {
+  if (!avatarPath) return oauthAvatarUrl;
+  if (avatarPath.startsWith("http")) return avatarPath;
+  const r2PublicUrl = process.env.NEXT_PUBLIC_R2_PUBLIC_URL ?? "";
+  return `${r2PublicUrl}/${avatarPath}`;
+}
 
 export async function GET() {
   const supabase = await createClient();
@@ -28,7 +38,7 @@ export async function GET() {
       .upsert({
         id: user.id,
         display_name: defaultName,
-        avatar_path: null,
+        avatar_path: user.user_metadata?.avatar_url ?? null,
       })
       .select("display_name, username, avatar_path")
       .single();
@@ -36,12 +46,8 @@ export async function GET() {
     profile = inserted;
   }
 
-  const r2PublicUrl = process.env.NEXT_PUBLIC_R2_PUBLIC_URL ?? "";
   const oauthAvatarUrl = user.user_metadata?.avatar_url ?? null;
-
-  const avatarUrl = profile?.avatar_path
-    ? `${r2PublicUrl}/${profile.avatar_path}`
-    : oauthAvatarUrl;
+  const avatarUrl = resolveAvatarUrl(profile?.avatar_path, oauthAvatarUrl);
 
   return NextResponse.json({
     display_name: profile?.display_name ?? null,
@@ -68,6 +74,15 @@ export async function PUT(request: NextRequest) {
   let avatarPath: string | undefined;
 
   if (avatarFile && avatarFile.size > 0) {
+    // Fetch current avatar_path to delete old file later
+    const { data: currentProfile } = await supabase
+      .from("profiles")
+      .select("avatar_path")
+      .eq("id", user.id)
+      .single();
+
+    const oldAvatarPath = currentProfile?.avatar_path;
+
     const ext = avatarFile.name.split(".").pop() ?? "jpg";
     avatarPath = `avatars/${user.id}/${Date.now()}.${ext}`;
 
@@ -82,6 +97,13 @@ export async function PUT(request: NextRequest) {
         CacheControl: "public, max-age=31536000, immutable",
       }),
     );
+
+    // Delete old avatar from R2 (only if it's an R2 path, not an external URL)
+    if (oldAvatarPath && !oldAvatarPath.startsWith("http")) {
+      r2.send(
+        new DeleteObjectCommand({ Bucket: R2_BUCKET, Key: oldAvatarPath }),
+      ).catch(() => {});
+    }
   }
 
   const updateData: Record<string, unknown> = {
@@ -130,12 +152,8 @@ export async function PUT(request: NextRequest) {
     );
   }
 
-  const r2PublicUrl = process.env.NEXT_PUBLIC_R2_PUBLIC_URL ?? "";
   const oauthAvatarUrl = user.user_metadata?.avatar_url ?? null;
-
-  const avatarUrl = profile?.avatar_path
-    ? `${r2PublicUrl}/${profile.avatar_path}`
-    : oauthAvatarUrl;
+  const avatarUrl = resolveAvatarUrl(profile?.avatar_path, oauthAvatarUrl);
 
   return NextResponse.json({
     display_name: profile?.display_name ?? null,

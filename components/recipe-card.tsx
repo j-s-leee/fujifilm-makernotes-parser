@@ -3,7 +3,7 @@ import { FujifilmSimulation } from "@/fujifilm/simulation";
 import { Copy, Upload } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { addSign } from "@/lib/utils";
 import { RecipeItem } from "@/components/recipe-item";
 import { useUser } from "@/hooks/use-user";
@@ -26,7 +26,6 @@ export function RecipeCard({
   lensModel?: string | null;
   onShareSuccess?: (recipeId: number) => void;
 }) {
-  const { toast } = useToast();
   const { user } = useUser();
   const router = useRouter();
   const [sharing, setSharing] = useState(false);
@@ -67,16 +66,10 @@ export function RecipeCard({
   const copyRecipe = async () => {
     try {
       await navigator.clipboard.writeText(getRecipeText());
-      toast({
-        title: "Copied",
-        description: "Film recipe copied to clipboard",
-      });
+      toast.success("Film recipe copied to clipboard");
     } catch (err) {
       console.error(err);
-      toast({
-        variant: "destructive",
-        description: "Failed to copy recipe",
-      });
+      toast.error("Failed to copy recipe");
     }
   };
 
@@ -87,24 +80,14 @@ export function RecipeCard({
       const thumbnail = await compressImageToThumbnail(imageSource);
       const result = await shareRecipe(recipe, simulation, thumbnail, cameraModel, lensModel);
       if (result.success) {
-        toast({
-          title: "Shared",
-          description: "Recipe shared successfully",
-        });
+        toast.success("Recipe shared successfully");
         onShareSuccess?.(result.recipeId);
       } else {
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: result.error ?? "Failed to share recipe",
-        });
+        toast.error(result.error ?? "Failed to share recipe");
       }
     } catch (err) {
       console.error(err);
-      toast({
-        variant: "destructive",
-        description: "Failed to share recipe",
-      });
+      toast.error("Failed to share recipe");
     } finally {
       setSharing(false);
     }
