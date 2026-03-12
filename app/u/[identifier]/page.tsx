@@ -1,3 +1,4 @@
+import { cache } from "react";
 import type { Metadata } from "next";
 import { createStaticClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
@@ -12,6 +13,17 @@ export const revalidate = 60;
 const UUID_REGEX =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
+const getProfile = cache(async (identifier: string) => {
+  const supabase = createStaticClient();
+  const isUuid = UUID_REGEX.test(identifier);
+  const { data } = await supabase
+    .from("profiles")
+    .select("id, display_name, username, avatar_path, created_at")
+    .eq(isUuid ? "id" : "username", identifier)
+    .single();
+  return data;
+});
+
 interface UserProfilePageProps {
   params: Promise<{ identifier: string }>;
 }
@@ -20,15 +32,7 @@ export async function generateMetadata({
   params,
 }: UserProfilePageProps): Promise<Metadata> {
   const { identifier } = await params;
-  const supabase = createStaticClient();
-  const isUuid = UUID_REGEX.test(identifier);
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("id, display_name, username, avatar_path")
-    .eq(isUuid ? "id" : "username", identifier)
-    .single();
-
+  const profile = await getProfile(identifier);
   if (!profile) return {};
 
   const displayName = profile.display_name ?? profile.username ?? "User";
@@ -41,6 +45,7 @@ export async function generateMetadata({
     ? `${r2PublicUrl}/${profile.avatar_path}`
     : undefined;
 
+  const supabase = createStaticClient();
   const { count } = await supabase
     .from("recipes")
     .select("id", { count: "exact", head: true })
@@ -68,18 +73,10 @@ export async function generateMetadata({
 
 export default async function UserProfilePage({ params }: UserProfilePageProps) {
   const { identifier } = await params;
-  const supabase = createStaticClient();
-
-  // UUID → lookup by id, otherwise → lookup by username
-  const isUuid = UUID_REGEX.test(identifier);
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("id, display_name, username, avatar_path, created_at")
-    .eq(isUuid ? "id" : "username", identifier)
-    .single();
-
+  const profile = await getProfile(identifier);
   if (!profile) notFound();
+
+  const supabase = createStaticClient();
 
   // Fetch stats, recipes, and public collections in parallel
   const [{ count: recipeCount }, { data: statsAgg }, { data: recipes }, { data: collections }] =

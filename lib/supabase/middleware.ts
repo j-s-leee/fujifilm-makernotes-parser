@@ -4,6 +4,12 @@ import { NextResponse, type NextRequest } from "next/server";
 export async function updateSession(request: NextRequest) {
   const response = NextResponse.next({ request });
 
+  // Skip auth call when no Supabase auth cookies exist (anonymous users)
+  const hasAuthCookie = request.cookies
+    .getAll()
+    .some((c) => c.name.startsWith("sb-") && c.name.includes("-auth-token"));
+  if (!hasAuthCookie) return response;
+
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     // process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
