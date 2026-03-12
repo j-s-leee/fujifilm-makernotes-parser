@@ -11,7 +11,11 @@ import {
 } from "react";
 import { useUser } from "@/hooks/use-user";
 import { createClient } from "@/lib/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
+import {
+  LoginPromptModal,
+  type LoginFeature,
+} from "@/components/login-prompt-modal";
 
 interface UserInteractionsContextValue {
   bookmarks: Set<number>;
@@ -23,6 +27,7 @@ interface UserInteractionsContextValue {
   mergeLikeCounts: (
     recipes: { id: number; like_count: number }[],
   ) => void;
+  promptLogin: (feature: LoginFeature) => void;
 }
 
 const UserInteractionsContext =
@@ -44,14 +49,19 @@ export function UserInteractionsProvider({
   children: React.ReactNode;
 }) {
   const { user } = useUser();
-  const { toast } = useToast();
   const [bookmarks, setBookmarks] = useState<Set<number>>(new Set());
   const [likes, setLikes] = useState<Set<number>>(new Set());
   const [likeCounts, setLikeCounts] = useState<Map<number, number>>(
     new Map(),
   );
   const [isLoaded, setIsLoaded] = useState(false);
+  const [loginPromptFeature, setLoginPromptFeature] =
+    useState<LoginFeature | null>(null);
   const inflightRef = useRef<Set<string>>(new Set());
+
+  const promptLogin = useCallback((feature: LoginFeature) => {
+    setLoginPromptFeature(feature);
+  }, []);
 
   useEffect(() => {
     if (!user) {
@@ -94,7 +104,7 @@ export function UserInteractionsProvider({
       e?.stopPropagation();
 
       if (!user) {
-        toast({ description: "Sign in to bookmark recipes" });
+        promptLogin("bookmarks");
         return;
       }
 
@@ -138,12 +148,12 @@ export function UserInteractionsProvider({
             return next;
           });
         }
-        toast({ description: "Something went wrong. Please try again." });
+        toast.error("Something went wrong. Please try again.");
       } finally {
         inflightRef.current.delete(key);
       }
     },
-    [user, bookmarks, toast],
+    [user, bookmarks],
   );
 
   const toggleLike = useCallback(
@@ -152,7 +162,7 @@ export function UserInteractionsProvider({
       e?.stopPropagation();
 
       if (!user) {
-        toast({ description: "Sign in to like recipes" });
+        promptLogin("likes");
         return;
       }
 
@@ -212,12 +222,12 @@ export function UserInteractionsProvider({
           next.set(recipeId, prevCount);
           return next;
         });
-        toast({ description: "Something went wrong. Please try again." });
+        toast.error("Something went wrong. Please try again.");
       } finally {
         inflightRef.current.delete(key);
       }
     },
-    [user, likes, likeCounts, toast],
+    [user, likes, likeCounts],
   );
 
   const mergeLikeCounts = useCallback(
@@ -250,6 +260,7 @@ export function UserInteractionsProvider({
       toggleBookmark,
       toggleLike,
       mergeLikeCounts,
+      promptLogin,
     }),
     [
       bookmarks,
@@ -259,12 +270,20 @@ export function UserInteractionsProvider({
       toggleBookmark,
       toggleLike,
       mergeLikeCounts,
+      promptLogin,
     ],
   );
 
   return (
     <UserInteractionsContext.Provider value={value}>
       {children}
+      <LoginPromptModal
+        open={loginPromptFeature !== null}
+        onOpenChange={(open) => {
+          if (!open) setLoginPromptFeature(null);
+        }}
+        feature={loginPromptFeature ?? "bookmarks"}
+      />
     </UserInteractionsContext.Provider>
   );
 }

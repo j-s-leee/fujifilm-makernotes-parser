@@ -28,7 +28,11 @@ export interface GalleryRecipe {
   user_avatar_path: string | null;
 }
 
-export const GalleryCard = memo(function GalleryCard({ recipe }: { recipe: GalleryRecipe }) {
+export const GalleryCard = memo(function GalleryCard({
+  recipe,
+}: {
+  recipe: GalleryRecipe;
+}) {
   const { bookmarks, likes, likeCounts, toggleBookmark, toggleLike } =
     useUserInteractions();
 
@@ -37,7 +41,9 @@ export const GalleryCard = memo(function GalleryCard({ recipe }: { recipe: Galle
     : getThumbnailUrl(recipe.thumbnail_path);
 
   const avatarUrl = recipe.user_avatar_path
-    ? `${r2Base}/${recipe.user_avatar_path}`
+    ? recipe.user_avatar_path.startsWith("http")
+      ? recipe.user_avatar_path
+      : `${r2Base}/${recipe.user_avatar_path}`
     : null;
 
   const profileHref = `/u/${recipe.user_username ?? recipe.user_id}`;
@@ -55,17 +61,12 @@ export const GalleryCard = memo(function GalleryCard({ recipe }: { recipe: Galle
     <div className="group relative overflow-hidden rounded-md">
       {/* Mobile: top bar with avatar + username */}
       <div className="flex items-center gap-2 px-2.5 py-2 sm:hidden">
-        <Link
-          href={profileHref}
-          className="flex items-center gap-2"
-        >
+        <Link href={profileHref} className="flex items-center gap-2">
           <Avatar className="h-6 w-6">
             {avatarUrl && (
               <AvatarImage src={avatarUrl} alt={displayName ?? "User"} />
             )}
-            <AvatarFallback className="text-[10px]">
-              {initials}
-            </AvatarFallback>
+            <AvatarFallback className="text-[10px]">{initials}</AvatarFallback>
           </Avatar>
           <span className="text-xs font-medium">
             {displayName ?? "Anonymous"}
@@ -111,11 +112,8 @@ export const GalleryCard = memo(function GalleryCard({ recipe }: { recipe: Galle
 
         {/* Desktop hover: top-left avatar + username */}
         <div className="absolute left-3 top-3 z-10 hidden items-center gap-2 opacity-0 transition-opacity duration-200 sm:flex sm:group-hover:opacity-100">
-          <Link
-            href={profileHref}
-            className="flex items-center gap-2"
-          >
-            <Avatar className="h-7 w-7 ring-2 ring-white/30">
+          <Link href={profileHref} className="flex items-center gap-2">
+            <Avatar className="h-7 w-7">
               {avatarUrl && (
                 <AvatarImage src={avatarUrl} alt={displayName ?? "User"} />
               )}
@@ -157,9 +155,7 @@ export const GalleryCard = memo(function GalleryCard({ recipe }: { recipe: Galle
             />
           </button>
           <CollectionPopover recipeId={recipe.id}>
-            <button
-              className="rounded-full bg-black/40 p-1.5 backdrop-blur-sm transition-colors hover:bg-black/60"
-            >
+            <button className="rounded-full bg-black/40 p-1.5 backdrop-blur-sm transition-colors hover:bg-black/60">
               <FolderPlus className="h-3.5 w-3.5 text-white" />
             </button>
           </CollectionPopover>
@@ -194,7 +190,7 @@ export const GalleryCard = memo(function GalleryCard({ recipe }: { recipe: Galle
             />
           </button>
           <CollectionPopover recipeId={recipe.id}>
-            <button onClick={(e) => e.stopPropagation()}>
+            <button>
               <FolderPlus className="h-4 w-4 text-muted-foreground" />
             </button>
           </CollectionPopover>

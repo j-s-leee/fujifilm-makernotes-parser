@@ -10,7 +10,7 @@ import {
 } from "react";
 import { useUser } from "@/hooks/use-user";
 import { createClient } from "@/lib/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 
 export interface Collection {
   id: number;
@@ -52,7 +52,6 @@ export function CollectionsProvider({
   children: React.ReactNode;
 }) {
   const { user } = useUser();
-  const { toast } = useToast();
   const [collections, setCollections] = useState<Collection[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
 
@@ -106,14 +105,14 @@ export function CollectionsProvider({
         .single();
 
       if (error) {
-        toast({ description: "Failed to create collection. Please try again." });
+        toast.error("Failed to create collection. Please try again.");
         return null;
       }
 
       setCollections((prev) => [data, ...prev]);
       return data;
     },
-    [user, toast],
+    [user],
   );
 
   const deleteCollection = useCallback(
@@ -126,14 +125,14 @@ export function CollectionsProvider({
         .eq("id", id);
 
       if (error) {
-        toast({ description: "Failed to delete collection. Please try again." });
+        toast.error("Failed to delete collection. Please try again.");
         return false;
       }
 
       setCollections((prev) => prev.filter((c) => c.id !== id));
       return true;
     },
-    [user, toast],
+    [user],
   );
 
   const value = useMemo(
