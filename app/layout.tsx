@@ -7,6 +7,7 @@ import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { UserInteractionsProvider } from "@/contexts/user-interactions-context";
 import { CollectionsProvider } from "@/contexts/collections-context";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
@@ -70,6 +71,7 @@ export default function RootLayout({
                 <Footer />
               </div>
               <Toaster position="top-center" richColors />
+              <SpeedInsights />
             </CollectionsProvider>
           </UserInteractionsProvider>
         </ThemeProvider>
