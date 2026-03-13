@@ -8,6 +8,7 @@ import { Footer } from "@/components/footer";
 import { UserInteractionsProvider } from "@/contexts/user-interactions-context";
 import { CollectionsProvider } from "@/contexts/collections-context";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { GoogleAnalytics } from "@/components/google-analytics";
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
@@ -56,6 +57,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        <GoogleAnalytics />
         <link
           rel="preconnect"
           href={process.env.NEXT_PUBLIC_R2_PUBLIC_URL}
