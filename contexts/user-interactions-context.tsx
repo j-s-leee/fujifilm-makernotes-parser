@@ -12,10 +12,13 @@ import {
 import { useUser } from "@/hooks/use-user";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
-import {
-  LoginPromptModal,
-  type LoginFeature,
-} from "@/components/login-prompt-modal";
+import dynamic from "next/dynamic";
+import type { LoginFeature } from "@/components/login-prompt-modal";
+
+const LoginPromptModal = dynamic(
+  () => import("@/components/login-prompt-modal").then((m) => m.LoginPromptModal),
+  { ssr: false }
+);
 
 interface UserInteractionsContextValue {
   bookmarks: Set<number>;
@@ -92,10 +95,24 @@ export function UserInteractionsProvider({
       setIsLoaded(true);
     }
 
-    fetchInteractions();
-    return () => {
-      cancelled = true;
-    };
+    // Defer fetch until after first paint to avoid blocking FCP
+    if (typeof window !== "undefined" && "requestIdleCallback" in window) {
+      const id = requestIdleCallback(() => {
+        if (!cancelled) fetchInteractions();
+      });
+      return () => {
+        cancelled = true;
+        cancelIdleCallback(id);
+      };
+    } else {
+      const id = setTimeout(() => {
+        if (!cancelled) fetchInteractions();
+      }, 0);
+      return () => {
+        cancelled = true;
+        clearTimeout(id);
+      };
+    }
   }, [user]);
 
   const toggleBookmark = useCallback(
