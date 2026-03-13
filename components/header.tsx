@@ -24,12 +24,25 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ModeToggle } from "@/components/mode-toggle";
-import { UploadRecipeModal } from "@/components/upload-recipe-modal";
-import {
-  LoginPromptModal,
-  type LoginFeature,
-} from "@/components/login-prompt-modal";
+import dynamic from "next/dynamic";
+import type { LoginFeature } from "@/components/login-prompt-modal";
 import { useUser } from "@/hooks/use-user";
+
+const UploadRecipeModal = dynamic(
+  () =>
+    import("@/components/upload-recipe-modal").then(
+      (m) => m.UploadRecipeModal
+    ),
+  { ssr: false }
+);
+
+const LoginPromptModal = dynamic(
+  () =>
+    import("@/components/login-prompt-modal").then(
+      (m) => m.LoginPromptModal
+    ),
+  { ssr: false }
+);
 import { createClient } from "@/lib/supabase/client";
 import Image from "next/image";
 import Link from "next/link";
