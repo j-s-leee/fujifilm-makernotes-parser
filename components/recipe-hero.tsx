@@ -56,7 +56,6 @@ interface RecipeHeroProps {
     bookmark_count: number;
     like_count: number;
   };
-  settingsRecipe: RecipeSettingsRecipe;
   sharer: {
     userId: string;
     displayName: string;
@@ -67,12 +66,13 @@ interface RecipeHeroProps {
 
 export function RecipeHero({
   recipe,
-  settingsRecipe,
   sharer,
 }: RecipeHeroProps) {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
+  const [settingsRecipe, setSettingsRecipe] = useState<RecipeSettingsRecipe | null>(null);
+  const [settingsLoading, setSettingsLoading] = useState(false);
   const { user } = useUser();
   const isOwner = user?.id === sharer?.userId;
   const {
@@ -115,6 +115,23 @@ export function RecipeHero({
       navigator.share({ title: recipe.simulation ?? "Recipe", url });
     } else {
       await navigator.clipboard.writeText(url);
+    }
+  };
+
+  const handleOpenSettings = async () => {
+    setSettingsOpen(true);
+    if (!settingsRecipe && !settingsLoading) {
+      setSettingsLoading(true);
+      try {
+        const res = await fetch(`/api/recipes/${recipe.id}/settings`);
+        if (res.ok) {
+          setSettingsRecipe(await res.json());
+        }
+      } catch {
+        // Settings will show as empty
+      } finally {
+        setSettingsLoading(false);
+      }
     }
   };
 
@@ -272,7 +289,7 @@ export function RecipeHero({
 
         {/* Row 3: View Recipe Settings button */}
         <button
-          onClick={() => setSettingsOpen(true)}
+          onClick={handleOpenSettings}
           className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
         >
           <NotebookText className="h-4 w-4" />
@@ -280,11 +297,13 @@ export function RecipeHero({
         </button>
       </div>
 
-      <RecipeSettingsModal
-        recipe={settingsRecipe}
-        open={settingsOpen}
-        onOpenChange={setSettingsOpen}
-      />
+      {settingsRecipe && (
+        <RecipeSettingsModal
+          recipe={settingsRecipe}
+          open={settingsOpen}
+          onOpenChange={setSettingsOpen}
+        />
+      )}
       <DeleteRecipeDialog
         recipeId={recipe.id}
         open={deleteOpen}
