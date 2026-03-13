@@ -7,7 +7,12 @@ import { Bookmark, FolderPlus, Heart } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useUserInteractions } from "@/contexts/user-interactions-context";
 import { getThumbnailUrl } from "@/lib/get-thumbnail-url";
-import { CollectionPopover } from "@/components/bookmark-popover";
+import dynamic from "next/dynamic";
+
+const CollectionPopover = dynamic(
+  () => import("@/components/bookmark-popover").then((m) => m.CollectionPopover),
+  { ssr: false }
+);
 
 const r2Base = process.env.NEXT_PUBLIC_R2_PUBLIC_URL ?? "";
 

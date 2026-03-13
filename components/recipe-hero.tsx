@@ -24,11 +24,25 @@ import { useUserInteractions } from "@/contexts/user-interactions-context";
 import { useUser } from "@/hooks/use-user";
 import { getThumbnailUrl } from "@/lib/get-thumbnail-url";
 import { toSlug } from "@/lib/slug";
-import { RecipeSettingsModal } from "@/components/recipe-settings-modal";
-import { DeleteRecipeDialog } from "@/components/delete-recipe-dialog";
-import { ReportRecipeDialog } from "@/components/report-recipe-dialog";
-import { CollectionPopover } from "@/components/bookmark-popover";
+import dynamic from "next/dynamic";
 import type { RecipeSettingsRecipe } from "@/components/recipe-settings";
+
+const CollectionPopover = dynamic(
+  () => import("@/components/bookmark-popover").then((m) => m.CollectionPopover),
+  { ssr: false }
+);
+const RecipeSettingsModal = dynamic(
+  () => import("@/components/recipe-settings-modal").then((m) => m.RecipeSettingsModal),
+  { ssr: false }
+);
+const DeleteRecipeDialog = dynamic(
+  () => import("@/components/delete-recipe-dialog").then((m) => m.DeleteRecipeDialog),
+  { ssr: false }
+);
+const ReportRecipeDialog = dynamic(
+  () => import("@/components/report-recipe-dialog").then((m) => m.ReportRecipeDialog),
+  { ssr: false }
+);
 
 interface RecipeHeroProps {
   recipe: {
