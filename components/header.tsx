@@ -95,13 +95,8 @@ export function Header() {
     }
   }, [user, loadProfile]);
 
-  const avatarUrl =
-    profile?.avatar_url ?? user?.user_metadata?.avatar_url ?? null;
-  const displayName =
-    profile?.display_name ??
-    user?.user_metadata?.full_name ??
-    user?.user_metadata?.name ??
-    null;
+  const avatarUrl = profile?.avatar_url ?? null;
+  const displayName = profile?.display_name ?? null;
   const initials = getInitials(displayName);
 
   const avatarElement = profileLoaded ? (

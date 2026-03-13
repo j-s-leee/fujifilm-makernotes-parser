@@ -9,6 +9,7 @@ import {
 import {
   Drawer,
   DrawerContent,
+  DrawerTitle,
 } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -124,7 +125,7 @@ export function CollectionCreateDialog({
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
       <DrawerContent>
-        <div className="px-6 pt-4 text-lg font-semibold">New Collection</div>
+        <DrawerTitle className="px-6 pt-4 text-lg font-semibold">New Collection</DrawerTitle>
         {content}
       </DrawerContent>
     </Drawer>

@@ -43,22 +43,29 @@ export async function POST(request: NextRequest) {
   const origWidth = metadata.width ?? 0;
   const baseName = key.replace(/\.[^.]+$/, "");
 
-  // Generate and upload 480w thumbnail (original serves larger sizes)
-  if (origWidth > 480) {
-    const resized = await sharp(buffer)
-      .resize(480, undefined, { withoutEnlargement: true })
-      .webp({ quality: 80 })
-      .toBuffer();
-    await r2.send(
-      new PutObjectCommand({
-        Bucket: R2_BUCKET,
-        Key: `${baseName}_w480.webp`,
-        Body: resized,
-        ContentType: "image/webp",
-        CacheControl: "public, max-age=31536000, immutable",
-      }),
-    );
-  }
+  // Generate and upload resized variants
+  const variants = [
+    { width: 64, minOrigWidth: 64 },
+    { width: 480, minOrigWidth: 480 },
+  ];
+  const variantUploads = variants
+    .filter((v) => origWidth > v.minOrigWidth)
+    .map(async (v) => {
+      const resized = await sharp(buffer)
+        .resize(v.width, undefined, { withoutEnlargement: true })
+        .webp({ quality: 80 })
+        .toBuffer();
+      await r2.send(
+        new PutObjectCommand({
+          Bucket: R2_BUCKET,
+          Key: `${baseName}_w${v.width}.webp`,
+          Body: resized,
+          ContentType: "image/webp",
+          CacheControl: "public, max-age=31536000, immutable",
+        }),
+      );
+    });
+  await Promise.all(variantUploads);
 
   const blurBuffer = await sharp(buffer)
     .resize(10, 10, { fit: "cover" })

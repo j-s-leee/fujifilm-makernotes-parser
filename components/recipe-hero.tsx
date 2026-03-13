@@ -30,20 +30,30 @@ import dynamic from "next/dynamic";
 import type { RecipeSettingsRecipe } from "@/components/recipe-settings";
 
 const CollectionPopover = dynamic(
-  () => import("@/components/bookmark-popover").then((m) => m.CollectionPopover),
-  { ssr: false }
+  () =>
+    import("@/components/bookmark-popover").then((m) => m.CollectionPopover),
+  { ssr: false },
 );
 const RecipeSettingsModal = dynamic(
-  () => import("@/components/recipe-settings-modal").then((m) => m.RecipeSettingsModal),
-  { ssr: false }
+  () =>
+    import("@/components/recipe-settings-modal").then(
+      (m) => m.RecipeSettingsModal,
+    ),
+  { ssr: false },
 );
 const DeleteRecipeDialog = dynamic(
-  () => import("@/components/delete-recipe-dialog").then((m) => m.DeleteRecipeDialog),
-  { ssr: false }
+  () =>
+    import("@/components/delete-recipe-dialog").then(
+      (m) => m.DeleteRecipeDialog,
+    ),
+  { ssr: false },
 );
 const ReportRecipeDialog = dynamic(
-  () => import("@/components/report-recipe-dialog").then((m) => m.ReportRecipeDialog),
-  { ssr: false }
+  () =>
+    import("@/components/report-recipe-dialog").then(
+      (m) => m.ReportRecipeDialog,
+    ),
+  { ssr: false },
 );
 
 interface RecipeHeroProps {
@@ -66,14 +76,12 @@ interface RecipeHeroProps {
   } | null;
 }
 
-export function RecipeHero({
-  recipe,
-  sharer,
-}: RecipeHeroProps) {
+export function RecipeHero({ recipe, sharer }: RecipeHeroProps) {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
-  const [settingsRecipe, setSettingsRecipe] = useState<RecipeSettingsRecipe | null>(null);
+  const [settingsRecipe, setSettingsRecipe] =
+    useState<RecipeSettingsRecipe | null>(null);
   const [settingsLoading, setSettingsLoading] = useState(false);
   const { user } = useUser();
   const isOwner = user?.id === sharer?.userId;
@@ -169,7 +177,7 @@ export function RecipeHero({
       {/* Metadata & Author card */}
       <div className="flex flex-col gap-3 rounded-xl border border-border bg-card p-4">
         {/* Row 1: Author + Actions */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between sm:flex-col md:flex-row">
           <div className="flex items-center gap-3">
             {sharer ? (
               <Link href={profileHref!} className="shrink-0">
@@ -235,7 +243,7 @@ export function RecipeHero({
                 <span className="text-xs">{bookmarkCount}</span>
               )}
             </button>
-            <CollectionPopover recipeId={recipe.id}>
+            <CollectionPopover recipeId={recipe.id} recipeThumbnailUrl={getThumbnailUrl(recipe.thumbnail_path, 64, !!recipe.thumbnail_width)}>
               <button className="flex items-center justify-center rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
                 <FolderPlus className="h-4 w-4" />
               </button>

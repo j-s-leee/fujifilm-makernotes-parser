@@ -159,7 +159,7 @@ export const GalleryCard = memo(function GalleryCard({
               }`}
             />
           </button>
-          <CollectionPopover recipeId={recipe.id}>
+          <CollectionPopover recipeId={recipe.id} recipeThumbnailUrl={getThumbnailUrl(recipe.thumbnail_path, 64, !!recipe.thumbnail_width)}>
             <button className="rounded-full bg-black/40 p-1.5 backdrop-blur-sm transition-colors hover:bg-black/60">
               <FolderPlus className="h-3.5 w-3.5 text-white" />
             </button>
@@ -194,7 +194,7 @@ export const GalleryCard = memo(function GalleryCard({
               }`}
             />
           </button>
-          <CollectionPopover recipeId={recipe.id}>
+          <CollectionPopover recipeId={recipe.id} recipeThumbnailUrl={getThumbnailUrl(recipe.thumbnail_path, 64, !!recipe.thumbnail_width)}>
             <button>
               <FolderPlus className="h-4 w-4 text-muted-foreground" />
             </button>

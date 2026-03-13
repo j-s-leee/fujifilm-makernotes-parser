@@ -1,14 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Lock, Plus } from "lucide-react";
+import { Lock, Minus, Plus } from "lucide-react";
 import Image from "next/image";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { useUser } from "@/hooks/use-user";
@@ -21,18 +20,20 @@ import { CollectionCreateDialog } from "@/components/collection-create-dialog";
 
 interface CollectionPopoverProps {
   recipeId: number;
+  recipeThumbnailUrl?: string | null;
   children: React.ReactNode;
 }
 
-export function CollectionPopover({ recipeId, children }: CollectionPopoverProps) {
+export function CollectionPopover({ recipeId, recipeThumbnailUrl, children }: CollectionPopoverProps) {
   const isDesktop = useMediaQuery("(min-width: 640px)");
   const { user } = useUser();
-  const { collections, isLoaded: collectionsLoaded } = useCollections();
+  const { collections, isLoaded: collectionsLoaded, refreshCollections } = useCollections();
   const [open, setOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
   const [checkedIds, setCheckedIds] = useState<Set<number>>(new Set());
   const [covers, setCovers] = useState<Map<number, string>>(new Map());
   const [loadingMembership, setLoadingMembership] = useState(false);
+  const [countAdj, setCountAdj] = useState<Map<number, number>>(new Map());
 
   // Fetch membership + cover thumbnails when popover opens
   const fetchMembership = useCallback(async () => {
@@ -71,7 +72,7 @@ export function CollectionPopover({ recipeId, children }: CollectionPopoverProps
       } | null;
       if (!recipe?.thumbnail_path) continue;
       const url = recipe.thumbnail_width
-        ? recipe.thumbnail_path
+        ? getThumbnailUrl(recipe.thumbnail_path, 64, true)
         : getThumbnailUrl(recipe.thumbnail_path);
       if (url) coverMap.set(item.collection_id, url);
     }
@@ -79,22 +80,40 @@ export function CollectionPopover({ recipeId, children }: CollectionPopoverProps
     setLoadingMembership(false);
   }, [user, open, recipeId, collections]);
 
+  // Only fetch when popover first opens, not when collections change mid-session
+  const prevOpenRef = useRef(false);
   useEffect(() => {
-    if (open) fetchMembership();
+    if (open && !prevOpenRef.current) {
+      fetchMembership();
+    }
+    prevOpenRef.current = open;
   }, [open, fetchMembership]);
 
   const handleToggleCollection = async (
     collectionId: number,
     checked: boolean,
+    name?: string,
   ) => {
-    const prev = new Set(checkedIds);
-    // Optimistic update
+    const prevChecked = new Set(checkedIds);
+    const prevCovers = new Map(covers);
+    const collectionName = name ?? collections.find((c) => c.id === collectionId)?.name;
+    const delta = checked ? 1 : -1;
+
+    // Optimistic update: checkedIds + item count + cover thumbnail
     setCheckedIds((s) => {
       const next = new Set(s);
       if (checked) next.add(collectionId);
       else next.delete(collectionId);
       return next;
     });
+    setCountAdj((m) => {
+      const next = new Map(m);
+      next.set(collectionId, (next.get(collectionId) ?? 0) + delta);
+      return next;
+    });
+    if (checked && recipeThumbnailUrl) {
+      setCovers((m) => new Map(m).set(collectionId, recipeThumbnailUrl));
+    }
 
     const supabase = createClient();
     try {
@@ -110,15 +129,27 @@ export function CollectionPopover({ recipeId, children }: CollectionPopoverProps
           .match({ collection_id: collectionId, recipe_id: recipeId });
         if (error) throw error;
       }
+      toast.success(
+        checked
+          ? `Added to ${collectionName}`
+          : `Removed from ${collectionName}`,
+      );
+      // Sync real counts from DB, then clear local adjustments
+      refreshCollections().then(() => setCountAdj(new Map()));
     } catch {
-      setCheckedIds(prev);
+      setCheckedIds(prevChecked);
+      setCovers(prevCovers);
+      setCountAdj((m) => {
+        const next = new Map(m);
+        next.set(collectionId, (next.get(collectionId) ?? 0) - delta);
+        return next;
+      });
       toast.error("Something went wrong. Please try again.");
     }
   };
 
-  const handleCreated = (collection: { id: number }) => {
-    // Auto-add recipe to the newly created collection
-    handleToggleCollection(collection.id, true);
+  const handleCreated = (collection: { id: number; name: string }) => {
+    handleToggleCollection(collection.id, true, collection.name);
   };
 
   const popoverContent = (
@@ -134,40 +165,43 @@ export function CollectionPopover({ recipeId, children }: CollectionPopoverProps
         ) : collections.length === 0 ? (
           <div className="px-3 py-2 text-xs text-muted-foreground">No collections yet</div>
         ) : (
-          collections.map((c) => (
-            <label
-              key={c.id}
-              className="flex cursor-pointer items-center gap-2.5 rounded-md px-3 py-2 text-sm transition-colors hover:bg-muted"
-            >
-              <div className="relative h-8 w-8 shrink-0 overflow-hidden rounded bg-muted">
-                {covers.get(c.id) ? (
-                  <Image
-                    src={covers.get(c.id)!}
-                    alt=""
-                    fill
-                    className="object-cover"
-                    sizes="32px"
-                  />
-                ) : (
-                  <div className="h-full w-full" />
-                )}
-              </div>
-              <div className="flex min-w-0 flex-1 flex-col">
-                <div className="flex items-center gap-1">
-                  <span className="truncate text-sm">{c.name}</span>
-                  {!c.is_public && <Lock className="h-3 w-3 shrink-0 text-muted-foreground" />}
+          collections.map((c) => {
+            const isAdded = checkedIds.has(c.id);
+            return (
+              <button
+                key={c.id}
+                onClick={() => handleToggleCollection(c.id, !isAdded)}
+                className="flex w-full cursor-pointer items-center gap-2.5 rounded-md px-3 py-2 text-left text-sm transition-colors hover:bg-muted"
+              >
+                <div className="relative h-8 w-8 shrink-0 overflow-hidden rounded bg-muted">
+                  {covers.get(c.id) ? (
+                    <Image
+                      src={covers.get(c.id)!}
+                      alt=""
+                      fill
+                      className="object-cover"
+                      sizes="32px"
+                      unoptimized
+                    />
+                  ) : (
+                    <div className="h-full w-full" />
+                  )}
                 </div>
-                <span className="text-xs text-muted-foreground">{c.item_count} recipes</span>
-              </div>
-              <Checkbox
-                checked={checkedIds.has(c.id)}
-                onCheckedChange={(checked) =>
-                  handleToggleCollection(c.id, !!checked)
-                }
-                className="shrink-0"
-              />
-            </label>
-          ))
+                <div className="flex min-w-0 flex-1 flex-col">
+                  <div className="flex items-center gap-1">
+                    <span className="truncate text-sm">{c.name}</span>
+                    {!c.is_public && <Lock className="h-3 w-3 shrink-0 text-muted-foreground" />}
+                  </div>
+                  <span className="text-xs text-muted-foreground">{c.item_count + (countAdj.get(c.id) ?? 0)} recipes</span>
+                </div>
+                {isAdded ? (
+                  <Minus className="h-4 w-4 shrink-0 text-muted-foreground" />
+                ) : (
+                  <Plus className="h-4 w-4 shrink-0 text-muted-foreground" />
+                )}
+              </button>
+            );
+          })
         )}
       </div>
 
