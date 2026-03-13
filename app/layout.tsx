@@ -31,9 +31,11 @@ export const metadata: Metadata = {
     siteName: "film-simulation.site",
     title: "film-simulation.site",
     description: "Discover and share Fujifilm film simulation recipes",
+    images: [{ url: "/logo/og.png" }],
   },
   twitter: {
     card: "summary_large_image",
+    images: ["/logo/og.png"],
   },
   icons: {
     icon: [
