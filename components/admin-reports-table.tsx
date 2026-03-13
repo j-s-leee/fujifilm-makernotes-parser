@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Loader2, Trash2, RotateCcw, Ban } from "lucide-react";
+import { Loader2, Trash2, RotateCcw, Ban, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -37,7 +37,13 @@ const REASON_LABELS: Record<string, string> = {
   other: "기타",
 };
 
-export function AdminReportsTable({ reports }: { reports: Report[] }) {
+interface AdminReportsTableProps {
+  reports: Report[];
+  page: number;
+  totalPages: number;
+}
+
+export function AdminReportsTable({ reports, page, totalPages }: AdminReportsTableProps) {
   const router = useRouter();
   const [loadingId, setLoadingId] = useState<string | null>(null);
 
@@ -86,6 +92,7 @@ export function AdminReportsTable({ reports }: { reports: Report[] }) {
   }
 
   return (
+    <div className="flex flex-col gap-4">
     <div className="overflow-x-auto rounded-lg border border-border">
       <table className="w-full text-sm">
         <thead className="border-b border-border bg-muted/50">
@@ -260,6 +267,50 @@ export function AdminReportsTable({ reports }: { reports: Report[] }) {
           ))}
         </tbody>
       </table>
+    </div>
+    {totalPages > 1 && (
+      <div className="flex items-center justify-center gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          disabled={page <= 1}
+          asChild={page > 1}
+        >
+          {page > 1 ? (
+            <Link href={`/admin/reports?page=${page - 1}`}>
+              <ChevronLeft className="mr-1 h-4 w-4" />
+              이전
+            </Link>
+          ) : (
+            <span>
+              <ChevronLeft className="mr-1 h-4 w-4" />
+              이전
+            </span>
+          )}
+        </Button>
+        <span className="text-sm text-muted-foreground">
+          {page} / {totalPages}
+        </span>
+        <Button
+          variant="outline"
+          size="sm"
+          disabled={page >= totalPages}
+          asChild={page < totalPages}
+        >
+          {page < totalPages ? (
+            <Link href={`/admin/reports?page=${page + 1}`}>
+              다음
+              <ChevronRight className="ml-1 h-4 w-4" />
+            </Link>
+          ) : (
+            <span>
+              다음
+              <ChevronRight className="ml-1 h-4 w-4" />
+            </span>
+          )}
+        </Button>
+      </div>
+    )}
     </div>
   );
 }

@@ -2,7 +2,15 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { AdminReportsTable } from "@/components/admin-reports-table";
 
-export default async function AdminReportsPage() {
+const PAGE_SIZE = 50;
+
+interface AdminReportsPageProps {
+  searchParams: Promise<{ page?: string }>;
+}
+
+export default async function AdminReportsPage({
+  searchParams,
+}: AdminReportsPageProps) {
   const supabase = await createClient();
   const {
     data: { user },
@@ -18,20 +26,28 @@ export default async function AdminReportsPage() {
 
   if (!profile?.is_admin) redirect("/");
 
-  // Fetch all reports
-  const { data: reports } = await supabase
+  const { page: pageParam } = await searchParams;
+  const page = Math.max(1, parseInt(pageParam ?? "1", 10) || 1);
+  const offset = (page - 1) * PAGE_SIZE;
+
+  // Fetch reports with count for pagination
+  const { data: reports, count: totalCount } = await supabase
     .from("reports")
-    .select("id, reason, detail, created_at, user_id, recipe_id")
-    .order("created_at", { ascending: false });
+    .select("id, reason, detail, created_at, user_id, recipe_id", {
+      count: "exact",
+    })
+    .order("created_at", { ascending: false })
+    .range(offset, offset + PAGE_SIZE - 1);
 
   const reportRows = reports ?? [];
+  const totalPages = Math.ceil((totalCount ?? 0) / PAGE_SIZE);
 
   // Collect unique user_ids and recipe_ids
   const userIds = [...new Set(reportRows.map((r) => r.user_id))];
   const recipeIds = [...new Set(reportRows.map((r) => r.recipe_id))];
 
-  // Fetch reporter profiles and recipe metadata in parallel
-  const [profilesRes, recipesRes] = await Promise.all([
+  // Fetch reporter profiles, recipe metadata, and report counts in parallel
+  const [profilesRes, recipesRes, reportCountsRes] = await Promise.all([
     userIds.length > 0
       ? supabase
           .from("profiles")
@@ -44,21 +60,32 @@ export default async function AdminReportsPage() {
           .select("id, deleted_at, simulation_id, simulations(slug)")
           .in("id", recipeIds)
       : Promise.resolve({ data: [] as { id: number; deleted_at: string | null; simulation_id: number | null; simulations: { slug: string } | null }[] }),
+    recipeIds.length > 0
+      ? supabase
+          .from("reports")
+          .select("recipe_id")
+          .in("recipe_id", recipeIds)
+      : Promise.resolve({ data: [] as { recipe_id: number }[] }),
   ]);
 
   const profileMap = new Map(
     (profilesRes.data ?? []).map((p) => [p.id, p]),
   );
 
+  // Count reports per recipe from DB results
+  const reportCountMap = new Map<number, number>();
+  for (const r of (reportCountsRes.data ?? []) as { recipe_id: number }[]) {
+    reportCountMap.set(r.recipe_id, (reportCountMap.get(r.recipe_id) ?? 0) + 1);
+  }
+
   const recipeMeta: Record<
     number,
     { deleted_at: string | null; report_count: number; simulation: string | null }
   > = {};
   for (const recipe of (recipesRes.data ?? []) as { id: number; deleted_at: string | null; simulations: { slug: string } | null }[]) {
-    const count = reportRows.filter((r) => r.recipe_id === recipe.id).length;
     recipeMeta[recipe.id] = {
       deleted_at: recipe.deleted_at,
-      report_count: count,
+      report_count: reportCountMap.get(recipe.id) ?? 0,
       simulation: recipe.simulations?.slug ?? null,
     };
   }
@@ -85,10 +112,14 @@ export default async function AdminReportsPage() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight">신고 관리</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            총 {formattedReports.length}건의 신고
+            총 {totalCount ?? 0}건의 신고
           </p>
         </div>
-        <AdminReportsTable reports={formattedReports} />
+        <AdminReportsTable
+          reports={formattedReports}
+          page={page}
+          totalPages={totalPages}
+        />
       </div>
     </div>
   );

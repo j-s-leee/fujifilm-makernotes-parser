@@ -1,4 +1,4 @@
-import { Suspense } from "react";
+import { cache, Suspense } from "react";
 import type { Metadata } from "next";
 import { createStaticClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
@@ -7,6 +7,16 @@ import { BackButton } from "@/components/back-button";
 import { SimilarRecipes } from "@/components/similar-recipes";
 import { SimilarRecipesSkeleton } from "@/components/skeletons";
 import { RECIPE_DETAIL_SELECT, GALLERY_SELECT } from "@/lib/queries";
+
+const getRecipe = cache(async (recipeId: number) => {
+  const supabase = createStaticClient();
+  const { data } = await supabase
+    .from("recipes_with_stats")
+    .select(RECIPE_DETAIL_SELECT)
+    .eq("id", recipeId)
+    .single();
+  return data;
+});
 
 export const revalidate = 60;
 
@@ -21,13 +31,7 @@ export async function generateMetadata({
   const recipeId = parseInt(id, 10);
   if (isNaN(recipeId)) return {};
 
-  const supabase = createStaticClient();
-  const { data: recipe } = await supabase
-    .from("recipes_with_stats")
-    .select("simulation, camera_model, thumbnail_path, user_display_name")
-    .eq("id", recipeId)
-    .single();
-
+  const recipe = await getRecipe(recipeId);
   if (!recipe) return {};
 
   const title = `${recipe.simulation} Recipe`;
@@ -96,17 +100,11 @@ export default async function RecipePage({ params }: RecipePageProps) {
   const recipeId = parseInt(id, 10);
   if (isNaN(recipeId)) notFound();
 
-  const supabase = createStaticClient();
-
-  // Fetch recipe with stats (view already JOINs profiles)
-  const { data: recipe } = await supabase
-    .from("recipes_with_stats")
-    .select(RECIPE_DETAIL_SELECT)
-    .eq("id", recipeId)
-    .single();
+  const recipe = await getRecipe(recipeId);
 
   if (!recipe) {
     // Check if recipe exists but is soft-deleted
+    const supabase = createStaticClient();
     const { data: deleted } = await supabase
       .from("recipes")
       .select("id")

@@ -1,3 +1,4 @@
+import { cache } from "react";
 import type { Metadata } from "next";
 import { createStaticClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
@@ -12,6 +13,30 @@ export const revalidate = 60;
 const UUID_REGEX =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
+const getProfile = cache(async (identifier: string) => {
+  const supabase = createStaticClient();
+  const isUuid = UUID_REGEX.test(identifier);
+  const { data } = await supabase
+    .from("profiles")
+    .select("id, display_name, username, avatar_path, created_at")
+    .eq(isUuid ? "id" : "username", identifier)
+    .single();
+  return data;
+});
+
+const getUserStats = cache(async (userId: string) => {
+  const supabase = createStaticClient();
+  const { data } = await supabase.rpc("get_user_stats", {
+    p_user_id: userId,
+  });
+  const row = data?.[0];
+  return {
+    recipeCount: Number(row?.recipe_count ?? 0),
+    totalLikes: Number(row?.total_likes ?? 0),
+    totalBookmarks: Number(row?.total_bookmarks ?? 0),
+  };
+});
+
 interface UserProfilePageProps {
   params: Promise<{ identifier: string }>;
 }
@@ -20,15 +45,7 @@ export async function generateMetadata({
   params,
 }: UserProfilePageProps): Promise<Metadata> {
   const { identifier } = await params;
-  const supabase = createStaticClient();
-  const isUuid = UUID_REGEX.test(identifier);
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("id, display_name, username, avatar_path")
-    .eq(isUuid ? "id" : "username", identifier)
-    .single();
-
+  const profile = await getProfile(identifier);
   if (!profile) return {};
 
   const displayName = profile.display_name ?? profile.username ?? "User";
@@ -41,13 +58,8 @@ export async function generateMetadata({
     ? `${r2PublicUrl}/${profile.avatar_path}`
     : undefined;
 
-  const { count } = await supabase
-    .from("recipes")
-    .select("id", { count: "exact", head: true })
-    .eq("user_id", profile.id)
-    .is("deleted_at", null);
-
-  const description = `${count ?? 0} recipes shared on film-simulation.site`;
+  const stats = await getUserStats(profile.id);
+  const description = `${stats.recipeCount} recipes shared on film-simulation.site`;
 
   return {
     title,
@@ -68,32 +80,15 @@ export async function generateMetadata({
 
 export default async function UserProfilePage({ params }: UserProfilePageProps) {
   const { identifier } = await params;
-  const supabase = createStaticClient();
-
-  // UUID → lookup by id, otherwise → lookup by username
-  const isUuid = UUID_REGEX.test(identifier);
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("id, display_name, username, avatar_path, created_at")
-    .eq(isUuid ? "id" : "username", identifier)
-    .single();
-
+  const profile = await getProfile(identifier);
   if (!profile) notFound();
 
+  const supabase = createStaticClient();
+
   // Fetch stats, recipes, and public collections in parallel
-  const [{ count: recipeCount }, { data: statsAgg }, { data: recipes }, { data: collections }] =
+  const [userStats, { data: recipes }, { data: collections }] =
     await Promise.all([
-      supabase
-        .from("recipes")
-        .select("id", { count: "exact", head: true })
-        .eq("user_id", profile.id)
-        .is("deleted_at", null),
-      supabase
-        .from("recipes")
-        .select("like_count, bookmark_count")
-        .eq("user_id", profile.id)
-        .is("deleted_at", null),
+      getUserStats(profile.id),
       supabase
         .from("recipes_with_stats")
         .select(GALLERY_SELECT)
@@ -109,15 +104,6 @@ export default async function UserProfilePage({ params }: UserProfilePageProps) 
         .order("updated_at", { ascending: false })
         .limit(12),
     ]);
-
-  const totalLikes = (statsAgg ?? []).reduce(
-    (sum, r) => sum + (r.like_count ?? 0),
-    0,
-  );
-  const totalBookmarks = (statsAgg ?? []).reduce(
-    (sum, r) => sum + (r.bookmark_count ?? 0),
-    0,
-  );
 
   // Resolve avatar URL
   const r2PublicUrl = process.env.NEXT_PUBLIC_R2_PUBLIC_URL ?? "";
@@ -185,9 +171,9 @@ export default async function UserProfilePage({ params }: UserProfilePageProps) 
             avatarUrl,
           }}
           stats={{
-            recipeCount: recipeCount ?? 0,
-            totalLikes,
-            totalBookmarks,
+            recipeCount: userStats.recipeCount,
+            totalLikes: userStats.totalLikes,
+            totalBookmarks: userStats.totalBookmarks,
             joinedAt: profile.created_at,
           }}
         />
