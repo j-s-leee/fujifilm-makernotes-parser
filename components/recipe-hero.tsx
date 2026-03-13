@@ -12,7 +12,9 @@ import {
   MoreHorizontal,
   Trash2,
   Flag,
+  Loader2,
 } from "lucide-react";
+import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -126,9 +128,13 @@ export function RecipeHero({
         const res = await fetch(`/api/recipes/${recipe.id}/settings`);
         if (res.ok) {
           setSettingsRecipe(await res.json());
+        } else {
+          toast.error("Failed to load recipe settings.");
+          setSettingsOpen(false);
         }
       } catch {
-        // Settings will show as empty
+        toast.error("Failed to load recipe settings.");
+        setSettingsOpen(false);
       } finally {
         setSettingsLoading(false);
       }
@@ -290,10 +296,15 @@ export function RecipeHero({
         {/* Row 3: View Recipe Settings button */}
         <button
           onClick={handleOpenSettings}
-          className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+          disabled={settingsLoading}
+          className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-70"
         >
-          <NotebookText className="h-4 w-4" />
-          View Recipe
+          {settingsLoading ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <NotebookText className="h-4 w-4" />
+          )}
+          {settingsLoading ? "Loading..." : "View Recipe"}
         </button>
       </div>
 
