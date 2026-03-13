@@ -177,8 +177,8 @@ export function RecipeHero({ recipe, sharer }: RecipeHeroProps) {
       {/* Metadata & Author card */}
       <div className="flex flex-col gap-3 rounded-xl border border-border bg-card p-4">
         {/* Row 1: Author + Actions */}
-        <div className="flex items-center justify-between sm:flex-col md:flex-row">
-          <div className="flex items-center gap-3">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex min-w-0 items-center gap-3">
             {sharer ? (
               <Link href={profileHref!} className="shrink-0">
                 <Avatar className="h-8 w-8">
@@ -201,7 +201,7 @@ export function RecipeHero({ recipe, sharer }: RecipeHeroProps) {
             {sharer ? (
               <Link
                 href={profileHref!}
-                className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+                className="truncate text-sm text-muted-foreground transition-colors hover:text-foreground"
               >
                 by{" "}
                 <span className="font-medium">
