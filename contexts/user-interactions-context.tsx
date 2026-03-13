@@ -61,6 +61,12 @@ export function UserInteractionsProvider({
   const [loginPromptFeature, setLoginPromptFeature] =
     useState<LoginFeature | null>(null);
   const inflightRef = useRef<Set<string>>(new Set());
+  const bookmarksRef = useRef(bookmarks);
+  bookmarksRef.current = bookmarks;
+  const likesRef = useRef(likes);
+  likesRef.current = likes;
+  const likeCountsRef = useRef(likeCounts);
+  likeCountsRef.current = likeCounts;
 
   const promptLogin = useCallback((feature: LoginFeature) => {
     setLoginPromptFeature(feature);
@@ -130,7 +136,7 @@ export function UserInteractionsProvider({
       inflightRef.current.add(key);
 
       const supabase = createClient();
-      const isBookmarked = bookmarks.has(recipeId);
+      const isBookmarked = bookmarksRef.current.has(recipeId);
 
       // optimistic update
       if (isBookmarked) {
@@ -170,7 +176,7 @@ export function UserInteractionsProvider({
         inflightRef.current.delete(key);
       }
     },
-    [user, bookmarks],
+    [user, promptLogin],
   );
 
   const toggleLike = useCallback(
@@ -188,8 +194,8 @@ export function UserInteractionsProvider({
       inflightRef.current.add(key);
 
       const supabase = createClient();
-      const isLiked = likes.has(recipeId);
-      const prevCount = likeCounts.get(recipeId) ?? 0;
+      const isLiked = likesRef.current.has(recipeId);
+      const prevCount = likeCountsRef.current.get(recipeId) ?? 0;
 
       // optimistic update
       if (isLiked) {
@@ -244,7 +250,7 @@ export function UserInteractionsProvider({
         inflightRef.current.delete(key);
       }
     },
-    [user, likes, likeCounts],
+    [user, promptLogin],
   );
 
   const mergeLikeCounts = useCallback(
