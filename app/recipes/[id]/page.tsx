@@ -35,7 +35,10 @@ export async function generateMetadata({
   if (!recipe) return {};
 
   const title = `${recipe.simulation} Recipe`;
-  const description = `${recipe.simulation} recipe shot on ${recipe.camera_model ?? "Fujifilm"}${recipe.user_display_name ? ` by ${recipe.user_display_name}` : ""}`;
+  const byName = recipe.user_username
+    ? `@${recipe.user_username}`
+    : recipe.user_display_name;
+  const description = `${recipe.simulation} recipe shot on ${recipe.camera_model ?? "Fujifilm"}${byName ? ` by ${byName}` : ""}`;
   const r2PublicUrl = process.env.NEXT_PUBLIC_R2_PUBLIC_URL ?? "";
   const image = recipe.thumbnail_path
     ? `${r2PublicUrl}/${recipe.thumbnail_path}`

@@ -52,7 +52,9 @@ export const GalleryCard = memo(function GalleryCard({
     : null;
 
   const profileHref = `/u/${recipe.user_username ?? recipe.user_id}`;
-  const displayName = recipe.user_display_name ?? recipe.user_username;
+  const displayName = recipe.user_username
+    ? `@${recipe.user_username}`
+    : recipe.user_display_name;
   const initials = displayName
     ? displayName
         .split(" ")
