@@ -26,7 +26,9 @@ import { useUser } from "@/hooks/use-user";
 import { isRafFile, extractJpegFromRaf } from "@/lib/raf-parser";
 import { shareRecipe } from "@/lib/share-recipe";
 import { compressImageToThumbnail } from "@/lib/compress-image";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Upload } from "lucide-react";
+import Link from "next/link";
 import type { FujifilmRecipe } from "@/fujifilm/recipe";
 import type { FujifilmSimulation } from "@/fujifilm/simulation";
 import type { RecipeSettingsRecipe } from "@/components/recipe-settings";
@@ -53,6 +55,9 @@ export function UploadRecipeModal({
   const [imageSource, setImageSource] = useState<File | Blob | null>(null);
   const [cameraModel, setCameraModel] = useState<string | null>(null);
   const [lensModel, setLensModel] = useState<string | null>(null);
+  const [agreedToTerms, setAgreedToTerms] = useState<boolean | null>(null);
+  const [termsChecked, setTermsChecked] = useState(false);
+  const [agreeingToTerms, setAgreeingToTerms] = useState(false);
 
   const resetState = useCallback(() => {
     setImage(null);
@@ -73,8 +78,45 @@ export function UploadRecipeModal({
     [onOpenChange, resetState],
   );
 
+  const checkTermsAgreement = useCallback(async () => {
+    if (agreedToTerms !== null) return agreedToTerms;
+    try {
+      const res = await fetch("/api/profile");
+      if (!res.ok) return false;
+      const data = await res.json();
+      const agreed = !!data.agreed_to_terms_at;
+      setAgreedToTerms(agreed);
+      return agreed;
+    } catch {
+      return false;
+    }
+  }, [agreedToTerms]);
+
+  const handleAgreeToTerms = useCallback(async () => {
+    setAgreeingToTerms(true);
+    try {
+      const formData = new FormData();
+      formData.set("agreed_to_terms", "true");
+      const res = await fetch("/api/profile", { method: "PUT", body: formData });
+      if (res.ok) {
+        setAgreedToTerms(true);
+        setTermsChecked(false);
+      } else {
+        toast.error("Failed to save agreement");
+      }
+    } catch {
+      toast.error("Failed to save agreement");
+    } finally {
+      setAgreeingToTerms(false);
+    }
+  }, []);
+
   const handleUpload = useCallback(async () => {
     if (!recipe || !imageSource || !user) return;
+
+    const agreed = await checkTermsAgreement();
+    if (!agreed) return;
+
     setUploading(true);
     try {
       const thumbnail = await compressImageToThumbnail(imageSource);
@@ -92,7 +134,7 @@ export function UploadRecipeModal({
     } finally {
       setUploading(false);
     }
-  }, [recipe, simulation, imageSource, cameraModel, lensModel, user, handleOpenChange, router]);
+  }, [recipe, simulation, imageSource, cameraModel, lensModel, user, handleOpenChange, router, checkTermsAgreement]);
 
   const onDrop = useCallback(
     async (acceptedFiles: File[]) => {
@@ -210,15 +252,44 @@ export function UploadRecipeModal({
           {settingsRecipe && (
             <div className="w-full rounded-lg border border-border">
               <RecipeSettings recipe={settingsRecipe} />
-              <div className="px-6 pb-6">
-                <Button
-                  className="w-full"
-                  onClick={() => user ? handleUpload() : setLoginPromptOpen(true)}
-                  disabled={uploading}
-                >
-                  <Upload className="mr-2 h-4 w-4" />
-                  {uploading ? "Uploading..." : "Upload"}
-                </Button>
+              <div className="px-6 pb-6 flex flex-col gap-3">
+                {user && agreedToTerms === false && (
+                  <div className="rounded-md border border-border bg-muted/50 p-3 flex flex-col gap-2">
+                    <p className="text-sm text-muted-foreground">
+                      By uploading, you agree to our{" "}
+                      <Link href="/terms" target="_blank" className="underline text-foreground hover:text-foreground/80">
+                        Terms of Service
+                      </Link>
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        id="terms-agreement"
+                        checked={termsChecked}
+                        onCheckedChange={(checked) => setTermsChecked(checked === true)}
+                      />
+                      <label htmlFor="terms-agreement" className="text-sm cursor-pointer select-none">
+                        I agree to the Terms of Service
+                      </label>
+                    </div>
+                    <Button
+                      className="w-full"
+                      onClick={handleAgreeToTerms}
+                      disabled={!termsChecked || agreeingToTerms}
+                    >
+                      {agreeingToTerms ? "Saving..." : "Agree & Continue"}
+                    </Button>
+                  </div>
+                )}
+                {(!user || agreedToTerms !== false) && (
+                  <Button
+                    className="w-full"
+                    onClick={() => user ? handleUpload() : setLoginPromptOpen(true)}
+                    disabled={uploading}
+                  >
+                    <Upload className="mr-2 h-4 w-4" />
+                    {uploading ? "Uploading..." : "Upload"}
+                  </Button>
+                )}
               </div>
             </div>
           )}

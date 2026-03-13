@@ -25,7 +25,7 @@ export async function GET() {
 
   let { data: profile } = await supabase
     .from("profiles")
-    .select("display_name, username, avatar_path")
+    .select("display_name, username, avatar_path, agreed_to_terms_at")
     .eq("id", user.id)
     .single();
 
@@ -40,7 +40,7 @@ export async function GET() {
         display_name: defaultName,
         avatar_path: user.user_metadata?.avatar_url ?? null,
       })
-      .select("display_name, username, avatar_path")
+      .select("display_name, username, avatar_path, agreed_to_terms_at")
       .single();
 
     profile = inserted;
@@ -53,6 +53,7 @@ export async function GET() {
     display_name: profile?.display_name ?? null,
     username: profile?.username ?? null,
     avatar_url: avatarUrl,
+    agreed_to_terms_at: profile?.agreed_to_terms_at ?? null,
   });
 }
 
@@ -70,6 +71,7 @@ export async function PUT(request: NextRequest) {
   const displayName = formData.get("display_name") as string | null;
   const username = formData.get("username") as string | null;
   const avatarFile = formData.get("avatar") as File | null;
+  const agreedToTerms = formData.get("agreed_to_terms") as string | null;
 
   let avatarPath: string | undefined;
 
@@ -132,11 +134,15 @@ export async function PUT(request: NextRequest) {
     updateData.avatar_path = avatarPath;
   }
 
+  if (agreedToTerms === "true") {
+    updateData.agreed_to_terms_at = new Date().toISOString();
+  }
+
   const { data: profile, error } = await supabase
     .from("profiles")
     .update(updateData)
     .eq("id", user.id)
-    .select("display_name, username, avatar_path")
+    .select("display_name, username, avatar_path, agreed_to_terms_at")
     .single();
 
   if (error) {
@@ -159,5 +165,6 @@ export async function PUT(request: NextRequest) {
     display_name: profile?.display_name ?? null,
     username: profile?.username ?? null,
     avatar_url: avatarUrl,
+    agreed_to_terms_at: profile?.agreed_to_terms_at ?? null,
   });
 }
