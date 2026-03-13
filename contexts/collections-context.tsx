@@ -78,7 +78,26 @@ export function CollectionsProvider({
       setIsLoaded(false);
       return;
     }
-    fetchCollections();
+
+    let cancelled = false;
+
+    if (typeof window !== "undefined" && "requestIdleCallback" in window) {
+      const id = requestIdleCallback(() => {
+        if (!cancelled) fetchCollections();
+      });
+      return () => {
+        cancelled = true;
+        cancelIdleCallback(id);
+      };
+    } else {
+      const id = setTimeout(() => {
+        if (!cancelled) fetchCollections();
+      }, 0);
+      return () => {
+        cancelled = true;
+        clearTimeout(id);
+      };
+    }
   }, [user, fetchCollections]);
 
   const refreshCollections = useCallback(async () => {

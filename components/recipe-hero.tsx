@@ -12,7 +12,9 @@ import {
   MoreHorizontal,
   Trash2,
   Flag,
+  Loader2,
 } from "lucide-react";
+import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -24,11 +26,35 @@ import { useUserInteractions } from "@/contexts/user-interactions-context";
 import { useUser } from "@/hooks/use-user";
 import { getThumbnailUrl } from "@/lib/get-thumbnail-url";
 import { toSlug } from "@/lib/slug";
-import { RecipeSettingsModal } from "@/components/recipe-settings-modal";
-import { DeleteRecipeDialog } from "@/components/delete-recipe-dialog";
-import { ReportRecipeDialog } from "@/components/report-recipe-dialog";
-import { CollectionPopover } from "@/components/bookmark-popover";
+import dynamic from "next/dynamic";
 import type { RecipeSettingsRecipe } from "@/components/recipe-settings";
+
+const CollectionPopover = dynamic(
+  () =>
+    import("@/components/bookmark-popover").then((m) => m.CollectionPopover),
+  { ssr: false },
+);
+const RecipeSettingsModal = dynamic(
+  () =>
+    import("@/components/recipe-settings-modal").then(
+      (m) => m.RecipeSettingsModal,
+    ),
+  { ssr: false },
+);
+const DeleteRecipeDialog = dynamic(
+  () =>
+    import("@/components/delete-recipe-dialog").then(
+      (m) => m.DeleteRecipeDialog,
+    ),
+  { ssr: false },
+);
+const ReportRecipeDialog = dynamic(
+  () =>
+    import("@/components/report-recipe-dialog").then(
+      (m) => m.ReportRecipeDialog,
+    ),
+  { ssr: false },
+);
 
 interface RecipeHeroProps {
   recipe: {
@@ -42,7 +68,6 @@ interface RecipeHeroProps {
     bookmark_count: number;
     like_count: number;
   };
-  settingsRecipe: RecipeSettingsRecipe;
   sharer: {
     userId: string;
     displayName: string;
@@ -51,14 +76,13 @@ interface RecipeHeroProps {
   } | null;
 }
 
-export function RecipeHero({
-  recipe,
-  settingsRecipe,
-  sharer,
-}: RecipeHeroProps) {
+export function RecipeHero({ recipe, sharer }: RecipeHeroProps) {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
+  const [settingsRecipe, setSettingsRecipe] =
+    useState<RecipeSettingsRecipe | null>(null);
+  const [settingsLoading, setSettingsLoading] = useState(false);
   const { user } = useUser();
   const isOwner = user?.id === sharer?.userId;
   const {
@@ -104,6 +128,27 @@ export function RecipeHero({
     }
   };
 
+  const handleOpenSettings = async () => {
+    setSettingsOpen(true);
+    if (!settingsRecipe && !settingsLoading) {
+      setSettingsLoading(true);
+      try {
+        const res = await fetch(`/api/recipes/${recipe.id}/settings`);
+        if (res.ok) {
+          setSettingsRecipe(await res.json());
+        } else {
+          toast.error("Failed to load recipe settings.");
+          setSettingsOpen(false);
+        }
+      } catch {
+        toast.error("Failed to load recipe settings.");
+        setSettingsOpen(false);
+      } finally {
+        setSettingsLoading(false);
+      }
+    }
+  };
+
   const bookmarkCount = recipe.bookmark_count;
 
   return (
@@ -132,8 +177,8 @@ export function RecipeHero({
       {/* Metadata & Author card */}
       <div className="flex flex-col gap-3 rounded-xl border border-border bg-card p-4">
         {/* Row 1: Author + Actions */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex min-w-0 items-center gap-3">
             {sharer ? (
               <Link href={profileHref!} className="shrink-0">
                 <Avatar className="h-8 w-8">
@@ -156,7 +201,7 @@ export function RecipeHero({
             {sharer ? (
               <Link
                 href={profileHref!}
-                className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+                className="truncate text-sm text-muted-foreground transition-colors hover:text-foreground"
               >
                 by{" "}
                 <span className="font-medium">
@@ -198,7 +243,7 @@ export function RecipeHero({
                 <span className="text-xs">{bookmarkCount}</span>
               )}
             </button>
-            <CollectionPopover recipeId={recipe.id}>
+            <CollectionPopover recipeId={recipe.id} recipeThumbnailUrl={getThumbnailUrl(recipe.thumbnail_path, 64, !!recipe.thumbnail_width)}>
               <button className="flex items-center justify-center rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
                 <FolderPlus className="h-4 w-4" />
               </button>
@@ -258,19 +303,26 @@ export function RecipeHero({
 
         {/* Row 3: View Recipe Settings button */}
         <button
-          onClick={() => setSettingsOpen(true)}
-          className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+          onClick={handleOpenSettings}
+          disabled={settingsLoading}
+          className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-70"
         >
-          <NotebookText className="h-4 w-4" />
-          View Recipe
+          {settingsLoading ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <NotebookText className="h-4 w-4" />
+          )}
+          {settingsLoading ? "Loading..." : "View Recipe"}
         </button>
       </div>
 
-      <RecipeSettingsModal
-        recipe={settingsRecipe}
-        open={settingsOpen}
-        onOpenChange={setSettingsOpen}
-      />
+      {settingsRecipe && (
+        <RecipeSettingsModal
+          recipe={settingsRecipe}
+          open={settingsOpen}
+          onOpenChange={setSettingsOpen}
+        />
+      )}
       <DeleteRecipeDialog
         recipeId={recipe.id}
         open={deleteOpen}

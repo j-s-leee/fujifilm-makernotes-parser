@@ -6,19 +6,19 @@ import { RecipeHero } from "@/components/recipe-hero";
 import { BackButton } from "@/components/back-button";
 import { SimilarRecipes } from "@/components/similar-recipes";
 import { SimilarRecipesSkeleton } from "@/components/skeletons";
-import { RECIPE_DETAIL_SELECT, GALLERY_SELECT } from "@/lib/queries";
+import { RECIPE_HERO_SELECT, GALLERY_SELECT } from "@/lib/queries";
 
 const getRecipe = cache(async (recipeId: number) => {
   const supabase = createStaticClient();
   const { data } = await supabase
     .from("recipes_with_stats")
-    .select(RECIPE_DETAIL_SELECT)
+    .select(RECIPE_HERO_SELECT)
     .eq("id", recipeId)
     .single();
   return data;
 });
 
-export const revalidate = 60;
+export const revalidate = 300;
 
 interface RecipePageProps {
   params: Promise<{ id: string }>;
@@ -35,7 +35,10 @@ export async function generateMetadata({
   if (!recipe) return {};
 
   const title = `${recipe.simulation} Recipe`;
-  const description = `${recipe.simulation} recipe shot on ${recipe.camera_model ?? "Fujifilm"}${recipe.user_display_name ? ` by ${recipe.user_display_name}` : ""}`;
+  const byName = recipe.user_username
+    ? `@${recipe.user_username}`
+    : recipe.user_display_name;
+  const description = `${recipe.simulation} recipe shot on ${recipe.camera_model ?? "Fujifilm"}${byName ? ` by ${byName}` : ""}`;
   const r2PublicUrl = process.env.NEXT_PUBLIC_R2_PUBLIC_URL ?? "";
   const image = recipe.thumbnail_path
     ? `${r2PublicUrl}/${recipe.thumbnail_path}`
@@ -150,7 +153,7 @@ export default async function RecipePage({ params }: RecipePageProps) {
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
           {/* Left column: Hero (sticky on desktop) */}
           <div className="md:sticky md:top-24 md:self-start">
-            <RecipeHero recipe={recipe} settingsRecipe={recipe} sharer={sharer} />
+            <RecipeHero recipe={recipe} sharer={sharer} />
           </div>
 
           {/* Right column: Similar Recipes */}

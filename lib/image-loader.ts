@@ -15,10 +15,9 @@ export default function r2Loader({
   // If src already contains a variant marker — serve directly
   if (/_w\d+\.webp$/.test(src)) return `${r2Base}/${src}`;
 
-  // ≤480 → use _w480 thumbnail, >480 → use original
-  if (width <= 480) {
-    const baseName = src.replace(/\.[^.]+$/, "");
-    return `${r2Base}/${baseName}_w480.webp`;
-  }
+  // Pick the smallest variant that covers the requested width
+  const baseName = src.replace(/\.[^.]+$/, "");
+  if (width <= 64) return `${r2Base}/${baseName}_w64.webp`;
+  if (width <= 480) return `${r2Base}/${baseName}_w480.webp`;
   return `${r2Base}/${src}`;
 }

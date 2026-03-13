@@ -15,7 +15,10 @@ interface CollectionCardProps {
   coverImages: string[];
 }
 
-export function CollectionCard({ collection, coverImages }: CollectionCardProps) {
+export function CollectionCard({
+  collection,
+  coverImages,
+}: CollectionCardProps) {
   return (
     <Link
       href={`/collections/${collection.id}`}
@@ -38,19 +41,31 @@ export function CollectionCard({ collection, coverImages }: CollectionCardProps)
           />
         )}
         {coverImages.length === 2 && (
-          <div className="grid h-full grid-cols-2">
+          <div className="grid h-full grid-cols-2 gap-1">
             {coverImages.map((src, i) => (
               <div key={i} className="relative">
-                <Image src={src} alt="" fill className="object-cover" sizes="25vw" />
+                <Image
+                  src={src}
+                  alt=""
+                  fill
+                  className="object-cover"
+                  sizes="25vw"
+                />
               </div>
             ))}
           </div>
         )}
         {coverImages.length >= 3 && (
-          <div className="grid h-full grid-cols-2 grid-rows-2">
+          <div className="grid h-full grid-cols-2 grid-rows-2 gap-0.5">
             {coverImages.slice(0, 4).map((src, i) => (
               <div key={i} className="relative">
-                <Image src={src} alt="" fill className="object-cover" sizes="20vw" />
+                <Image
+                  src={src}
+                  alt=""
+                  fill
+                  className="object-cover"
+                  sizes="20vw"
+                />
               </div>
             ))}
           </div>
@@ -60,17 +75,19 @@ export function CollectionCard({ collection, coverImages }: CollectionCardProps)
       {/* Info */}
       <div className="flex flex-col gap-1 p-3">
         <div className="flex items-center gap-1.5">
-          <span className="truncate text-sm font-semibold">{collection.name}</span>
+          <span className="truncate text-sm font-semibold">
+            {collection.name}
+          </span>
           {!collection.is_public && (
             <Lock className="h-3 w-3 shrink-0 text-muted-foreground" />
           )}
         </div>
         <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
           <span>{collection.item_count} recipes</span>
-          {collection.user_display_name && (
+          {(collection.user_username || collection.user_display_name) && (
             <>
               <span>·</span>
-              <span>{collection.user_display_name}</span>
+              <span>{collection.user_username ? `@${collection.user_username}` : collection.user_display_name}</span>
             </>
           )}
         </div>

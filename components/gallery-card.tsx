@@ -7,7 +7,12 @@ import { Bookmark, FolderPlus, Heart } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useUserInteractions } from "@/contexts/user-interactions-context";
 import { getThumbnailUrl } from "@/lib/get-thumbnail-url";
-import { CollectionPopover } from "@/components/bookmark-popover";
+import dynamic from "next/dynamic";
+
+const CollectionPopover = dynamic(
+  () => import("@/components/bookmark-popover").then((m) => m.CollectionPopover),
+  { ssr: false }
+);
 
 const r2Base = process.env.NEXT_PUBLIC_R2_PUBLIC_URL ?? "";
 
@@ -47,7 +52,9 @@ export const GalleryCard = memo(function GalleryCard({
     : null;
 
   const profileHref = `/u/${recipe.user_username ?? recipe.user_id}`;
-  const displayName = recipe.user_display_name ?? recipe.user_username;
+  const displayName = recipe.user_username
+    ? `@${recipe.user_username}`
+    : recipe.user_display_name;
   const initials = displayName
     ? displayName
         .split(" ")
@@ -154,7 +161,7 @@ export const GalleryCard = memo(function GalleryCard({
               }`}
             />
           </button>
-          <CollectionPopover recipeId={recipe.id}>
+          <CollectionPopover recipeId={recipe.id} recipeThumbnailUrl={getThumbnailUrl(recipe.thumbnail_path, 64, !!recipe.thumbnail_width)}>
             <button className="rounded-full bg-black/40 p-1.5 backdrop-blur-sm transition-colors hover:bg-black/60">
               <FolderPlus className="h-3.5 w-3.5 text-white" />
             </button>
@@ -189,7 +196,7 @@ export const GalleryCard = memo(function GalleryCard({
               }`}
             />
           </button>
-          <CollectionPopover recipeId={recipe.id}>
+          <CollectionPopover recipeId={recipe.id} recipeThumbnailUrl={getThumbnailUrl(recipe.thumbnail_path, 64, !!recipe.thumbnail_width)}>
             <button>
               <FolderPlus className="h-4 w-4 text-muted-foreground" />
             </button>

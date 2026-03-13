@@ -133,10 +133,10 @@ export function CollectionHeader({ collection }: CollectionHeaderProps) {
           )}
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <span>{collection.item_count} recipes</span>
-            {collection.user_display_name && (
+            {(collection.user_username || collection.user_display_name) && (
               <>
                 <span>·</span>
-                <span>by {collection.user_display_name}</span>
+                <span>by {collection.user_username ? `@${collection.user_username}` : collection.user_display_name}</span>
               </>
             )}
           </div>

@@ -1,8 +1,10 @@
 /**
  * Returns the thumbnail URL for a recipe image.
  *
- * - `hasVariants` true + `width` ≤ 480 → returns _w480 variant URL
- * - Otherwise → returns the original R2 URL
+ * Variant selection (when hasVariants is true):
+ * - width ≤ 64  → _w64.webp
+ * - width ≤ 480 → _w480.webp
+ * - Otherwise   → original
  */
 export function getThumbnailUrl(
   path: string | null,
@@ -14,9 +16,10 @@ export function getThumbnailUrl(
 
   const r2Url = process.env.NEXT_PUBLIC_R2_PUBLIC_URL;
   if (r2Url) {
-    if (hasVariants && width && width <= 480) {
+    if (hasVariants && width) {
       const baseName = path.replace(/\.[^.]+$/, "");
-      return `${r2Url}/${baseName}_w480.webp`;
+      if (width <= 64) return `${r2Url}/${baseName}_w64.webp`;
+      if (width <= 480) return `${r2Url}/${baseName}_w480.webp`;
     }
     return `${r2Url}/${path}`;
   }

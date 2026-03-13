@@ -12,10 +12,13 @@ import {
 import { useUser } from "@/hooks/use-user";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
-import {
-  LoginPromptModal,
-  type LoginFeature,
-} from "@/components/login-prompt-modal";
+import dynamic from "next/dynamic";
+import type { LoginFeature } from "@/components/login-prompt-modal";
+
+const LoginPromptModal = dynamic(
+  () => import("@/components/login-prompt-modal").then((m) => m.LoginPromptModal),
+  { ssr: false }
+);
 
 interface UserInteractionsContextValue {
   bookmarks: Set<number>;
@@ -58,6 +61,12 @@ export function UserInteractionsProvider({
   const [loginPromptFeature, setLoginPromptFeature] =
     useState<LoginFeature | null>(null);
   const inflightRef = useRef<Set<string>>(new Set());
+  const bookmarksRef = useRef(bookmarks);
+  bookmarksRef.current = bookmarks;
+  const likesRef = useRef(likes);
+  likesRef.current = likes;
+  const likeCountsRef = useRef(likeCounts);
+  likeCountsRef.current = likeCounts;
 
   const promptLogin = useCallback((feature: LoginFeature) => {
     setLoginPromptFeature(feature);
@@ -92,10 +101,24 @@ export function UserInteractionsProvider({
       setIsLoaded(true);
     }
 
-    fetchInteractions();
-    return () => {
-      cancelled = true;
-    };
+    // Defer fetch until after first paint to avoid blocking FCP
+    if (typeof window !== "undefined" && "requestIdleCallback" in window) {
+      const id = requestIdleCallback(() => {
+        if (!cancelled) fetchInteractions();
+      });
+      return () => {
+        cancelled = true;
+        cancelIdleCallback(id);
+      };
+    } else {
+      const id = setTimeout(() => {
+        if (!cancelled) fetchInteractions();
+      }, 0);
+      return () => {
+        cancelled = true;
+        clearTimeout(id);
+      };
+    }
   }, [user]);
 
   const toggleBookmark = useCallback(
@@ -113,7 +136,7 @@ export function UserInteractionsProvider({
       inflightRef.current.add(key);
 
       const supabase = createClient();
-      const isBookmarked = bookmarks.has(recipeId);
+      const isBookmarked = bookmarksRef.current.has(recipeId);
 
       // optimistic update
       if (isBookmarked) {
@@ -153,7 +176,7 @@ export function UserInteractionsProvider({
         inflightRef.current.delete(key);
       }
     },
-    [user, bookmarks],
+    [user, promptLogin],
   );
 
   const toggleLike = useCallback(
@@ -171,8 +194,8 @@ export function UserInteractionsProvider({
       inflightRef.current.add(key);
 
       const supabase = createClient();
-      const isLiked = likes.has(recipeId);
-      const prevCount = likeCounts.get(recipeId) ?? 0;
+      const isLiked = likesRef.current.has(recipeId);
+      const prevCount = likeCountsRef.current.get(recipeId) ?? 0;
 
       // optimistic update
       if (isLiked) {
@@ -227,7 +250,7 @@ export function UserInteractionsProvider({
         inflightRef.current.delete(key);
       }
     },
-    [user, likes, likeCounts],
+    [user, promptLogin],
   );
 
   const mergeLikeCounts = useCallback(
