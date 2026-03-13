@@ -8,6 +8,7 @@ import { Footer } from "@/components/footer";
 import { UserInteractionsProvider } from "@/contexts/user-interactions-context";
 import { CollectionsProvider } from "@/contexts/collections-context";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { GoogleAnalytics } from "@/components/google-analytics";
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
@@ -31,9 +32,11 @@ export const metadata: Metadata = {
     siteName: "film-simulation.site",
     title: "film-simulation.site",
     description: "Discover and share Fujifilm film simulation recipes",
+    images: [{ url: "/logo/og.png" }],
   },
   twitter: {
     card: "summary_large_image",
+    images: ["/logo/og.png"],
   },
   icons: {
     icon: [
@@ -54,6 +57,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        <GoogleAnalytics />
         <link
           rel="preconnect"
           href={process.env.NEXT_PUBLIC_R2_PUBLIC_URL}
