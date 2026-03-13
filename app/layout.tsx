@@ -54,6 +54,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <link
+          rel="preconnect"
+          href={process.env.NEXT_PUBLIC_R2_PUBLIC_URL}
+          crossOrigin="anonymous"
+        />
+      </head>
       <body
         className={`${spaceGrotesk.variable} bg-background font-sans antialiased`}
       >

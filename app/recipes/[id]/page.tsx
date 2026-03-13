@@ -18,7 +18,7 @@ const getRecipe = cache(async (recipeId: number) => {
   return data;
 });
 
-export const revalidate = 60;
+export const revalidate = 300;
 
 interface RecipePageProps {
   params: Promise<{ id: string }>;
