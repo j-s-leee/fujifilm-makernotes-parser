@@ -37,11 +37,11 @@ The Company may utilize information collected to prevent harm that may result fr
 
 The Company entrusts the processing of personal information as follows for smooth service provision and effective business processing. The Company continuously supervises whether the entrusted parties safely process entrusted personal information, and ensures that personal information held by entrusted parties is immediately destroyed when the entrusted work is completed.
 
-| Category | Entrusted Party | Entrusted Work |
-| --- | --- | --- |
-| Service operation and management | Supabase | Utilized for service operation and management |
-| Content delivery | Cloudflare | Infrastructure for content delivery |
-| Server provision | Supabase (Amazon Web Services), Vercel | Infrastructure for service operation |
+| Category                         | Entrusted Party                        | Entrusted Work                                |
+| -------------------------------- | -------------------------------------- | --------------------------------------------- |
+| Service operation and management | Supabase                               | Utilized for service operation and management |
+| Content delivery                 | Cloudflare                             | Infrastructure for content delivery           |
+| Server provision                 | Supabase (Amazon Web Services), Vercel | Infrastructure for service operation          |
 
 ## 4. Retention and Destruction of Personal Information
 
@@ -77,7 +77,7 @@ All matters regarding personal information protection-related complaints and gri
 **Personal Information Protection Officer**
 
 - Name: Jaeseok Lee
-- Contact: q216044@gmail.com
+- Contact: support@film-simulation.site
 - Affiliation: film-simulation.site
 
 If you need to report or consult regarding personal information infringement, please contact the following organizations:
@@ -124,7 +124,7 @@ If you are located in the European Economic Area (EEA), you have the following r
 
 **Advertising consent**: For users in the EEA, personalized advertising cookies will only be placed after you provide explicit consent through our Consent Management Platform (CMP). If you do not consent, only non-personalized ads will be served.
 
-To exercise any of these rights, please contact us at q216044@gmail.com.
+To exercise any of these rights, please contact us at support@film-simulation.site.
 
 ## 9. Rights of California Residents (CCPA)
 
@@ -135,7 +135,7 @@ If you are a California resident, you have the following rights under the Califo
 - **Right to opt-out of sale**: You may direct us not to sell your personal information. The Company does not sell personal information in the traditional sense. However, certain sharing of data with advertising partners (such as through advertising cookies) may constitute a "sale" under the CCPA. You may opt out of this sharing through the cookie consent banner.
 - **Right to non-discrimination**: The Company will not discriminate against you for exercising your CCPA rights.
 
-To exercise any of these rights, please contact us at q216044@gmail.com.
+To exercise any of these rights, please contact us at support@film-simulation.site.
 
 ## 10. Obligation of Notification
 
