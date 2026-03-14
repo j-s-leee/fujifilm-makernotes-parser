@@ -8,6 +8,7 @@ import { CollectionCard } from "@/components/collection-card";
 import { GALLERY_SELECT } from "@/lib/queries";
 import { getThumbnailUrl } from "@/lib/get-thumbnail-url";
 import { getTranslations, setRequestLocale } from "next-intl/server";
+import { getAlternates } from "@/lib/seo";
 
 export const revalidate = 60;
 
@@ -62,9 +63,12 @@ export async function generateMetadata({
   const stats = await getUserStats(profile.id);
   const description = `${stats.recipeCount} recipes shared on film-simulation.site`;
 
+  const profilePath = profile.username ? `/u/${profile.username}` : `/u/${identifier}`;
+
   return {
     title,
     description,
+    alternates: getAlternates(profilePath),
     openGraph: {
       title,
       description,

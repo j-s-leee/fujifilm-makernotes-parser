@@ -8,6 +8,7 @@ import { SimilarRecipes } from "@/components/similar-recipes";
 import { SimilarRecipesSkeleton } from "@/components/skeletons";
 import { RECIPE_HERO_SELECT, GALLERY_SELECT } from "@/lib/queries";
 import { getTranslations, setRequestLocale } from "next-intl/server";
+import { getAlternates } from "@/lib/seo";
 
 const getRecipe = cache(async (recipeId: number) => {
   const supabase = createStaticClient();
@@ -48,6 +49,7 @@ export async function generateMetadata({
   return {
     title,
     description,
+    alternates: getAlternates(`/recipes/${id}`),
     openGraph: {
       title,
       description,
@@ -152,8 +154,32 @@ export default async function RecipePage({ params }: RecipePageProps) {
       }
     : null;
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "ImageObject",
+    name: `${recipe.simulation} Film Simulation Recipe`,
+    description: `${recipe.simulation} recipe shot on ${recipe.camera_model ?? "Fujifilm"}`,
+    contentUrl: recipe.thumbnail_path
+      ? `${r2PublicUrl}/${recipe.thumbnail_path}`
+      : undefined,
+    author: sharer
+      ? {
+          "@type": "Person",
+          name: sharer.displayName,
+          ...(sharer.username && {
+            url: `https://film-simulation.site/u/${sharer.username}`,
+          }),
+        }
+      : undefined,
+    datePublished: undefined as string | undefined,
+  };
+
   return (
     <div className="container py-8 md:py-12">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <div className="flex flex-col gap-8">
         {/* Back link */}
         <BackButton label={tCommon("backToRecipes")} fallbackHref="/recipes" />

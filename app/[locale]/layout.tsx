@@ -12,6 +12,7 @@ import { GoogleAnalytics } from "@/components/google-analytics";
 import { NextIntlClientProvider, hasLocale } from "next-intl";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { routing } from "@/i18n/routing";
+import { getAlternates } from "@/lib/seo";
 import { notFound } from "next/navigation";
 
 const inter = Inter({
@@ -63,6 +64,7 @@ export async function generateMetadata({
       apple: "/logo/apple-touch-icon.png",
     },
     manifest: "/logo/site.webmanifest",
+    alternates: getAlternates("/"),
   };
 }
 

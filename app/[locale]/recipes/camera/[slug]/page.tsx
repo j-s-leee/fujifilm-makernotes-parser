@@ -6,6 +6,7 @@ import { fromCameraSlug, toSlug } from "@/lib/slug";
 import { ALL_CAMERA_MODELS } from "@/fujifilm/cameras";
 import { GALLERY_SELECT } from "@/lib/queries";
 import { getTranslations, setRequestLocale } from "next-intl/server";
+import { getAlternates } from "@/lib/seo";
 
 export const revalidate = 3600;
 
@@ -21,6 +22,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: `${camera} Recipes`,
     description: `Browse Fujifilm ${camera} film simulation recipes shared by the community.`,
+    alternates: getAlternates(`/recipes/camera/${slug}`),
   };
 }
 

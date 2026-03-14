@@ -180,7 +180,7 @@ export function CollectionPopover({ recipeId, recipeThumbnailUrl, children }: Co
                   {covers.get(c.id) ? (
                     <Image
                       src={covers.get(c.id)!}
-                      alt=""
+                      alt={c.name}
                       fill
                       className="object-cover"
                       sizes="32px"
