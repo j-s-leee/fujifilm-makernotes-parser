@@ -17,6 +17,7 @@ import { createClient } from "@/lib/supabase/client";
 import { getThumbnailUrl } from "@/lib/get-thumbnail-url";
 import { toast } from "sonner";
 import { CollectionCreateDialog } from "@/components/collection-create-dialog";
+import { useTranslations } from "next-intl";
 
 interface CollectionPopoverProps {
   recipeId: number;
@@ -28,6 +29,8 @@ export function CollectionPopover({ recipeId, recipeThumbnailUrl, children }: Co
   const isDesktop = useMediaQuery("(min-width: 640px)");
   const { user } = useUser();
   const { collections, isLoaded: collectionsLoaded, refreshCollections } = useCollections();
+  const t = useTranslations("collections");
+  const tCommon = useTranslations("common");
   const [open, setOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
   const [checkedIds, setCheckedIds] = useState<Set<number>>(new Set());
@@ -131,8 +134,8 @@ export function CollectionPopover({ recipeId, recipeThumbnailUrl, children }: Co
       }
       toast.success(
         checked
-          ? `Added to ${collectionName}`
-          : `Removed from ${collectionName}`,
+          ? t("addedTo", { name: collectionName ?? "" })
+          : t("removedFrom", { name: collectionName ?? "" }),
       );
       // Sync real counts from DB, then clear local adjustments
       refreshCollections().then(() => setCountAdj(new Map()));
@@ -144,7 +147,7 @@ export function CollectionPopover({ recipeId, recipeThumbnailUrl, children }: Co
         next.set(collectionId, (next.get(collectionId) ?? 0) - delta);
         return next;
       });
-      toast.error("Something went wrong. Please try again.");
+      toast.error(t("toggleError"));
     }
   };
 
@@ -161,9 +164,9 @@ export function CollectionPopover({ recipeId, recipeThumbnailUrl, children }: Co
       {/* Collection list */}
       <div className="max-h-48 overflow-y-auto py-1">
         {!collectionsLoaded || loadingMembership ? (
-          <div className="px-3 py-2 text-xs text-muted-foreground">Loading...</div>
+          <div className="px-3 py-2 text-xs text-muted-foreground">{tCommon("loading")}</div>
         ) : collections.length === 0 ? (
-          <div className="px-3 py-2 text-xs text-muted-foreground">No collections yet</div>
+          <div className="px-3 py-2 text-xs text-muted-foreground">{t("noCollectionsYet")}</div>
         ) : (
           collections.map((c) => {
             const isAdded = checkedIds.has(c.id);
@@ -192,7 +195,7 @@ export function CollectionPopover({ recipeId, recipeThumbnailUrl, children }: Co
                     <span className="truncate text-sm">{c.name}</span>
                     {!c.is_public && <Lock className="h-3 w-3 shrink-0 text-muted-foreground" />}
                   </div>
-                  <span className="text-xs text-muted-foreground">{c.item_count + (countAdj.get(c.id) ?? 0)} recipes</span>
+                  <span className="text-xs text-muted-foreground">{t("recipesCount", { count: c.item_count + (countAdj.get(c.id) ?? 0) })}</span>
                 </div>
                 {isAdded ? (
                   <Minus className="h-4 w-4 shrink-0 text-muted-foreground" />
@@ -215,7 +218,7 @@ export function CollectionPopover({ recipeId, recipeThumbnailUrl, children }: Co
           className="flex w-full items-center gap-2 rounded-md px-3 py-2.5 text-sm transition-colors hover:bg-muted"
         >
           <Plus className="h-4 w-4 text-muted-foreground" />
-          <span>New Collection</span>
+          <span>{t("newCollection")}</span>
         </button>
       </div>
 

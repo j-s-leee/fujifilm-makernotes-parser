@@ -1,24 +1,29 @@
-import Link from "next/link";
+"use client";
+
+import { Link } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 
 export function Footer() {
+  const t = useTranslations("footer");
+
   return (
     <footer className="border-t border-border">
       <div className="container flex flex-col items-center justify-between gap-4 py-6 sm:flex-row">
         <p className="text-sm text-muted-foreground">
-          &copy; {new Date().getFullYear()} film-simulation.site
+          {t("copyright", { year: new Date().getFullYear() })}
         </p>
         <nav className="flex items-center gap-6">
           <Link
             href="/privacy"
             className="text-sm text-muted-foreground transition-colors hover:text-foreground"
           >
-            Privacy
+            {t("privacy")}
           </Link>
           <Link
             href="/terms"
             className="text-sm text-muted-foreground transition-colors hover:text-foreground"
           >
-            Terms
+            {t("terms")}
           </Link>
           <a
             href="https://tally.so/r/b5lQag"
@@ -26,7 +31,7 @@ export function Footer() {
             rel="noopener noreferrer"
             className="text-sm text-muted-foreground transition-colors hover:text-foreground"
           >
-            Contact
+            {t("contact")}
           </a>
         </nav>
       </div>

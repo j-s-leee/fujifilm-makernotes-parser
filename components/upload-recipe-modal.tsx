@@ -28,7 +28,8 @@ import { shareRecipe } from "@/lib/share-recipe";
 import { compressImageToThumbnail } from "@/lib/compress-image";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Upload } from "lucide-react";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 import type { FujifilmRecipe } from "@/fujifilm/recipe";
 import type { FujifilmSimulation } from "@/fujifilm/simulation";
 import type { RecipeSettingsRecipe } from "@/components/recipe-settings";
@@ -45,6 +46,7 @@ export function UploadRecipeModal({
   const router = useRouter();
   const { user } = useUser();
   const isDesktop = useMediaQuery("(min-width: 640px)");
+  const t = useTranslations("upload");
   const [image, setImage] = useState<string | null>(null);
   const [recipe, setRecipe] = useState<FujifilmRecipe | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -102,14 +104,14 @@ export function UploadRecipeModal({
         setAgreedToTerms(true);
         setTermsChecked(false);
       } else {
-        toast.error("Failed to save agreement");
+        toast.error(t("failedToSaveAgreement"));
       }
     } catch {
-      toast.error("Failed to save agreement");
+      toast.error(t("failedToSaveAgreement"));
     } finally {
       setAgreeingToTerms(false);
     }
-  }, []);
+  }, [t]);
 
   const handleUpload = useCallback(async () => {
     if (!recipe || !imageSource || !user) return;
@@ -122,19 +124,19 @@ export function UploadRecipeModal({
       const thumbnail = await compressImageToThumbnail(imageSource);
       const result = await shareRecipe(recipe, simulation, thumbnail, cameraModel, lensModel);
       if (result.success) {
-        toast.success("Recipe uploaded successfully");
+        toast.success(t("uploadSuccess"));
         handleOpenChange(false);
         router.push(`/recipes/${result.recipeId}`);
       } else {
-        toast.error(result.error ?? "Failed to upload recipe");
+        toast.error(result.error ?? t("uploadFailed"));
       }
     } catch (err) {
       console.error(err);
-      toast.error("Failed to upload recipe");
+      toast.error(t("uploadFailed"));
     } finally {
       setUploading(false);
     }
-  }, [recipe, simulation, imageSource, cameraModel, lensModel, user, handleOpenChange, router, checkTermsAgreement]);
+  }, [recipe, simulation, imageSource, cameraModel, lensModel, user, handleOpenChange, router, checkTermsAgreement, t]);
 
   const onDrop = useCallback(
     async (acceptedFiles: File[]) => {
@@ -155,7 +157,7 @@ export function UploadRecipeModal({
           toast.error(
             error instanceof Error
               ? error.message
-              : "Failed to extract JPEG preview from RAF file",
+              : t("rafExtractFailed"),
           );
           return;
         }
@@ -196,19 +198,17 @@ export function UploadRecipeModal({
             if (parsedSim) setSimulation(parsedSim);
           } catch (error) {
             console.error("Error parsing Fujifilm MakerNote:", error);
-            toast.error("Failed to parse Fujifilm MakerNote data");
+            toast.error(t("makerNoteParseFailed"));
           }
         } else {
-          toast.error("Please check if this is a Fujifilm camera image");
+          toast.error(t("notFujifilm"));
         }
       } catch (error) {
         console.error("Error extracting Fujifilm metadata:", error);
-        toast.error(
-          "Failed to extract metadata. Please check if this is a Fujifilm camera image",
-        );
+        toast.error(t("extractFailed"));
       }
     },
-    [resetState],
+    [resetState, t],
   );
 
   const settingsRecipe: RecipeSettingsRecipe | null = recipe
@@ -256,9 +256,9 @@ export function UploadRecipeModal({
                 {user && agreedToTerms === false && (
                   <div className="rounded-md border border-border bg-muted/50 p-3 flex flex-col gap-2">
                     <p className="text-sm text-muted-foreground">
-                      By uploading, you agree to our{" "}
+                      {t("termsAgreement")}{" "}
                       <Link href="/terms" target="_blank" className="underline text-foreground hover:text-foreground/80">
-                        Terms of Service
+                        {t("termsOfService")}
                       </Link>
                     </p>
                     <div className="flex items-center gap-2">
@@ -268,7 +268,7 @@ export function UploadRecipeModal({
                         onCheckedChange={(checked) => setTermsChecked(checked === true)}
                       />
                       <label htmlFor="terms-agreement" className="text-sm cursor-pointer select-none">
-                        I agree to the Terms of Service
+                        {t("agreeToTerms")}
                       </label>
                     </div>
                     <Button
@@ -276,7 +276,7 @@ export function UploadRecipeModal({
                       onClick={handleAgreeToTerms}
                       disabled={!termsChecked || agreeingToTerms}
                     >
-                      {agreeingToTerms ? "Saving..." : "Agree & Continue"}
+                      {agreeingToTerms ? t("savingAgreement") : t("agreeAndContinue")}
                     </Button>
                   </div>
                 )}
@@ -287,7 +287,7 @@ export function UploadRecipeModal({
                     disabled={uploading}
                   >
                     <Upload className="mr-2 h-4 w-4" />
-                    {uploading ? "Uploading..." : "Upload"}
+                    {uploading ? t("uploading") : t("upload")}
                   </Button>
                 )}
               </div>
@@ -312,9 +312,9 @@ export function UploadRecipeModal({
         <Dialog open={open} onOpenChange={handleOpenChange}>
           <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Upload Recipe</DialogTitle>
+              <DialogTitle>{t("title")}</DialogTitle>
               <DialogDescription>
-                Drop a Fujifilm JPEG or RAF to extract and share its film recipe.
+                {t("description")}
               </DialogDescription>
             </DialogHeader>
             {body}
@@ -330,9 +330,9 @@ export function UploadRecipeModal({
       <Drawer open={open} onOpenChange={handleOpenChange}>
         <DrawerContent className="max-h-[90dvh]">
           <DrawerHeader className="text-left">
-            <DrawerTitle>Upload Recipe</DrawerTitle>
+            <DrawerTitle>{t("title")}</DrawerTitle>
             <DrawerDescription>
-              Drop a Fujifilm JPEG or RAF to extract and share its film recipe.
+              {t("description")}
             </DrawerDescription>
           </DrawerHeader>
           <div className="overflow-y-auto px-4 pb-4">

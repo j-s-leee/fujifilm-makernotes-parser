@@ -210,7 +210,19 @@
     "imageSearches": "이미지 검색",
     "showLess": "접기",
     "viewAllSearches": "전체 {count}개 검색 보기",
-    "backToHistory": "기록으로 돌아가기"
+    "backToHistory": "기록으로 돌아가기",
+    "example1": "따뜻한 골든아워 인물",
+    "example2": "차가운 블루 스트리트",
+    "example3": "바랜 빈티지 필름",
+    "example4": "하이 콘트라스트 흑백",
+    "example5": "소프트 파스텔 톤",
+    "example6": "무디한 어두운 카페",
+    "justNow": "방금 전",
+    "minutesAgo": "{count}분 전",
+    "hoursAgo": "{count}시간 전",
+    "daysAgo": "{count}일 전",
+    "weeksAgo": "{count}주 전",
+    "monthsAgo": "{count}개월 전"
   },
   "profile": {
     "title": "프로필 수정",
@@ -315,6 +327,8 @@
     "deleteRecipe": "레시피 삭제",
     "deleteRecipeTitle": "레시피 삭제",
     "deleteRecipeDescription": "레시피 #{id}를 삭제(숨김) 처리하시겠습니까?",
+    "dismiss": "삭제",
+    "restore": "복구",
     "previous": "이전",
     "next": "다음",
     "pageOf": "{page} / {totalPages}"

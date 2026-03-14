@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { addSign } from "@/lib/utils";
 import { useState, type ReactNode } from "react";
+import { useTranslations } from "next-intl";
 
 export interface RecipeSettingsRecipe {
   id: number;
@@ -68,24 +69,25 @@ function SettingRow({
 
 export function RecipeSettings({ recipe }: RecipeSettingsProps) {
   const [copied, setCopied] = useState(false);
+  const t = useTranslations("recipeSettings");
 
   const handleCopy = () => {
     const lines: string[] = [];
-    if (recipe.simulation) lines.push(`Film Simulation: ${recipe.simulation}`);
+    if (recipe.simulation) lines.push(`${t("filmSimulation")}: ${recipe.simulation}`);
     if (recipe.dynamic_range_development != null)
-      lines.push(`Dynamic Range: DR${recipe.dynamic_range_development}`);
+      lines.push(`${t("dynamicRange")}: DR${recipe.dynamic_range_development}`);
     if (recipe.grain_roughness)
       lines.push(
-        `Grain Effect: ${recipe.grain_roughness}${recipe.grain_size ? `, ${recipe.grain_size}` : ""}`,
+        `${t("grainEffect")}: ${recipe.grain_roughness}${recipe.grain_size ? `, ${recipe.grain_size}` : ""}`,
       );
-    if (recipe.color_chrome) lines.push(`Color Chrome: ${recipe.color_chrome}`);
+    if (recipe.color_chrome) lines.push(`${t("colorChrome")}: ${recipe.color_chrome}`);
     if (recipe.color_chrome_fx_blue)
-      lines.push(`Color Chrome FX Blue: ${recipe.color_chrome_fx_blue}`);
+      lines.push(`${t("colorChromeFXBlue")}: ${recipe.color_chrome_fx_blue}`);
     if (recipe.wb_type) {
       const wb = recipe.wb_color_temperature
         ? `${recipe.wb_color_temperature}K`
         : recipe.wb_type.replace("-", " ");
-      lines.push(`White Balance: ${wb}`);
+      lines.push(`${t("whiteBalance")}: ${wb}`);
       lines.push(
         `WB Shift: R:${addSign(recipe.wb_red ?? 0)} B:${addSign(recipe.wb_blue ?? 0)}`,
       );
@@ -93,13 +95,13 @@ export function RecipeSettings({ recipe }: RecipeSettingsProps) {
     if (recipe.highlight != null)
       lines.push(`Highlight: ${addSign(recipe.highlight)}`);
     if (recipe.shadow != null) lines.push(`Shadow: ${addSign(recipe.shadow)}`);
-    if (recipe.color != null) lines.push(`Color: ${addSign(recipe.color)}`);
+    if (recipe.color != null) lines.push(`${t("color")}: ${addSign(recipe.color)}`);
     if (recipe.sharpness != null)
-      lines.push(`Sharpness: ${addSign(recipe.sharpness)}`);
+      lines.push(`${t("sharpness")}: ${addSign(recipe.sharpness)}`);
     if (recipe.noise_reduction != null)
-      lines.push(`Noise Reduction: ${addSign(recipe.noise_reduction)}`);
+      lines.push(`${t("noiseReduction")}: ${addSign(recipe.noise_reduction)}`);
     if (recipe.clarity != null)
-      lines.push(`Clarity: ${addSign(recipe.clarity)}`);
+      lines.push(`${t("clarity")}: ${addSign(recipe.clarity)}`);
 
     const url = `${window.location.origin}/recipes/${recipe.id}`;
     const text = lines.join("\n") + `\n\n${url}`;
@@ -116,7 +118,7 @@ export function RecipeSettings({ recipe }: RecipeSettingsProps) {
     <div className="p-6">
       {/* Header */}
       <div className="mb-6 flex items-center justify-between">
-        <h2 className="text-xl font-bold tracking-tight">Recipe Settings</h2>
+        <h2 className="text-xl font-bold tracking-tight">{t("title")}</h2>
         {recipe.sensor_generation && (
           <span className="rounded bg-primary/10 px-2 py-1 text-xs font-bold uppercase tracking-wide text-primary">
             {recipe.sensor_generation}
@@ -129,42 +131,42 @@ export function RecipeSettings({ recipe }: RecipeSettingsProps) {
         {recipe.simulation && (
           <SettingRow
             icon={<Film className={iconSize} />}
-            label="Film Simulation"
+            label={t("filmSimulation")}
             value={recipe.simulation}
           />
         )}
         {recipe.dynamic_range_development != null && (
           <SettingRow
             icon={<SunMoon className={iconSize} />}
-            label="Dynamic Range"
+            label={t("dynamicRange")}
             value={`DR${recipe.dynamic_range_development}`}
           />
         )}
         {recipe.grain_roughness && (
           <SettingRow
             icon={<Grip className={iconSize} />}
-            label="Grain Effect"
+            label={t("grainEffect")}
             value={`${recipe.grain_roughness}${recipe.grain_size ? `, ${recipe.grain_size}` : ""}`}
           />
         )}
         {recipe.color_chrome && (
           <SettingRow
             icon={<Droplets className={iconSize} />}
-            label="Color Chrome"
+            label={t("colorChrome")}
             value={recipe.color_chrome}
           />
         )}
         {recipe.color_chrome_fx_blue && (
           <SettingRow
             icon={<Droplets className={iconSize} />}
-            label="Color Chrome FX Blue"
+            label={t("colorChromeFXBlue")}
             value={recipe.color_chrome_fx_blue}
           />
         )}
         {recipe.wb_type && (
           <SettingRow
             icon={<Sun className={iconSize} />}
-            label="White Balance"
+            label={t("whiteBalance")}
             value={
               <div className="flex flex-col items-end gap-0.5">
                 <span>
@@ -187,7 +189,7 @@ export function RecipeSettings({ recipe }: RecipeSettingsProps) {
         {(recipe.highlight != null || recipe.shadow != null) && (
           <SettingRow
             icon={<Contrast className={iconSize} />}
-            label="Tone Curve"
+            label={t("toneCurve")}
             value={
               <span>
                 H:{addSign(recipe.highlight ?? 0)}, S:
@@ -199,42 +201,42 @@ export function RecipeSettings({ recipe }: RecipeSettingsProps) {
         {recipe.color != null && (
           <SettingRow
             icon={<Palette className={iconSize} />}
-            label="Color"
+            label={t("color")}
             value={addSign(recipe.color)}
           />
         )}
         {recipe.sharpness != null && (
           <SettingRow
             icon={<Diamond className={iconSize} />}
-            label="Sharpness"
+            label={t("sharpness")}
             value={addSign(recipe.sharpness)}
           />
         )}
         {recipe.noise_reduction != null && (
           <SettingRow
             icon={<Waves className={iconSize} />}
-            label="Noise Reduction"
+            label={t("noiseReduction")}
             value={addSign(recipe.noise_reduction)}
           />
         )}
         {recipe.clarity != null && (
           <SettingRow
             icon={<Sparkle className={iconSize} />}
-            label="Clarity"
+            label={t("clarity")}
             value={addSign(recipe.clarity)}
           />
         )}
         {recipe.bw_adjustment != null && (
           <SettingRow
             icon={<Contrast className={iconSize} />}
-            label="BW Adjustment"
+            label={t("bwAdjustment")}
             value={addSign(recipe.bw_adjustment)}
           />
         )}
         {recipe.bw_magenta_green != null && (
           <SettingRow
             icon={<Contrast className={iconSize} />}
-            label="BW M/G"
+            label={t("bwMG")}
             value={addSign(recipe.bw_magenta_green)}
           />
         )}
@@ -249,12 +251,12 @@ export function RecipeSettings({ recipe }: RecipeSettingsProps) {
           {copied ? (
             <>
               <Check className="h-4 w-4" />
-              Copied!
+              {t("copied")}
             </>
           ) : (
             <>
               <Copy className="h-4 w-4" />
-              Copy Recipe
+              {t("copyRecipe")}
             </>
           )}
         </button>

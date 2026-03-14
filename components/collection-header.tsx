@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { Globe, Link2, Lock, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,6 +8,8 @@ import { useUser } from "@/hooks/use-user";
 import { useCollections } from "@/contexts/collections-context";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
+import { useRouter } from "@/i18n/navigation";
 
 interface CollectionHeaderProps {
   collection: {
@@ -27,6 +28,8 @@ export function CollectionHeader({ collection }: CollectionHeaderProps) {
   const { user } = useUser();
   const router = useRouter();
   const { deleteCollection, refreshCollections } = useCollections();
+  const t = useTranslations("collections");
+  const tCommon = useTranslations("common");
   const isOwner = user?.id === collection.user_id;
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(collection.name);
@@ -51,7 +54,7 @@ export function CollectionHeader({ collection }: CollectionHeaderProps) {
     setSaving(false);
 
     if (error) {
-      toast.error("Failed to update collection.");
+      toast.error(t("updateFailed"));
       return;
     }
 
@@ -80,7 +83,7 @@ export function CollectionHeader({ collection }: CollectionHeaderProps) {
           <Input
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="Description (optional)"
+            placeholder={t("descriptionOptionalPlaceholder")}
             maxLength={300}
           />
           <button
@@ -91,18 +94,18 @@ export function CollectionHeader({ collection }: CollectionHeaderProps) {
             {isPublic ? (
               <>
                 <Globe className="h-4 w-4" />
-                Public
+                {t("public")}
               </>
             ) : (
               <>
                 <Lock className="h-4 w-4" />
-                Private
+                {t("private")}
               </>
             )}
           </button>
           <div className="flex gap-2">
             <Button size="sm" onClick={handleSave} disabled={!name.trim() || saving}>
-              {saving ? "Saving..." : "Save"}
+              {saving ? tCommon("saving") : tCommon("save")}
             </Button>
             <Button
               size="sm"
@@ -114,7 +117,7 @@ export function CollectionHeader({ collection }: CollectionHeaderProps) {
                 setEditing(false);
               }}
             >
-              Cancel
+              {tCommon("cancel")}
             </Button>
           </div>
         </div>
@@ -132,11 +135,11 @@ export function CollectionHeader({ collection }: CollectionHeaderProps) {
             <p className="text-sm text-muted-foreground">{collection.description}</p>
           )}
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <span>{collection.item_count} recipes</span>
+            <span>{t("recipesCount", { count: collection.item_count })}</span>
             {(collection.user_username || collection.user_display_name) && (
               <>
                 <span>·</span>
-                <span>by {collection.user_username ? `@${collection.user_username}` : collection.user_display_name}</span>
+                <span>{tCommon("by")} {collection.user_username ? `@${collection.user_username}` : collection.user_display_name}</span>
               </>
             )}
           </div>
@@ -151,23 +154,23 @@ export function CollectionHeader({ collection }: CollectionHeaderProps) {
                     navigator.share({ title: collection.name, url });
                   } else {
                     await navigator.clipboard.writeText(url);
-                    toast.success("Link copied to clipboard.");
+                    toast.success(t("linkCopied"));
                   }
                 }}
               >
                 <Link2 className="mr-1 h-3.5 w-3.5" />
-                Share
+                {tCommon("share")}
               </Button>
             )}
             {isOwner && (
               <>
                 <Button size="sm" variant="ghost" onClick={() => setEditing(true)}>
                   <Pencil className="mr-1 h-3.5 w-3.5" />
-                  Edit
+                  {tCommon("edit")}
                 </Button>
                 <Button size="sm" variant="ghost" onClick={handleDelete}>
                   <Trash2 className="mr-1 h-3.5 w-3.5" />
-                  Delete
+                  {tCommon("delete")}
                 </Button>
               </>
             )}

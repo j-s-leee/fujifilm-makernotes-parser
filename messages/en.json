@@ -210,7 +210,19 @@
     "imageSearches": "Image Searches",
     "showLess": "Show less",
     "viewAllSearches": "View all {count} searches",
-    "backToHistory": "Back to History"
+    "backToHistory": "Back to History",
+    "example1": "warm golden hour portrait",
+    "example2": "cool blue street photography",
+    "example3": "faded vintage film look",
+    "example4": "high contrast black and white",
+    "example5": "soft pastel tones",
+    "example6": "moody dark cafe",
+    "justNow": "just now",
+    "minutesAgo": "{count}m ago",
+    "hoursAgo": "{count}h ago",
+    "daysAgo": "{count}d ago",
+    "weeksAgo": "{count}w ago",
+    "monthsAgo": "{count}mo ago"
   },
   "profile": {
     "title": "Edit Profile",
@@ -315,6 +327,8 @@
     "deleteRecipe": "Delete Recipe",
     "deleteRecipeTitle": "Delete Recipe",
     "deleteRecipeDescription": "Are you sure you want to delete (hide) recipe #{id}?",
+    "dismiss": "Dismiss",
+    "restore": "Restore",
     "previous": "Previous",
     "next": "Next",
     "pageOf": "{page} / {totalPages}"

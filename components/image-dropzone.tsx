@@ -3,6 +3,7 @@
 import { useCallback } from "react";
 import { useDropzone } from "react-dropzone";
 import { Upload } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 interface ImageDropzoneProps {
   onFileDrop: (files: File[]) => void;
@@ -10,6 +11,8 @@ interface ImageDropzoneProps {
 }
 
 export function ImageDropzone({ onFileDrop, hasImage }: ImageDropzoneProps) {
+  const t = useTranslations("upload");
+
   const onDrop = useCallback(
     (acceptedFiles: File[]) => {
       onFileDrop(acceptedFiles);
@@ -39,7 +42,7 @@ export function ImageDropzone({ onFileDrop, hasImage }: ImageDropzoneProps) {
         <input {...getInputProps()} />
         <Upload className="h-4 w-4 text-muted-foreground" />
         <p className="text-sm text-muted-foreground">
-          Try another Fujifilm image
+          {t("tryAnother")}
         </p>
       </div>
     );
@@ -57,10 +60,10 @@ export function ImageDropzone({ onFileDrop, hasImage }: ImageDropzoneProps) {
       <input {...getInputProps()} />
       <Upload className="h-10 w-10 mb-4 text-muted-foreground" />
       <p className="text-sm text-foreground mb-1">
-        Drag & drop a Fujifilm image here, or click to select
+        {t("dropzoneText")}
       </p>
       <p className="text-xs text-muted-foreground">
-        Supports JPG and RAF files
+        {t("dropzoneFormats")}
       </p>
     </div>
   );

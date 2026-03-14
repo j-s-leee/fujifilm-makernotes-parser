@@ -2,12 +2,13 @@
 
 import { memo } from "react";
 import Image from "next/image";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { Bookmark, FolderPlus, Heart } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useUserInteractions } from "@/contexts/user-interactions-context";
 import { getThumbnailUrl } from "@/lib/get-thumbnail-url";
 import dynamic from "next/dynamic";
+import { useTranslations } from "next-intl";
 
 const CollectionPopover = dynamic(
   () => import("@/components/bookmark-popover").then((m) => m.CollectionPopover),
@@ -40,6 +41,7 @@ export const GalleryCard = memo(function GalleryCard({
 }) {
   const { bookmarks, likes, likeCounts, toggleBookmark, toggleLike } =
     useUserInteractions();
+  const t = useTranslations("common");
 
   const src = recipe.thumbnail_width
     ? recipe.thumbnail_path
@@ -71,12 +73,12 @@ export const GalleryCard = memo(function GalleryCard({
         <Link href={profileHref} className="flex items-center gap-2">
           <Avatar className="h-6 w-6">
             {avatarUrl && (
-              <AvatarImage src={avatarUrl} alt={displayName ?? "User"} />
+              <AvatarImage src={avatarUrl} alt={displayName ?? t("user")} />
             )}
             <AvatarFallback className="text-[10px]">{initials}</AvatarFallback>
           </Avatar>
           <span className="text-xs font-medium">
-            {displayName ?? "Anonymous"}
+            {displayName ?? t("anonymous")}
           </span>
         </Link>
       </div>
@@ -103,7 +105,7 @@ export const GalleryCard = memo(function GalleryCard({
           />
         ) : (
           <div className="flex aspect-square items-center justify-center text-muted-foreground text-sm">
-            No image
+            {t("noImage")}
           </div>
         )}
 
@@ -111,7 +113,7 @@ export const GalleryCard = memo(function GalleryCard({
         <Link
           href={`/recipes/${recipe.id}`}
           className="absolute inset-0 z-0"
-          aria-label={recipe.simulation ?? "View recipe"}
+          aria-label={recipe.simulation ?? t("viewRecipe")}
         />
 
         {/* Desktop hover overlay */}
@@ -122,14 +124,14 @@ export const GalleryCard = memo(function GalleryCard({
           <Link href={profileHref} className="flex items-center gap-2">
             <Avatar className="h-7 w-7">
               {avatarUrl && (
-                <AvatarImage src={avatarUrl} alt={displayName ?? "User"} />
+                <AvatarImage src={avatarUrl} alt={displayName ?? t("user")} />
               )}
               <AvatarFallback className="text-[10px]">
                 {initials}
               </AvatarFallback>
             </Avatar>
             <span className="text-sm font-medium text-white drop-shadow-sm">
-              {displayName ?? "Anonymous"}
+              {displayName ?? t("anonymous")}
             </span>
           </Link>
         </div>
