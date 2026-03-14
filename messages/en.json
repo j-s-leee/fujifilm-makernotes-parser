@@ -1,0 +1,347 @@
+{
+  "common": {
+    "anonymous": "Anonymous",
+    "loading": "Loading...",
+    "save": "Save",
+    "saving": "Saving...",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "share": "Share",
+    "report": "Report",
+    "noImage": "No image",
+    "viewRecipe": "View Recipe",
+    "backToRecipes": "Back to Recipes",
+    "recipes": "recipes",
+    "by": "by",
+    "user": "User"
+  },
+  "metadata": {
+    "siteTitle": "film-simulation.site",
+    "siteDescription": "Discover and share Fujifilm film simulation recipes"
+  },
+  "nav": {
+    "recipes": "Recipes",
+    "recommend": "Recommend",
+    "bookmarks": "Bookmarks",
+    "likes": "Likes",
+    "collections": "Collections",
+    "scan": "Scan",
+    "profile": "Profile",
+    "signIn": "Sign In",
+    "signOut": "Sign Out"
+  },
+  "footer": {
+    "copyright": "\u00a9 {year} film-simulation.site",
+    "privacy": "Privacy",
+    "terms": "Terms",
+    "contact": "Contact"
+  },
+  "auth": {
+    "siteTitle": "film-simulation.site",
+    "signInDescription": "Sign in to upload, bookmark, and like recipes",
+    "continueWithGoogle": "Continue with Google"
+  },
+  "loginPrompt": {
+    "recommend": {
+      "title": "AI Recipe Recommendation",
+      "description": "Upload a photo and discover similar film recipes instantly.",
+      "benefits": {
+        "match": "Find recipes that match any photo's look",
+        "ai": "AI-powered image similarity search",
+        "discover": "Discover new film simulation styles"
+      }
+    },
+    "bookmarks": {
+      "title": "Bookmark Recipes",
+      "description": "Save your favorite recipes and access them anytime.",
+      "benefits": {
+        "collection": "Build your personal recipe collection",
+        "quickAccess": "Quick access to saved recipes",
+        "organize": "Organize recipes you want to try"
+      }
+    },
+    "likes": {
+      "title": "Like Recipes",
+      "description": "Show appreciation for recipes you love.",
+      "benefits": {
+        "support": "Support recipe creators",
+        "track": "Keep track of recipes you enjoyed",
+        "help": "Help others discover great recipes"
+      }
+    },
+    "upload": {
+      "title": "Upload Your Recipe",
+      "description": "Share your Fujifilm film recipes with the community.",
+      "benefits": {
+        "share": "Share your unique film simulation settings",
+        "feedback": "Get likes and feedback from others",
+        "portfolio": "Build your recipe portfolio"
+      }
+    },
+    "collections": {
+      "title": "Collections",
+      "description": "Organize your favorite recipes into curated collections.",
+      "benefits": {
+        "themed": "Create themed recipe collections",
+        "shareCommunity": "Share collections with the community",
+        "organize": "Keep your recipes organized"
+      }
+    }
+  },
+  "home": {
+    "title": "Trending Recipes",
+    "subtitle": "Most engaging recipes from the community",
+    "viewAll": "View all recipes",
+    "empty": "No recipes yet. Be the first to share a film recipe!"
+  },
+  "recipes": {
+    "title": "Recipes",
+    "metaDescription": "Browse Fujifilm film simulation recipes",
+    "empty": "No recipes found. Try a different filter or be the first to share!"
+  },
+  "recipeDetail": {
+    "deletedTitle": "This recipe has been deleted",
+    "deletedDescription": "This recipe was deleted by its owner or hidden due to reports.",
+    "noSimilarRecipes": "No similar recipes found.",
+    "similarRecipes": "Similar Recipes"
+  },
+  "recipeHero": {
+    "byAnonymous": "by Anonymous",
+    "byUser": "by",
+    "viewRecipe": "View Recipe",
+    "loadingRecipe": "Loading...",
+    "failedToLoadSettings": "Failed to load recipe settings.",
+    "delete": "Delete",
+    "report": "Report"
+  },
+  "recipeSettings": {
+    "title": "Recipe Settings",
+    "filmSimulation": "Film Simulation",
+    "dynamicRange": "Dynamic Range",
+    "grainEffect": "Grain Effect",
+    "colorChrome": "Color Chrome",
+    "colorChromeFXBlue": "Color Chrome FX Blue",
+    "whiteBalance": "White Balance",
+    "toneCurve": "Tone Curve",
+    "color": "Color",
+    "sharpness": "Sharpness",
+    "noiseReduction": "Noise Reduction",
+    "clarity": "Clarity",
+    "bwAdjustment": "BW Adjustment",
+    "bwMG": "BW M/G",
+    "copyRecipe": "Copy Recipe",
+    "copied": "Copied!"
+  },
+  "recipeBrowse": {
+    "simulationSubtitle": "Film simulation recipes using {name}",
+    "cameraSubtitle": "Film simulation recipes shot on {name}",
+    "sensorSubtitle": "Film simulation recipes from {name} sensor cameras",
+    "lensSubtitle": "Film simulation recipes shot with {name}",
+    "emptySimulation": "No recipes found for {name}.",
+    "emptyCamera": "No recipes found for {name}.",
+    "emptySensor": "No recipes found for {name} cameras.",
+    "emptyLens": "No recipes found for {name}."
+  },
+  "upload": {
+    "title": "Upload Recipe",
+    "description": "Drop a Fujifilm JPEG or RAF to extract and share its film recipe.",
+    "dropzoneText": "Drag & drop a Fujifilm image here, or click to select",
+    "dropzoneFormats": "Supports JPG and RAF files",
+    "tryAnother": "Try another Fujifilm image",
+    "uploading": "Uploading...",
+    "upload": "Upload",
+    "uploadSuccess": "Recipe uploaded successfully",
+    "uploadFailed": "Failed to upload recipe",
+    "notFujifilm": "Please check if this is a Fujifilm camera image",
+    "extractFailed": "Failed to extract metadata. Please check if this is a Fujifilm camera image",
+    "rafExtractFailed": "Failed to extract JPEG preview from RAF file",
+    "makerNoteParseFailed": "Failed to parse Fujifilm MakerNote data",
+    "termsAgreement": "By uploading, you agree to our",
+    "termsOfService": "Terms of Service",
+    "agreeToTerms": "I agree to the Terms of Service",
+    "agreeAndContinue": "Agree & Continue",
+    "savingAgreement": "Saving...",
+    "failedToSaveAgreement": "Failed to save agreement"
+  },
+  "filters": {
+    "filter": "Filter",
+    "newest": "Newest",
+    "popular": "Popular",
+    "sensor": "Sensor",
+    "camera": "Camera",
+    "film": "Film",
+    "all": "All"
+  },
+  "recommend": {
+    "title": "Recipe Recommendations",
+    "subtitle": "Upload a photo or describe the look you want to find matching recipes",
+    "viewHistory": "View past recommendations",
+    "howItWorks": "How it works",
+    "imageSearch": "Image Search",
+    "imageSearchDescription": "Upload any photo and AI will find recipes with a similar look and color tone.",
+    "textSearch": "Text Search",
+    "textSearchDescription": "Describe the look you want, like \"warm sunset portrait\" or \"moody street at night\".",
+    "cameraFilter": "Camera Filter",
+    "cameraFilterDescription": "Narrow results to your camera model for compatible recipe settings.",
+    "tryExamples": "Try these examples",
+    "image": "Image",
+    "text": "Text",
+    "allCameras": "All cameras",
+    "searchSimilar": "Search similar recipes",
+    "uploadPhoto": "Upload any photo to find matching Fujifilm recipes",
+    "uploaderFormats": "Supports JPG, PNG, and WebP",
+    "textPlaceholder": "e.g. warm sunset portrait, moody street at night, vintage film look...",
+    "textHint": "Describe the look you want and we'll find matching recipes",
+    "noResults": "No similar recipes found. Try uploading a different photo or changing your search text.",
+    "yourPhoto": "Your Photo",
+    "yourSearch": "Your Search",
+    "similarRecipes": "Similar Recipes ({count})",
+    "matchedRecipes": "Matched Recipes ({count})",
+    "noResultsHistory": "No results found for this recommendation.",
+    "authTitle": "Recipe Recommendations",
+    "authDescription": "Sign in to get personalized recipe recommendations from your photos.",
+    "historyTitle": "Recommendation History",
+    "historySubtitle": "Your past recipe recommendation searches",
+    "historyEmpty": "No recommendation history yet.",
+    "historyAuthTitle": "Recommendation History",
+    "historyAuthDescription": "Sign in to view your past recipe recommendations.",
+    "textSearches": "Text Searches",
+    "imageSearches": "Image Searches",
+    "showLess": "Show less",
+    "viewAllSearches": "View all {count} searches",
+    "backToHistory": "Back to History",
+    "example1": "warm golden hour portrait",
+    "example2": "cool blue street photography",
+    "example3": "faded vintage film look",
+    "example4": "high contrast black and white",
+    "example5": "soft pastel tones",
+    "example6": "moody dark cafe",
+    "justNow": "just now",
+    "minutesAgo": "{count}m ago",
+    "hoursAgo": "{count}h ago",
+    "daysAgo": "{count}d ago",
+    "weeksAgo": "{count}w ago",
+    "monthsAgo": "{count}mo ago"
+  },
+  "profile": {
+    "title": "Edit Profile",
+    "displayName": "Display Name",
+    "displayNamePlaceholder": "Your name",
+    "username": "Username",
+    "usernamePlaceholder": "your_username",
+    "usernameHint": "Lowercase letters, numbers, and underscores. Your public profile will be at /u/{username}",
+    "profileUpdated": "Profile updated",
+    "updateFailed": "Failed to update profile"
+  },
+  "bookmarks": {
+    "title": "Bookmarks",
+    "subtitle": "Recipes you've saved",
+    "empty": "No bookmarks yet.",
+    "authTitle": "Bookmarks",
+    "authDescription": "Sign in to view your bookmarked recipes."
+  },
+  "likes": {
+    "title": "Likes",
+    "subtitle": "Recipes you've liked",
+    "empty": "No liked recipes yet.",
+    "authTitle": "Likes",
+    "authDescription": "Sign in to view your liked recipes."
+  },
+  "myRecipes": {
+    "authTitle": "My Recipes",
+    "authDescription": "Sign in to view your shared recipes."
+  },
+  "collections": {
+    "title": "Collections",
+    "subtitle": "Organize your recipes into collections",
+    "empty": "No collections yet. Create one to get started.",
+    "emptyDetail": "No recipes in this collection yet.",
+    "authTitle": "Collections",
+    "authDescription": "Sign in to create and manage your recipe collections.",
+    "newCollection": "New Collection",
+    "new": "New",
+    "createCollection": "Create Collection",
+    "creating": "Creating...",
+    "name": "Name",
+    "namePlaceholder": "My Collection",
+    "descriptionLabel": "Description (optional)",
+    "descriptionPlaceholder": "A brief description...",
+    "public": "Public",
+    "private": "Private",
+    "noCollectionsYet": "No collections yet",
+    "recipesCount": "{count} recipes",
+    "noRecipesYet": "No recipes yet",
+    "descriptionOptionalPlaceholder": "Description (optional)",
+    "linkCopied": "Link copied to clipboard.",
+    "updateFailed": "Failed to update collection.",
+    "addedTo": "Added to {name}",
+    "removedFrom": "Removed from {name}",
+    "toggleError": "Something went wrong. Please try again."
+  },
+  "userProfile": {
+    "joined": "Joined {date}",
+    "editProfile": "Edit Profile",
+    "collectionsTitle": "Collections",
+    "noRecipes": "No recipes shared yet.",
+    "recipeCount": "{count, plural, one {Recipe} other {Recipes}}",
+    "likeCount": "{count, plural, one {Like} other {Likes}}",
+    "bookmarkCount": "{count, plural, one {Bookmark} other {Bookmarks}}"
+  },
+  "dialogs": {
+    "deleteTitle": "Are you sure you want to delete this recipe?",
+    "deleteDescription": "This action cannot be undone.",
+    "reportTitle": "Report this recipe",
+    "reportDescription": "Please select a reason for reporting.",
+    "reportSuccess": "Report submitted successfully.",
+    "reportDuplicate": "You have already reported this recipe.",
+    "reasonInappropriate": "Inappropriate content",
+    "reasonSpam": "Spam",
+    "reasonCopyright": "Copyright infringement",
+    "reasonOther": "Other",
+    "detailPlaceholder": "Please enter a detailed description."
+  },
+  "admin": {
+    "title": "Report Management",
+    "totalReports": "Total {count} reports",
+    "noReports": "No reports found.",
+    "tableRecipe": "Recipe",
+    "tableReason": "Reason",
+    "tableReporter": "Reporter",
+    "tableDate": "Date",
+    "tableReportCount": "Report Count",
+    "tableStatus": "Status",
+    "tableActions": "Actions",
+    "statusHidden": "Hidden",
+    "statusPublic": "Public",
+    "reasonInappropriate": "Inappropriate content",
+    "reasonSpam": "Spam",
+    "reasonCopyright": "Copyright infringement",
+    "reasonOther": "Other",
+    "dismissReport": "Dismiss Report",
+    "dismissReportTitle": "Dismiss Report",
+    "dismissReportDescription": "Are you sure you want to dismiss this report? The recipe will remain visible.",
+    "restoreRecipe": "Restore Recipe",
+    "restoreRecipeTitle": "Restore Recipe",
+    "restoreRecipeDescription": "Are you sure you want to restore recipe #{id}? It will become public again.",
+    "deleteRecipe": "Delete Recipe",
+    "deleteRecipeTitle": "Delete Recipe",
+    "deleteRecipeDescription": "Are you sure you want to delete (hide) recipe #{id}?",
+    "dismiss": "Dismiss",
+    "restore": "Restore",
+    "previous": "Previous",
+    "next": "Next",
+    "pageOf": "{page} / {totalPages}"
+  },
+  "ui": {
+    "toggleTheme": "Toggle theme",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
+  },
+  "notFound": {
+    "title": "Page Not Found",
+    "description": "The page you are looking for does not exist.",
+    "backHome": "Back to Home"
+  }
+}

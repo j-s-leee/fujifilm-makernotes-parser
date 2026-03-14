@@ -1,0 +1,347 @@
+{
+  "common": {
+    "anonymous": "익명",
+    "loading": "로딩 중...",
+    "save": "저장",
+    "saving": "저장 중...",
+    "cancel": "취소",
+    "delete": "삭제",
+    "edit": "수정",
+    "share": "공유",
+    "report": "신고",
+    "noImage": "이미지 없음",
+    "viewRecipe": "레시피 보기",
+    "backToRecipes": "레시피 목록으로",
+    "recipes": "개 레시피",
+    "by": "by",
+    "user": "사용자"
+  },
+  "metadata": {
+    "siteTitle": "film-simulation.site",
+    "siteDescription": "후지필름 필름 시뮬레이션 레시피를 발견하고 공유하세요"
+  },
+  "nav": {
+    "recipes": "레시피",
+    "recommend": "추천",
+    "bookmarks": "북마크",
+    "likes": "좋아요",
+    "collections": "컬렉션",
+    "scan": "스캔",
+    "profile": "프로필",
+    "signIn": "로그인",
+    "signOut": "로그아웃"
+  },
+  "footer": {
+    "copyright": "\u00a9 {year} film-simulation.site",
+    "privacy": "개인정보처리방침",
+    "terms": "이용약관",
+    "contact": "문의하기"
+  },
+  "auth": {
+    "siteTitle": "film-simulation.site",
+    "signInDescription": "로그인하여 레시피를 업로드하고, 북마크하고, 좋아요를 누르세요",
+    "continueWithGoogle": "Google로 계속하기"
+  },
+  "loginPrompt": {
+    "recommend": {
+      "title": "AI 레시피 추천",
+      "description": "사진을 업로드하면 비슷한 필름 레시피를 즉시 찾아드립니다.",
+      "benefits": {
+        "match": "어떤 사진의 분위기와 어울리는 레시피 찾기",
+        "ai": "AI 기반 이미지 유사도 검색",
+        "discover": "새로운 필름 시뮬레이션 스타일 발견"
+      }
+    },
+    "bookmarks": {
+      "title": "레시피 북마크",
+      "description": "마음에 드는 레시피를 저장하고 언제든 확인하세요.",
+      "benefits": {
+        "collection": "나만의 레시피 컬렉션 만들기",
+        "quickAccess": "저장한 레시피 빠른 접근",
+        "organize": "시도하고 싶은 레시피 정리"
+      }
+    },
+    "likes": {
+      "title": "레시피 좋아요",
+      "description": "마음에 드는 레시피에 좋아요를 표현하세요.",
+      "benefits": {
+        "support": "레시피 제작자 응원하기",
+        "track": "마음에 들었던 레시피 기록하기",
+        "help": "다른 사람들이 좋은 레시피를 발견하도록 돕기"
+      }
+    },
+    "upload": {
+      "title": "레시피 업로드",
+      "description": "후지필름 필름 레시피를 커뮤니티와 공유하세요.",
+      "benefits": {
+        "share": "나만의 필름 시뮬레이션 설정 공유",
+        "feedback": "다른 사람들의 좋아요와 피드백 받기",
+        "portfolio": "나만의 레시피 포트폴리오 구축"
+      }
+    },
+    "collections": {
+      "title": "컬렉션",
+      "description": "좋아하는 레시피를 컬렉션으로 정리하세요.",
+      "benefits": {
+        "themed": "테마별 레시피 컬렉션 만들기",
+        "shareCommunity": "커뮤니티와 컬렉션 공유",
+        "organize": "레시피를 깔끔하게 정리"
+      }
+    }
+  },
+  "home": {
+    "title": "인기 레시피",
+    "subtitle": "커뮤니티에서 가장 인기 있는 레시피",
+    "viewAll": "모든 레시피 보기",
+    "empty": "아직 레시피가 없습니다. 첫 번째 필름 레시피를 공유해 보세요!"
+  },
+  "recipes": {
+    "title": "레시피",
+    "metaDescription": "후지필름 필름 시뮬레이션 레시피 둘러보기",
+    "empty": "레시피를 찾을 수 없습니다. 다른 필터를 시도하거나 첫 번째로 공유해 보세요!"
+  },
+  "recipeDetail": {
+    "deletedTitle": "이 레시피는 삭제되었습니다",
+    "deletedDescription": "해당 레시피는 소유자에 의해 삭제되었거나 신고로 인해 숨김 처리되었습니다.",
+    "noSimilarRecipes": "유사한 레시피를 찾을 수 없습니다.",
+    "similarRecipes": "유사한 레시피"
+  },
+  "recipeHero": {
+    "byAnonymous": "by 익명",
+    "byUser": "by",
+    "viewRecipe": "레시피 보기",
+    "loadingRecipe": "로딩 중...",
+    "failedToLoadSettings": "레시피 설정을 불러오지 못했습니다.",
+    "delete": "삭제",
+    "report": "신고"
+  },
+  "recipeSettings": {
+    "title": "레시피 설정",
+    "filmSimulation": "Film Simulation",
+    "dynamicRange": "Dynamic Range",
+    "grainEffect": "Grain Effect",
+    "colorChrome": "Color Chrome",
+    "colorChromeFXBlue": "Color Chrome FX Blue",
+    "whiteBalance": "화이트 밸런스",
+    "toneCurve": "Tone Curve",
+    "color": "Color",
+    "sharpness": "Sharpness",
+    "noiseReduction": "Noise Reduction",
+    "clarity": "Clarity",
+    "bwAdjustment": "BW Adjustment",
+    "bwMG": "BW M/G",
+    "copyRecipe": "레시피 복사",
+    "copied": "복사됨!"
+  },
+  "recipeBrowse": {
+    "simulationSubtitle": "{name} 필름 시뮬레이션을 사용한 레시피",
+    "cameraSubtitle": "{name}으로 촬영한 필름 시뮬레이션 레시피",
+    "sensorSubtitle": "{name} 센서 카메라의 필름 시뮬레이션 레시피",
+    "lensSubtitle": "{name}으로 촬영한 필름 시뮬레이션 레시피",
+    "emptySimulation": "{name}에 대한 레시피를 찾을 수 없습니다.",
+    "emptyCamera": "{name}에 대한 레시피를 찾을 수 없습니다.",
+    "emptySensor": "{name} 카메라에 대한 레시피를 찾을 수 없습니다.",
+    "emptyLens": "{name}에 대한 레시피를 찾을 수 없습니다."
+  },
+  "upload": {
+    "title": "레시피 업로드",
+    "description": "후지필름 JPEG 또는 RAF 파일을 드롭하여 필름 레시피를 추출하고 공유하세요.",
+    "dropzoneText": "후지필름 이미지를 여기에 드래그 앤 드롭하거나 클릭하여 선택하세요",
+    "dropzoneFormats": "JPG 및 RAF 파일 지원",
+    "tryAnother": "다른 후지필름 이미지 시도하기",
+    "uploading": "업로드 중...",
+    "upload": "업로드",
+    "uploadSuccess": "레시피가 성공적으로 업로드되었습니다",
+    "uploadFailed": "레시피 업로드에 실패했습니다",
+    "notFujifilm": "후지필름 카메라 이미지인지 확인해 주세요",
+    "extractFailed": "메타데이터 추출에 실패했습니다. 후지필름 카메라 이미지인지 확인해 주세요",
+    "rafExtractFailed": "RAF 파일에서 JPEG 미리보기 추출에 실패했습니다",
+    "makerNoteParseFailed": "후지필름 MakerNote 데이터 파싱에 실패했습니다",
+    "termsAgreement": "업로드 시",
+    "termsOfService": "이용약관",
+    "agreeToTerms": "이용약관에 동의합니다",
+    "agreeAndContinue": "동의하고 계속하기",
+    "savingAgreement": "저장 중...",
+    "failedToSaveAgreement": "동의 저장에 실패했습니다"
+  },
+  "filters": {
+    "filter": "필터",
+    "newest": "최신순",
+    "popular": "인기순",
+    "sensor": "센서",
+    "camera": "카메라",
+    "film": "필름",
+    "all": "전체"
+  },
+  "recommend": {
+    "title": "레시피 추천",
+    "subtitle": "사진을 업로드하거나 원하는 분위기를 설명하여 맞는 레시피를 찾아보세요",
+    "viewHistory": "이전 추천 기록 보기",
+    "howItWorks": "이용 방법",
+    "imageSearch": "이미지 검색",
+    "imageSearchDescription": "아무 사진이나 업로드하면 AI가 비슷한 분위기와 색감의 레시피를 찾아줍니다.",
+    "textSearch": "텍스트 검색",
+    "textSearchDescription": "\"따뜻한 일몰 인물 사진\"이나 \"어두운 밤거리\" 같은 원하는 분위기를 설명해 보세요.",
+    "cameraFilter": "카메라 필터",
+    "cameraFilterDescription": "호환되는 레시피 설정을 위해 결과를 카메라 모델로 좁혀 보세요.",
+    "tryExamples": "이런 검색을 해보세요",
+    "image": "이미지",
+    "text": "텍스트",
+    "allCameras": "모든 카메라",
+    "searchSimilar": "유사한 레시피 검색",
+    "uploadPhoto": "어떤 사진이든 업로드하면 맞는 후지필름 레시피를 찾아드립니다",
+    "uploaderFormats": "JPG, PNG, WebP 지원",
+    "textPlaceholder": "예: 따뜻한 일몰 인물 사진, 어두운 밤거리, 빈티지 필름 느낌...",
+    "textHint": "원하는 분위기를 설명하면 맞는 레시피를 찾아드립니다",
+    "noResults": "유사한 레시피를 찾을 수 없습니다. 다른 사진을 업로드하거나 검색어를 변경해 보세요.",
+    "yourPhoto": "내 사진",
+    "yourSearch": "내 검색",
+    "similarRecipes": "유사한 레시피 ({count})",
+    "matchedRecipes": "매칭된 레시피 ({count})",
+    "noResultsHistory": "이 추천에 대한 결과를 찾을 수 없습니다.",
+    "authTitle": "레시피 추천",
+    "authDescription": "로그인하여 사진으로 맞춤 레시피 추천을 받으세요.",
+    "historyTitle": "추천 기록",
+    "historySubtitle": "이전 레시피 추천 검색 기록",
+    "historyEmpty": "추천 기록이 없습니다.",
+    "historyAuthTitle": "추천 기록",
+    "historyAuthDescription": "로그인하여 이전 레시피 추천 기록을 확인하세요.",
+    "textSearches": "텍스트 검색",
+    "imageSearches": "이미지 검색",
+    "showLess": "접기",
+    "viewAllSearches": "전체 {count}개 검색 보기",
+    "backToHistory": "기록으로 돌아가기",
+    "example1": "따뜻한 골든아워 인물",
+    "example2": "차가운 블루 스트리트",
+    "example3": "바랜 빈티지 필름",
+    "example4": "하이 콘트라스트 흑백",
+    "example5": "소프트 파스텔 톤",
+    "example6": "무디한 어두운 카페",
+    "justNow": "방금 전",
+    "minutesAgo": "{count}분 전",
+    "hoursAgo": "{count}시간 전",
+    "daysAgo": "{count}일 전",
+    "weeksAgo": "{count}주 전",
+    "monthsAgo": "{count}개월 전"
+  },
+  "profile": {
+    "title": "프로필 수정",
+    "displayName": "표시 이름",
+    "displayNamePlaceholder": "이름",
+    "username": "사용자 이름",
+    "usernamePlaceholder": "your_username",
+    "usernameHint": "소문자, 숫자, 밑줄만 사용 가능합니다. 공개 프로필은 /u/{username}에서 확인할 수 있습니다",
+    "profileUpdated": "프로필이 업데이트되었습니다",
+    "updateFailed": "프로필 업데이트에 실패했습니다"
+  },
+  "bookmarks": {
+    "title": "북마크",
+    "subtitle": "저장한 레시피",
+    "empty": "아직 북마크가 없습니다.",
+    "authTitle": "북마크",
+    "authDescription": "로그인하여 북마크한 레시피를 확인하세요."
+  },
+  "likes": {
+    "title": "좋아요",
+    "subtitle": "좋아요를 누른 레시피",
+    "empty": "아직 좋아요한 레시피가 없습니다.",
+    "authTitle": "좋아요",
+    "authDescription": "로그인하여 좋아요한 레시피를 확인하세요."
+  },
+  "myRecipes": {
+    "authTitle": "내 레시피",
+    "authDescription": "로그인하여 공유한 레시피를 확인하세요."
+  },
+  "collections": {
+    "title": "컬렉션",
+    "subtitle": "레시피를 컬렉션으로 정리하세요",
+    "empty": "아직 컬렉션이 없습니다. 하나 만들어 시작해 보세요.",
+    "emptyDetail": "이 컬렉션에 아직 레시피가 없습니다.",
+    "authTitle": "컬렉션",
+    "authDescription": "로그인하여 레시피 컬렉션을 만들고 관리하세요.",
+    "newCollection": "새 컬렉션",
+    "new": "새로 만들기",
+    "createCollection": "컬렉션 만들기",
+    "creating": "생성 중...",
+    "name": "이름",
+    "namePlaceholder": "내 컬렉션",
+    "descriptionLabel": "설명 (선택)",
+    "descriptionPlaceholder": "간단한 설명...",
+    "public": "공개",
+    "private": "비공개",
+    "noCollectionsYet": "아직 컬렉션이 없습니다",
+    "recipesCount": "{count}개 레시피",
+    "noRecipesYet": "아직 레시피 없음",
+    "descriptionOptionalPlaceholder": "설명 (선택)",
+    "linkCopied": "링크가 클립보드에 복사되었습니다.",
+    "updateFailed": "컬렉션 업데이트에 실패했습니다.",
+    "addedTo": "{name}에 추가됨",
+    "removedFrom": "{name}에서 제거됨",
+    "toggleError": "문제가 발생했습니다. 다시 시도해 주세요."
+  },
+  "userProfile": {
+    "joined": "가입일 {date}",
+    "editProfile": "프로필 수정",
+    "collectionsTitle": "컬렉션",
+    "noRecipes": "아직 공유된 레시피가 없습니다.",
+    "recipeCount": "{count, plural, one {레시피} other {레시피}}",
+    "likeCount": "{count, plural, one {좋아요} other {좋아요}}",
+    "bookmarkCount": "{count, plural, one {북마크} other {북마크}}"
+  },
+  "dialogs": {
+    "deleteTitle": "이 레시피를 정말 삭제하시겠습니까?",
+    "deleteDescription": "이 작업은 되돌릴 수 없습니다.",
+    "reportTitle": "이 레시피 신고",
+    "reportDescription": "신고 사유를 선택해 주세요.",
+    "reportSuccess": "신고가 성공적으로 접수되었습니다.",
+    "reportDuplicate": "이미 이 레시피를 신고하셨습니다.",
+    "reasonInappropriate": "부적절한 콘텐츠",
+    "reasonSpam": "스팸",
+    "reasonCopyright": "저작권 침해",
+    "reasonOther": "기타",
+    "detailPlaceholder": "상세 설명을 입력해 주세요."
+  },
+  "admin": {
+    "title": "신고 관리",
+    "totalReports": "총 {count}건의 신고",
+    "noReports": "신고 내역이 없습니다.",
+    "tableRecipe": "레시피",
+    "tableReason": "사유",
+    "tableReporter": "신고자",
+    "tableDate": "날짜",
+    "tableReportCount": "신고 수",
+    "tableStatus": "상태",
+    "tableActions": "액션",
+    "statusHidden": "숨김",
+    "statusPublic": "공개",
+    "reasonInappropriate": "부적절한 콘텐츠",
+    "reasonSpam": "스팸",
+    "reasonCopyright": "저작권 침해",
+    "reasonOther": "기타",
+    "dismissReport": "신고 삭제",
+    "dismissReportTitle": "신고 삭제",
+    "dismissReportDescription": "이 신고를 삭제하시겠습니까? 레시피는 유지됩니다.",
+    "restoreRecipe": "레시피 복구",
+    "restoreRecipeTitle": "레시피 복구",
+    "restoreRecipeDescription": "레시피 #{id}를 복구하시겠습니까? 다시 공개 상태로 전환됩니다.",
+    "deleteRecipe": "레시피 삭제",
+    "deleteRecipeTitle": "레시피 삭제",
+    "deleteRecipeDescription": "레시피 #{id}를 삭제(숨김) 처리하시겠습니까?",
+    "dismiss": "삭제",
+    "restore": "복구",
+    "previous": "이전",
+    "next": "다음",
+    "pageOf": "{page} / {totalPages}"
+  },
+  "ui": {
+    "toggleTheme": "테마 변경",
+    "light": "라이트",
+    "dark": "다크",
+    "system": "시스템"
+  },
+  "notFound": {
+    "title": "페이지를 찾을 수 없습니다",
+    "description": "요청하신 페이지가 존재하지 않습니다.",
+    "backHome": "홈으로 돌아가기"
+  }
+}

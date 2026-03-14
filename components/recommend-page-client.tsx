@@ -1,16 +1,18 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { Camera, ImageIcon, MessageSquareText, Sparkles } from "lucide-react";
 import { RecommendUploader } from "@/components/recommend-uploader";
 import { RecommendResults } from "@/components/recommend-results";
 import type { RecommendResult } from "@/components/recommend-uploader";
+import { useTranslations } from "next-intl";
 
 export function RecommendPageClient() {
   const [result, setResult] = useState<RecommendResult | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [exampleLoading, setExampleLoading] = useState<string | null>(null);
+  const t = useTranslations("recommend");
 
   const handleResult = (
     newResult: RecommendResult,
@@ -22,6 +24,15 @@ export function RecommendPageClient() {
     setResult(newResult);
     setPreviewUrl(newPreviewUrl);
   };
+
+  const examples = [
+    { key: "example1", text: t("example1") },
+    { key: "example2", text: t("example2") },
+    { key: "example3", text: t("example3") },
+    { key: "example4", text: t("example4") },
+    { key: "example5", text: t("example5") },
+    { key: "example6", text: t("example6") },
+  ];
 
   const handleExampleClick = async (text: string) => {
     setExampleLoading(text);
@@ -52,17 +63,16 @@ export function RecommendPageClient() {
       <div className="flex flex-col gap-6">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">
-            Recipe Recommendations
+            {t("title")}
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Upload a photo or describe the look you want to find matching
-            recipes
+            {t("subtitle")}
           </p>
           <Link
             href="/recommend/history"
             className="text-sm text-muted-foreground hover:text-foreground underline mt-1 inline-block"
           >
-            View past recommendations
+            {t("viewHistory")}
           </Link>
         </div>
 
@@ -77,61 +87,54 @@ export function RecommendPageClient() {
         ) : (
           <div className="flex flex-col gap-6">
             <h2 className="text-sm font-medium text-muted-foreground">
-              How it works
+              {t("howItWorks")}
             </h2>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
               <div className="flex flex-col gap-2 rounded-lg border border-border p-4">
                 <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
                   <ImageIcon className="h-4 w-4" />
                 </div>
-                <h3 className="text-sm font-semibold">Image Search</h3>
+                <h3 className="text-sm font-semibold">{t("imageSearch")}</h3>
                 <p className="text-xs text-muted-foreground leading-relaxed">
-                  Upload any photo and AI will find recipes with a similar look and color tone.
+                  {t("imageSearchDescription")}
                 </p>
               </div>
               <div className="flex flex-col gap-2 rounded-lg border border-border p-4">
                 <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
                   <MessageSquareText className="h-4 w-4" />
                 </div>
-                <h3 className="text-sm font-semibold">Text Search</h3>
+                <h3 className="text-sm font-semibold">{t("textSearch")}</h3>
                 <p className="text-xs text-muted-foreground leading-relaxed">
-                  Describe the look you want, like &quot;warm sunset portrait&quot; or &quot;moody street at night&quot;.
+                  {t("textSearchDescription")}
                 </p>
               </div>
               <div className="flex flex-col gap-2 rounded-lg border border-border p-4">
                 <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
                   <Camera className="h-4 w-4" />
                 </div>
-                <h3 className="text-sm font-semibold">Camera Filter</h3>
+                <h3 className="text-sm font-semibold">{t("cameraFilter")}</h3>
                 <p className="text-xs text-muted-foreground leading-relaxed">
-                  Narrow results to your camera model for compatible recipe settings.
+                  {t("cameraFilterDescription")}
                 </p>
               </div>
             </div>
 
             <div>
               <h2 className="text-sm font-medium text-muted-foreground mb-3">
-                Try these examples
+                {t("tryExamples")}
               </h2>
               <div className="flex flex-wrap gap-2">
-                {[
-                  "warm golden hour portrait",
-                  "cool blue street photography",
-                  "faded vintage film look",
-                  "high contrast black and white",
-                  "soft pastel tones",
-                  "moody dark cafe",
-                ].map((example) => (
+                {examples.map((example) => (
                   <button
-                    key={example}
-                    onClick={() => handleExampleClick(example)}
+                    key={example.key}
+                    onClick={() => handleExampleClick(example.text)}
                     disabled={exampleLoading !== null}
                     className="rounded-md border border-border px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:border-foreground/30 hover:text-foreground disabled:opacity-50"
                   >
-                    {exampleLoading === example ? (
+                    {exampleLoading === example.text ? (
                       <Sparkles className="inline h-3 w-3 animate-pulse" />
                     ) : (
-                      example
+                      example.text
                     )}
                   </button>
                 ))}

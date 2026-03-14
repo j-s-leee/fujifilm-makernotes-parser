@@ -1,6 +1,9 @@
+"use client";
+
 import Image from "next/image";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { Lock } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 interface CollectionCardProps {
   collection: {
@@ -19,6 +22,8 @@ export function CollectionCard({
   collection,
   coverImages,
 }: CollectionCardProps) {
+  const t = useTranslations("collections");
+
   return (
     <Link
       href={`/collections/${collection.id}`}
@@ -28,7 +33,7 @@ export function CollectionCard({
       <div className="relative aspect-[4/3] overflow-hidden bg-muted">
         {coverImages.length === 0 && (
           <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
-            No recipes yet
+            {t("noRecipesYet")}
           </div>
         )}
         {coverImages.length === 1 && (
@@ -83,7 +88,7 @@ export function CollectionCard({
           )}
         </div>
         <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-          <span>{collection.item_count} recipes</span>
+          <span>{t("recipesCount", { count: collection.item_count })}</span>
           {(collection.user_username || collection.user_display_name) && (
             <>
               <span>·</span>

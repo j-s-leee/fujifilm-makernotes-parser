@@ -17,6 +17,7 @@ import { Label } from "@/components/ui/label";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { useCollections } from "@/contexts/collections-context";
 import { Globe, Lock } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 interface CollectionCreateDialogProps {
   open: boolean;
@@ -31,6 +32,7 @@ export function CollectionCreateDialog({
 }: CollectionCreateDialogProps) {
   const isDesktop = useMediaQuery("(min-width: 640px)");
   const { createCollection } = useCollections();
+  const t = useTranslations("collections");
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [isPublic, setIsPublic] = useState(true);
@@ -61,10 +63,10 @@ export function CollectionCreateDialog({
   const content = (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4 p-6 pt-2">
       <div className="flex flex-col gap-2">
-        <Label htmlFor="collection-name">Name</Label>
+        <Label htmlFor="collection-name">{t("name")}</Label>
         <Input
           id="collection-name"
-          placeholder="My Collection"
+          placeholder={t("namePlaceholder")}
           value={name}
           onChange={(e) => setName(e.target.value)}
           autoFocus
@@ -73,10 +75,10 @@ export function CollectionCreateDialog({
       </div>
 
       <div className="flex flex-col gap-2">
-        <Label htmlFor="collection-description">Description (optional)</Label>
+        <Label htmlFor="collection-description">{t("descriptionLabel")}</Label>
         <Input
           id="collection-description"
-          placeholder="A brief description..."
+          placeholder={t("descriptionPlaceholder")}
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           maxLength={300}
@@ -92,19 +94,19 @@ export function CollectionCreateDialog({
           {isPublic ? (
             <>
               <Globe className="h-4 w-4" />
-              Public
+              {t("public")}
             </>
           ) : (
             <>
               <Lock className="h-4 w-4" />
-              Private
+              {t("private")}
             </>
           )}
         </button>
       </div>
 
       <Button type="submit" disabled={!name.trim() || creating}>
-        {creating ? "Creating..." : "Create Collection"}
+        {creating ? t("creating") : t("createCollection")}
       </Button>
     </form>
   );
@@ -114,7 +116,7 @@ export function CollectionCreateDialog({
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="max-w-sm p-0 pt-8">
           <DialogTitle className="px-6 text-lg font-semibold">
-            New Collection
+            {t("newCollection")}
           </DialogTitle>
           {content}
         </DialogContent>
@@ -125,7 +127,7 @@ export function CollectionCreateDialog({
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
       <DrawerContent>
-        <DrawerTitle className="px-6 pt-4 text-lg font-semibold">New Collection</DrawerTitle>
+        <DrawerTitle className="px-6 pt-4 text-lg font-semibold">{t("newCollection")}</DrawerTitle>
         {content}
       </DrawerContent>
     </Drawer>

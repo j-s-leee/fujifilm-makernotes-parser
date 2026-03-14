@@ -6,6 +6,7 @@ import { Upload, Loader2, Search, Camera, X } from "lucide-react";
 import Image from "next/image";
 import { compressImageToThumbnail } from "@/lib/compress-image";
 import { ALL_CAMERA_MODELS } from "@/fujifilm/cameras";
+import { useTranslations } from "next-intl";
 import type { GalleryRecipe } from "@/components/gallery-card";
 
 interface RecommendResult {
@@ -34,6 +35,7 @@ export function RecommendUploader({ onResult }: RecommendUploaderProps) {
   const [cameraModel, setCameraModel] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const t = useTranslations("recommend");
 
   useEffect(() => {
     return () => {
@@ -153,7 +155,7 @@ export function RecommendUploader({ onResult }: RecommendUploaderProps) {
             }`}
           >
             <Upload className="h-3.5 w-3.5" />
-            Image
+            {t("image")}
           </button>
           <button
             onClick={() => setMode("text")}
@@ -164,7 +166,7 @@ export function RecommendUploader({ onResult }: RecommendUploaderProps) {
             }`}
           >
             <Search className="h-3.5 w-3.5" />
-            Text
+            {t("text")}
           </button>
         </div>
 
@@ -175,7 +177,7 @@ export function RecommendUploader({ onResult }: RecommendUploaderProps) {
             onChange={(e) => setCameraModel(e.target.value)}
             className="h-8 appearance-none rounded-lg border border-border bg-background pl-8 pr-8 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
           >
-            <option value="">All cameras</option>
+            <option value="">{t("allCameras")}</option>
             {ALL_CAMERA_MODELS.map((model) => (
               <option key={model} value={model}>
                 {model}
@@ -213,7 +215,7 @@ export function RecommendUploader({ onResult }: RecommendUploaderProps) {
               ) : (
                 <Search className="h-4 w-4" />
               )}
-              Search similar recipes
+              {t("searchSimilar")}
             </button>
           </div>
         ) : (
@@ -228,10 +230,10 @@ export function RecommendUploader({ onResult }: RecommendUploaderProps) {
             <input {...getInputProps()} />
             <Upload className="h-10 w-10 mb-4 text-muted-foreground" />
             <p className="text-sm text-foreground mb-1">
-              Upload any photo to find matching Fujifilm recipes
+              {t("uploadPhoto")}
             </p>
             <p className="text-xs text-muted-foreground">
-              Supports JPG, PNG, and WebP
+              {t("uploaderFormats")}
             </p>
           </div>
         )
@@ -242,7 +244,7 @@ export function RecommendUploader({ onResult }: RecommendUploaderProps) {
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="e.g. warm sunset portrait, moody street at night, vintage film look..."
+              placeholder={t("textPlaceholder")}
               className="flex-1 rounded-lg border border-border bg-background px-4 py-3 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
               maxLength={500}
             />
@@ -259,7 +261,7 @@ export function RecommendUploader({ onResult }: RecommendUploaderProps) {
             </button>
           </div>
           <p className="text-xs text-muted-foreground">
-            Describe the look you want and we&apos;ll find matching recipes
+            {t("textHint")}
           </p>
         </form>
       )}

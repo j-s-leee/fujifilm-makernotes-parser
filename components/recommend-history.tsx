@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { ChevronDown, ImageIcon, MessageSquareText, Search } from "lucide-react";
 import Image from "next/image";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 
 interface TextItem {
   id: number;
@@ -27,45 +28,46 @@ interface RecommendHistoryProps {
 
 const TEXT_PREVIEW_COUNT = 5;
 
-function relativeDate(dateStr: string): string {
-  const now = Date.now();
-  const diff = now - new Date(dateStr).getTime();
-  const seconds = Math.floor(diff / 1000);
-  const minutes = Math.floor(seconds / 60);
-  const hours = Math.floor(minutes / 60);
-  const days = Math.floor(hours / 24);
-  const weeks = Math.floor(days / 7);
-  const months = Math.floor(days / 30);
-
-  if (seconds < 60) return "just now";
-  if (minutes < 60) return `${minutes}m ago`;
-  if (hours < 24) return `${hours}h ago`;
-  if (days < 7) return `${days}d ago`;
-  if (weeks < 5) return `${weeks}w ago`;
-  return `${months}mo ago`;
-}
-
 export function RecommendHistory({ textItems, imageItems }: RecommendHistoryProps) {
   const [textExpanded, setTextExpanded] = useState(false);
+  const t = useTranslations("recommend");
   const hasItems = textItems.length > 0 || imageItems.length > 0;
   const hasMoreText = textItems.length > TEXT_PREVIEW_COUNT;
   const visibleTextItems = textExpanded ? textItems : textItems.slice(0, TEXT_PREVIEW_COUNT);
+
+  const relativeDate = (dateStr: string): string => {
+    const now = Date.now();
+    const diff = now - new Date(dateStr).getTime();
+    const seconds = Math.floor(diff / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
+    const weeks = Math.floor(days / 7);
+    const months = Math.floor(days / 30);
+
+    if (seconds < 60) return t("justNow");
+    if (minutes < 60) return t("minutesAgo", { count: minutes });
+    if (hours < 24) return t("hoursAgo", { count: hours });
+    if (days < 7) return t("daysAgo", { count: days });
+    if (weeks < 5) return t("weeksAgo", { count: weeks });
+    return t("monthsAgo", { count: months });
+  };
 
   return (
     <div className="container py-8 md:py-12">
       <div className="flex flex-col gap-8">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">
-            Recommendation History
+            {t("historyTitle")}
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Your past recipe recommendation searches
+            {t("historySubtitle")}
           </p>
         </div>
 
         {!hasItems && (
           <p className="text-center text-sm text-muted-foreground py-20">
-            No recommendation history yet.
+            {t("historyEmpty")}
           </p>
         )}
 
@@ -77,7 +79,7 @@ export function RecommendHistory({ textItems, imageItems }: RecommendHistoryProp
                 <div className="flex items-center gap-2">
                   <MessageSquareText className="h-4 w-4 text-muted-foreground" />
                   <h2 className="text-sm font-medium text-muted-foreground">
-                    Text Searches
+                    {t("textSearches")}
                   </h2>
                   <span className="text-xs text-muted-foreground">
                     ({textItems.length})
@@ -105,7 +107,7 @@ export function RecommendHistory({ textItems, imageItems }: RecommendHistoryProp
                     onClick={() => setTextExpanded(!textExpanded)}
                     className="flex items-center justify-center gap-1.5 rounded-lg border border-border px-3 py-2 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                   >
-                    {textExpanded ? "Show less" : `View all ${textItems.length} searches`}
+                    {textExpanded ? t("showLess") : t("viewAllSearches", { count: textItems.length })}
                     <ChevronDown
                       className={`h-3 w-3 transition-transform ${textExpanded ? "rotate-180" : ""}`}
                     />
@@ -120,7 +122,7 @@ export function RecommendHistory({ textItems, imageItems }: RecommendHistoryProp
                 <div className="flex items-center gap-2">
                   <ImageIcon className="h-4 w-4 text-muted-foreground" />
                   <h2 className="text-sm font-medium text-muted-foreground">
-                    Image Searches
+                    {t("imageSearches")}
                   </h2>
                   <span className="text-xs text-muted-foreground">
                     ({imageItems.length})

@@ -1,0 +1,67 @@
+import { notFound } from "next/navigation";
+import type { Metadata } from "next";
+import { createStaticClient } from "@/lib/supabase/server";
+import { GalleryGrid } from "@/components/gallery-grid";
+import { fromSensorSlug, toSlug } from "@/lib/slug";
+import { SENSOR_GENERATIONS } from "@/fujifilm/cameras";
+import { GALLERY_SELECT } from "@/lib/queries";
+import { getTranslations, setRequestLocale } from "next-intl/server";
+
+export const revalidate = 3600;
+
+interface Props {
+  params: Promise<{ slug: string; locale: string }>;
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug } = await params;
+  const sensor = fromSensorSlug(slug);
+
+  if (!sensor) return {};
+
+  return {
+    title: `${sensor} Recipes`,
+    description: `Browse Fujifilm film simulation recipes from ${sensor} sensor cameras.`,
+  };
+}
+
+export default async function SensorPage({ params }: Props) {
+  const { slug, locale } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations({ locale, namespace: "recipeBrowse" });
+  const sensor = fromSensorSlug(slug);
+  if (!sensor) notFound();
+
+  const supabase = createStaticClient();
+
+  const { data: recipes } = await supabase
+    .from("recipes_with_stats")
+    .select(GALLERY_SELECT)
+    .eq("sensor_generation", sensor)
+    .order("created_at", { ascending: false })
+    .limit(24);
+
+  return (
+    <div className="container py-8 md:py-12">
+      <div className="flex flex-col gap-6">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">{sensor}</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            {t("sensorSubtitle", { name: sensor })}
+          </p>
+        </div>
+        {recipes && recipes.length > 0 ? (
+          <GalleryGrid initialRecipes={recipes} sensor={sensor} />
+        ) : (
+          <p className="text-center text-sm text-muted-foreground py-20">
+            {t("emptySensor", { name: sensor })}
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+export async function generateStaticParams() {
+  return SENSOR_GENERATIONS.map((g) => ({ slug: toSlug(g) }));
+}

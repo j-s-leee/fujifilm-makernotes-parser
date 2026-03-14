@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ChevronDown, Loader2, SlidersHorizontal, X } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 interface RecipeFiltersProps {
   params: {
@@ -40,6 +41,7 @@ export function RecipeFilters({
   isPending,
 }: RecipeFiltersProps) {
   const [open, setOpen] = useState(true);
+  const t = useTranslations("filters");
 
   const activeFilters: { label: string; clearUrl: string }[] = [];
   if (params.sensor) {
@@ -85,7 +87,7 @@ export function RecipeFilters({
           ) : (
             <SlidersHorizontal className="h-3 w-3" />
           )}
-          Filter
+          {t("filter")}
           {activeFilters.length > 0 && (
             <span className="ml-0.5 rounded-full bg-background text-foreground px-1.5 text-[10px] leading-4">
               {activeFilters.length}
@@ -118,7 +120,7 @@ export function RecipeFilters({
                 : "text-muted-foreground"
             }`}
           >
-            Newest
+            {t("newest")}
           </button>
           <button
             onClick={() => navigate(buildUrl(params, { sort: "popular" }))}
@@ -128,7 +130,7 @@ export function RecipeFilters({
                 : "text-muted-foreground"
             }`}
           >
-            Popular
+            {t("popular")}
           </button>
         </div>
       </div>
@@ -139,14 +141,14 @@ export function RecipeFilters({
           {/* Sensor */}
           <div className="flex flex-col gap-1.5">
             <span className="text-xs font-medium text-muted-foreground">
-              Sensor
+              {t("sensor")}
             </span>
             <div className="flex gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:flex-wrap sm:overflow-visible">
               <button
                 onClick={() => navigate(buildUrl(params, { sensor: undefined }))}
                 className={`${pillBase} ${!params.sensor ? pillActive : pillInactive}`}
               >
-                All
+                {t("all")}
               </button>
               {sensorGenerations.map((gen) => (
                 <button
@@ -163,14 +165,14 @@ export function RecipeFilters({
           {/* Camera */}
           <div className="flex flex-col gap-1.5">
             <span className="text-xs font-medium text-muted-foreground">
-              Camera
+              {t("camera")}
             </span>
             <div className="flex gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:flex-wrap sm:overflow-visible">
               <button
                 onClick={() => navigate(buildUrl(params, { camera: undefined }))}
                 className={`${pillBase} ${!params.camera ? pillActive : pillInactive}`}
               >
-                All
+                {t("all")}
               </button>
               {cameraModels.map((model) => (
                 <button
@@ -187,14 +189,14 @@ export function RecipeFilters({
           {/* Simulation */}
           <div className="flex flex-col gap-1.5">
             <span className="text-xs font-medium text-muted-foreground">
-              Film
+              {t("film")}
             </span>
             <div className="flex gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:flex-wrap sm:overflow-visible">
               <button
                 onClick={() => navigate(buildUrl(params, { simulation: undefined }))}
                 className={`${pillBase} ${!params.simulation ? pillActive : pillInactive}`}
               >
-                All
+                {t("all")}
               </button>
               {simulationOptions.map((opt) => (
                 <button

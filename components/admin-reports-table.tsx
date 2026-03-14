@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { Loader2, Trash2, RotateCcw, Ban, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,6 +16,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { useTranslations, useLocale } from "next-intl";
 
 interface Report {
   id: number;
@@ -30,13 +31,6 @@ interface Report {
   recipe_report_count: number;
 }
 
-const REASON_LABELS: Record<string, string> = {
-  inappropriate: "부적절한 콘텐츠",
-  spam: "스팸",
-  copyright: "저작권 침해",
-  other: "기타",
-};
-
 interface AdminReportsTableProps {
   reports: Report[];
   page: number;
@@ -46,6 +40,16 @@ interface AdminReportsTableProps {
 export function AdminReportsTable({ reports, page, totalPages }: AdminReportsTableProps) {
   const router = useRouter();
   const [loadingId, setLoadingId] = useState<string | null>(null);
+  const t = useTranslations("admin");
+  const tCommon = useTranslations("common");
+  const locale = useLocale();
+
+  const REASON_LABELS: Record<string, string> = {
+    inappropriate: t("reasonInappropriate"),
+    spam: t("reasonSpam"),
+    copyright: t("reasonCopyright"),
+    other: t("reasonOther"),
+  };
 
   const handleDismiss = async (reportId: number) => {
     setLoadingId(`dismiss-${reportId}`);
@@ -86,7 +90,7 @@ export function AdminReportsTable({ reports, page, totalPages }: AdminReportsTab
   if (reports.length === 0) {
     return (
       <p className="py-20 text-center text-sm text-muted-foreground">
-        신고 내역이 없습니다.
+        {t("noReports")}
       </p>
     );
   }
@@ -97,13 +101,13 @@ export function AdminReportsTable({ reports, page, totalPages }: AdminReportsTab
       <table className="w-full text-sm">
         <thead className="border-b border-border bg-muted/50">
           <tr>
-            <th className="px-4 py-3 text-left font-medium">레시피</th>
-            <th className="px-4 py-3 text-left font-medium">사유</th>
-            <th className="px-4 py-3 text-left font-medium">신고자</th>
-            <th className="px-4 py-3 text-left font-medium">날짜</th>
-            <th className="px-4 py-3 text-left font-medium">신고 수</th>
-            <th className="px-4 py-3 text-left font-medium">상태</th>
-            <th className="px-4 py-3 text-left font-medium">액션</th>
+            <th className="px-4 py-3 text-left font-medium">{t("tableRecipe")}</th>
+            <th className="px-4 py-3 text-left font-medium">{t("tableReason")}</th>
+            <th className="px-4 py-3 text-left font-medium">{t("tableReporter")}</th>
+            <th className="px-4 py-3 text-left font-medium">{t("tableDate")}</th>
+            <th className="px-4 py-3 text-left font-medium">{t("tableReportCount")}</th>
+            <th className="px-4 py-3 text-left font-medium">{t("tableStatus")}</th>
+            <th className="px-4 py-3 text-left font-medium">{t("tableActions")}</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-border">
@@ -135,7 +139,7 @@ export function AdminReportsTable({ reports, page, totalPages }: AdminReportsTab
                   : report.reporter_name}
               </td>
               <td className="px-4 py-3 text-muted-foreground">
-                {new Date(report.created_at).toLocaleDateString("ko-KR")}
+                {new Date(report.created_at).toLocaleDateString(locale)}
               </td>
               <td className="px-4 py-3 text-center">
                 <span
@@ -151,24 +155,24 @@ export function AdminReportsTable({ reports, page, totalPages }: AdminReportsTab
               <td className="px-4 py-3">
                 {report.recipe_deleted ? (
                   <span className="rounded-full bg-destructive/10 px-2 py-0.5 text-xs text-destructive">
-                    숨김
+                    {t("statusHidden")}
                   </span>
                 ) : (
                   <span className="rounded-full bg-green-500/10 px-2 py-0.5 text-xs text-green-600 dark:text-green-400">
-                    공개
+                    {t("statusPublic")}
                   </span>
                 )}
               </td>
               <td className="px-4 py-3">
                 <div className="flex items-center gap-1">
-                  {/* 신고 삭제 */}
+                  {/* Dismiss Report */}
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
                       <Button
                         variant="ghost"
                         size="sm"
                         disabled={loadingId !== null}
-                        title="신고 삭제"
+                        title={t("dismissReport")}
                       >
                         {loadingId === `dismiss-${report.id}` ? (
                           <Loader2 className="h-4 w-4 animate-spin" />
@@ -179,21 +183,21 @@ export function AdminReportsTable({ reports, page, totalPages }: AdminReportsTab
                     </AlertDialogTrigger>
                     <AlertDialogContent>
                       <AlertDialogHeader>
-                        <AlertDialogTitle>신고 삭제</AlertDialogTitle>
+                        <AlertDialogTitle>{t("dismissReportTitle")}</AlertDialogTitle>
                         <AlertDialogDescription>
-                          이 신고를 삭제하시겠습니까? 레시피는 유지됩니다.
+                          {t("dismissReportDescription")}
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
-                        <AlertDialogCancel>취소</AlertDialogCancel>
+                        <AlertDialogCancel>{tCommon("cancel")}</AlertDialogCancel>
                         <AlertDialogAction onClick={() => handleDismiss(report.id)}>
-                          삭제
+                          {t("dismiss")}
                         </AlertDialogAction>
                       </AlertDialogFooter>
                     </AlertDialogContent>
                   </AlertDialog>
 
-                  {/* 레시피 복구 / 삭제 */}
+                  {/* Restore / Delete Recipe */}
                   {report.recipe_deleted ? (
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
@@ -201,7 +205,7 @@ export function AdminReportsTable({ reports, page, totalPages }: AdminReportsTab
                           variant="ghost"
                           size="sm"
                           disabled={loadingId !== null}
-                          title="레시피 복구"
+                          title={t("restoreRecipe")}
                         >
                           {loadingId === `restore-${report.recipe_id}` ? (
                             <Loader2 className="h-4 w-4 animate-spin" />
@@ -212,15 +216,15 @@ export function AdminReportsTable({ reports, page, totalPages }: AdminReportsTab
                       </AlertDialogTrigger>
                       <AlertDialogContent>
                         <AlertDialogHeader>
-                          <AlertDialogTitle>레시피 복구</AlertDialogTitle>
+                          <AlertDialogTitle>{t("restoreRecipeTitle")}</AlertDialogTitle>
                           <AlertDialogDescription>
-                            레시피 #{report.recipe_id}를 복구하시겠습니까? 다시 공개 상태로 전환됩니다.
+                            {t("restoreRecipeDescription", { id: report.recipe_id })}
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
-                          <AlertDialogCancel>취소</AlertDialogCancel>
+                          <AlertDialogCancel>{tCommon("cancel")}</AlertDialogCancel>
                           <AlertDialogAction onClick={() => handleRestore(report.recipe_id)}>
-                            복구
+                            {t("restore")}
                           </AlertDialogAction>
                         </AlertDialogFooter>
                       </AlertDialogContent>
@@ -232,7 +236,7 @@ export function AdminReportsTable({ reports, page, totalPages }: AdminReportsTab
                           variant="ghost"
                           size="sm"
                           disabled={loadingId !== null}
-                          title="레시피 삭제"
+                          title={t("deleteRecipe")}
                           className="text-destructive hover:text-destructive"
                         >
                           {loadingId === `delete-${report.recipe_id}` ? (
@@ -244,18 +248,18 @@ export function AdminReportsTable({ reports, page, totalPages }: AdminReportsTab
                       </AlertDialogTrigger>
                       <AlertDialogContent>
                         <AlertDialogHeader>
-                          <AlertDialogTitle>레시피 삭제</AlertDialogTitle>
+                          <AlertDialogTitle>{t("deleteRecipeTitle")}</AlertDialogTitle>
                           <AlertDialogDescription>
-                            레시피 #{report.recipe_id}를 삭제(숨김) 처리하시겠습니까?
+                            {t("deleteRecipeDescription", { id: report.recipe_id })}
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
-                          <AlertDialogCancel>취소</AlertDialogCancel>
+                          <AlertDialogCancel>{tCommon("cancel")}</AlertDialogCancel>
                           <AlertDialogAction
                             onClick={() => handleDelete(report.recipe_id)}
                             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                           >
-                            삭제
+                            {tCommon("delete")}
                           </AlertDialogAction>
                         </AlertDialogFooter>
                       </AlertDialogContent>
@@ -279,17 +283,17 @@ export function AdminReportsTable({ reports, page, totalPages }: AdminReportsTab
           {page > 1 ? (
             <Link href={`/admin/reports?page=${page - 1}`}>
               <ChevronLeft className="mr-1 h-4 w-4" />
-              이전
+              {t("previous")}
             </Link>
           ) : (
             <span>
               <ChevronLeft className="mr-1 h-4 w-4" />
-              이전
+              {t("previous")}
             </span>
           )}
         </Button>
         <span className="text-sm text-muted-foreground">
-          {page} / {totalPages}
+          {t("pageOf", { page, totalPages })}
         </span>
         <Button
           variant="outline"
@@ -299,12 +303,12 @@ export function AdminReportsTable({ reports, page, totalPages }: AdminReportsTab
         >
           {page < totalPages ? (
             <Link href={`/admin/reports?page=${page + 1}`}>
-              다음
+              {t("next")}
               <ChevronRight className="ml-1 h-4 w-4" />
             </Link>
           ) : (
             <span>
-              다음
+              {t("next")}
               <ChevronRight className="ml-1 h-4 w-4" />
             </span>
           )}

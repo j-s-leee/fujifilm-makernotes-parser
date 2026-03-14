@@ -1,8 +1,9 @@
 "use client";
 
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useUser } from "@/hooks/use-user";
+import { useTranslations, useLocale } from "next-intl";
 
 interface UserProfileHeaderProps {
   profile: {
@@ -22,6 +23,8 @@ interface UserProfileHeaderProps {
 export function UserProfileHeader({ profile, stats }: UserProfileHeaderProps) {
   const { user } = useUser();
   const isOwner = user?.id === profile.id;
+  const t = useTranslations("userProfile");
+  const locale = useLocale();
 
   const initials = profile.displayName
     ? profile.displayName
@@ -32,7 +35,7 @@ export function UserProfileHeader({ profile, stats }: UserProfileHeaderProps) {
         .slice(0, 2)
     : "?";
 
-  const joinedDate = new Date(stats.joinedAt).toLocaleDateString("en-US", {
+  const joinedDate = new Date(stats.joinedAt).toLocaleDateString(locale, {
     month: "short",
     year: "numeric",
   });
@@ -55,14 +58,14 @@ export function UserProfileHeader({ profile, stats }: UserProfileHeaderProps) {
             <p className="text-sm text-muted-foreground">@{profile.username}</p>
           )}
           <p className="text-xs text-muted-foreground">
-            Joined {joinedDate}
+            {t("joined", { date: joinedDate })}
           </p>
           {isOwner && (
             <Link
               href="/profile"
               className="mt-1 text-sm font-medium text-primary hover:underline"
             >
-              Edit Profile
+              {t("editProfile")}
             </Link>
           )}
         </div>
@@ -72,19 +75,19 @@ export function UserProfileHeader({ profile, stats }: UserProfileHeaderProps) {
         <div className="rounded-lg border border-border bg-card px-4 py-3 text-center">
           <p className="text-2xl font-bold tracking-tight">{stats.recipeCount}</p>
           <p className="text-xs text-muted-foreground">
-            {stats.recipeCount === 1 ? "Recipe" : "Recipes"}
+            {t("recipeCount", { count: stats.recipeCount })}
           </p>
         </div>
         <div className="rounded-lg border border-border bg-card px-4 py-3 text-center">
           <p className="text-2xl font-bold tracking-tight">{stats.totalLikes}</p>
           <p className="text-xs text-muted-foreground">
-            {stats.totalLikes === 1 ? "Like" : "Likes"}
+            {t("likeCount", { count: stats.totalLikes })}
           </p>
         </div>
         <div className="rounded-lg border border-border bg-card px-4 py-3 text-center">
           <p className="text-2xl font-bold tracking-tight">{stats.totalBookmarks}</p>
           <p className="text-xs text-muted-foreground">
-            {stats.totalBookmarks === 1 ? "Bookmark" : "Bookmarks"}
+            {t("bookmarkCount", { count: stats.totalBookmarks })}
           </p>
         </div>
       </div>

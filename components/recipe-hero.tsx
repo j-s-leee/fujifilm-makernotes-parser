@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import {
   Heart,
   Bookmark,
@@ -28,6 +28,7 @@ import { getThumbnailUrl } from "@/lib/get-thumbnail-url";
 import { toSlug } from "@/lib/slug";
 import dynamic from "next/dynamic";
 import type { RecipeSettingsRecipe } from "@/components/recipe-settings";
+import { useTranslations } from "next-intl";
 
 const CollectionPopover = dynamic(
   () =>
@@ -85,6 +86,8 @@ export function RecipeHero({ recipe, sharer }: RecipeHeroProps) {
   const [settingsLoading, setSettingsLoading] = useState(false);
   const { user } = useUser();
   const isOwner = user?.id === sharer?.userId;
+  const t = useTranslations("recipeHero");
+  const tCommon = useTranslations("common");
   const {
     bookmarks,
     likes,
@@ -137,11 +140,11 @@ export function RecipeHero({ recipe, sharer }: RecipeHeroProps) {
         if (res.ok) {
           setSettingsRecipe(await res.json());
         } else {
-          toast.error("Failed to load recipe settings.");
+          toast.error(t("failedToLoadSettings"));
           setSettingsOpen(false);
         }
       } catch {
-        toast.error("Failed to load recipe settings.");
+        toast.error(t("failedToLoadSettings"));
         setSettingsOpen(false);
       } finally {
         setSettingsLoading(false);
@@ -170,7 +173,7 @@ export function RecipeHero({ recipe, sharer }: RecipeHeroProps) {
         </div>
       ) : (
         <div className="flex aspect-square w-full items-center justify-center rounded-xl bg-muted text-sm text-muted-foreground">
-          No image
+          {tCommon("noImage")}
         </div>
       )}
 
@@ -203,14 +206,14 @@ export function RecipeHero({ recipe, sharer }: RecipeHeroProps) {
                 href={profileHref!}
                 className="truncate text-sm text-muted-foreground transition-colors hover:text-foreground"
               >
-                by{" "}
+                {t("byUser")}{" "}
                 <span className="font-medium">
                   {sharer.username ? `@${sharer.username}` : sharer.displayName}
                 </span>
               </Link>
             ) : (
               <span className="text-sm text-muted-foreground">
-                by Anonymous
+                {t("byAnonymous")}
               </span>
             )}
           </div>
@@ -265,12 +268,12 @@ export function RecipeHero({ recipe, sharer }: RecipeHeroProps) {
                   {isOwner ? (
                     <DropdownMenuItem onClick={() => setDeleteOpen(true)}>
                       <Trash2 className="h-4 w-4" />
-                      Delete
+                      {t("delete")}
                     </DropdownMenuItem>
                   ) : (
                     <DropdownMenuItem onClick={() => setReportOpen(true)}>
                       <Flag className="h-4 w-4" />
-                      Report
+                      {t("report")}
                     </DropdownMenuItem>
                   )}
                 </DropdownMenuContent>
@@ -312,7 +315,7 @@ export function RecipeHero({ recipe, sharer }: RecipeHeroProps) {
           ) : (
             <NotebookText className="h-4 w-4" />
           )}
-          {settingsLoading ? "Loading..." : "View Recipe"}
+          {settingsLoading ? t("loadingRecipe") : t("viewRecipe")}
         </button>
       </div>
 
