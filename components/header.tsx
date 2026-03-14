@@ -24,9 +24,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ModeToggle } from "@/components/mode-toggle";
+import { LocaleSwitcher } from "@/components/locale-switcher";
 import dynamic from "next/dynamic";
 import type { LoginFeature } from "@/components/login-prompt-modal";
 import { useUser } from "@/hooks/use-user";
+import { useTranslations } from "next-intl";
 
 const UploadRecipeModal = dynamic(
   () =>
@@ -45,8 +47,7 @@ const LoginPromptModal = dynamic(
 );
 import { createClient } from "@/lib/supabase/client";
 import Image from "next/image";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { Link, useRouter } from "@/i18n/navigation";
 
 function getInitials(name: string | null | undefined): string {
   if (!name) return "?";
@@ -61,6 +62,7 @@ function getInitials(name: string | null | undefined): string {
 export function Header() {
   const { user, loading } = useUser();
   const router = useRouter();
+  const t = useTranslations("nav");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const [loginPromptFeature, setLoginPromptFeature] =
@@ -139,35 +141,35 @@ export function Header() {
             <nav className="hidden items-center gap-5 lg:flex">
               <Link href="/recipes" className={navLinkClass}>
                 <SlidersHorizontal className="h-4 w-4" />
-                Recipes
+                {t("recipes")}
               </Link>
               <button
                 onClick={() => navOrPrompt("/recommend", "recommend")}
                 className={navLinkClass}
               >
                 <ScanSearch className="h-4 w-4" />
-                Recommend
+                {t("recommend")}
               </button>
               <button
                 onClick={() => navOrPrompt("/bookmarks", "bookmarks")}
                 className={navLinkClass}
               >
                 <Bookmark className="h-4 w-4" />
-                Bookmarks
+                {t("bookmarks")}
               </button>
               <button
                 onClick={() => navOrPrompt("/likes", "likes")}
                 className={navLinkClass}
               >
                 <Heart className="h-4 w-4" />
-                Likes
+                {t("likes")}
               </button>
               <button
                 onClick={() => navOrPrompt("/collections", "collections")}
                 className={navLinkClass}
               >
                 <FolderOpen className="h-4 w-4" />
-                Collections
+                {t("collections")}
               </button>
             </nav>
           </div>
@@ -189,7 +191,7 @@ export function Header() {
                   onClick={() => setUploadModalOpen(true)}
                 >
                   <ScanLine className="mr-2 h-4 w-4" />
-                  Scan
+                  {t("scan")}
                 </Button>
                 <UploadRecipeModal
                   open={uploadModalOpen}
@@ -204,7 +206,7 @@ export function Header() {
                       <DropdownMenuItem asChild>
                         <Link href={`/u/${profile?.username ?? user?.id}`}>
                           <User className="mr-2 h-4 w-4" />
-                          Profile
+                          {t("profile")}
                         </Link>
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
@@ -216,7 +218,7 @@ export function Header() {
                         }}
                       >
                         <LogOut className="mr-2 h-4 w-4" />
-                        Sign Out
+                        {t("signOut")}
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -224,12 +226,13 @@ export function Header() {
                   <Link href="/login">
                     <Button variant="ghost" size="sm">
                       <LogIn className="mr-2 h-4 w-4" />
-                      Sign In
+                      {t("signIn")}
                     </Button>
                   </Link>
                 )}
               </>
             )}
+            <LocaleSwitcher />
             <ModeToggle />
             <button
               className="lg:hidden"
@@ -252,7 +255,7 @@ export function Header() {
               className={mobileNavLinkClass}
             >
               <SlidersHorizontal className="h-4 w-4" />
-              Recipes
+              {t("recipes")}
             </Link>
             <button
               onClick={() => {
@@ -262,7 +265,7 @@ export function Header() {
               className={mobileNavLinkClass}
             >
               <ScanSearch className="h-4 w-4" />
-              Recommend
+              {t("recommend")}
             </button>
             <button
               onClick={() => {
@@ -272,7 +275,7 @@ export function Header() {
               className={mobileNavLinkClass}
             >
               <Bookmark className="h-4 w-4" />
-              Bookmarks
+              {t("bookmarks")}
             </button>
             <button
               onClick={() => {
@@ -282,7 +285,7 @@ export function Header() {
               className={mobileNavLinkClass}
             >
               <Heart className="h-4 w-4" />
-              Likes
+              {t("likes")}
             </button>
             <button
               onClick={() => {
@@ -292,7 +295,7 @@ export function Header() {
               className={mobileNavLinkClass}
             >
               <FolderOpen className="h-4 w-4" />
-              Collections
+              {t("collections")}
             </button>
           </nav>
         )}
