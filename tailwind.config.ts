@@ -8,6 +8,9 @@ export default {
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
+  	fontFamily: {
+  		sans: ['var(--font-inter)', '"Pretendard Variable"', 'Pretendard', 'system-ui', 'sans-serif'],
+  	},
   	container: {
   		center: true,
   		padding: {

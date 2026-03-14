@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Space_Grotesk } from "next/font/google";
+import { Inter } from "next/font/google";
 import "../globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "sonner";
@@ -14,9 +14,9 @@ import { setRequestLocale, getTranslations } from "next-intl/server";
 import { routing } from "@/i18n/routing";
 import { notFound } from "next/navigation";
 
-const spaceGrotesk = Space_Grotesk({
+const inter = Inter({
   subsets: ["latin"],
-  variable: "--font-space-grotesk",
+  variable: "--font-inter",
 });
 
 export const viewport: Viewport = {
@@ -90,9 +90,15 @@ export default async function LocaleLayout({
           href={process.env.NEXT_PUBLIC_R2_PUBLIC_URL}
           crossOrigin="anonymous"
         />
+        <link
+          rel="stylesheet"
+          as="style"
+          crossOrigin="anonymous"
+          href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css"
+        />
       </head>
       <body
-        className={`${spaceGrotesk.variable} bg-background font-sans antialiased`}
+        className={`${inter.variable} bg-background font-sans antialiased`}
       >
         <ThemeProvider
           attribute="class"
