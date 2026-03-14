@@ -1,7 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getTextEmbedding } from "@/lib/embedding";
+import { translateToEnglish } from "@/lib/translate";
 import { GALLERY_SELECT } from "@/lib/queries";
+import {
+  normalizeQueryText,
+  lookupTextQueryCache,
+  insertTextQueryCache,
+} from "@/lib/text-query-cache";
 
 export async function POST(request: NextRequest) {
   // 1. Auth check
@@ -33,13 +39,33 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // 3. Generate CLIP text embedding
-  const embedding = await getTextEmbedding(text);
+  // 3. Check cache for translation + embedding
+  const normalized = normalizeQueryText(text);
+  const cached = await lookupTextQueryCache(supabase, normalized);
 
-  if (!embedding) {
-    return NextResponse.json(
-      { error: "Failed to generate text embedding. Please try again." },
-      { status: 502 },
+  let embeddingText: string;
+  let embedding: number[];
+
+  if (cached) {
+    embeddingText = cached.translated_text;
+    embedding = cached.embedding;
+  } else {
+    // Cache miss — call translation + embedding APIs
+    embeddingText = await translateToEnglish(text);
+    const generatedEmbedding = await getTextEmbedding(embeddingText);
+
+    if (!generatedEmbedding) {
+      return NextResponse.json(
+        { error: "Failed to generate text embedding. Please try again." },
+        { status: 502 },
+      );
+    }
+
+    embedding = generatedEmbedding;
+
+    // Fire-and-forget cache insert
+    insertTextQueryCache(supabase, normalized, embeddingText, embedding).catch(
+      (err) => console.error("Cache insert failed:", err),
     );
   }
 
