@@ -5,6 +5,7 @@ import { GalleryGrid } from "@/components/gallery-grid";
 import { fromLensSlug, toSlug } from "@/lib/slug";
 import { GALLERY_SELECT } from "@/lib/queries";
 import { getTranslations, setRequestLocale } from "next-intl/server";
+import { getAlternates } from "@/lib/seo";
 
 export const revalidate = 3600;
 
@@ -27,6 +28,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: `${lens} Recipes`,
     description: `Browse Fujifilm film simulation recipes shot with ${lens}.`,
+    alternates: getAlternates(`/recipes/lens/${slug}`),
   };
 }
 

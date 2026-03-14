@@ -12,6 +12,7 @@ import {
 } from "@/fujifilm/simulation";
 import { GALLERY_SELECT } from "@/lib/queries";
 import { getTranslations, setRequestLocale } from "next-intl/server";
+import { getAlternates } from "@/lib/seo";
 
 type Props = {
   params: Promise<{ locale: string }>;
@@ -29,6 +30,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: t("title"),
     description: t("metaDescription"),
+    alternates: getAlternates("/recipes"),
     openGraph: {
       title: t("title"),
       description: t("metaDescription"),

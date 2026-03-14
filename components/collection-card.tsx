@@ -39,7 +39,7 @@ export function CollectionCard({
         {coverImages.length === 1 && (
           <Image
             src={coverImages[0]}
-            alt=""
+            alt={collection.name}
             fill
             className="object-cover"
             sizes="(max-width: 768px) 50vw, 33vw"
@@ -51,7 +51,7 @@ export function CollectionCard({
               <div key={i} className="relative">
                 <Image
                   src={src}
-                  alt=""
+                  alt={`${collection.name} cover ${i + 1}`}
                   fill
                   className="object-cover"
                   sizes="25vw"
@@ -66,7 +66,7 @@ export function CollectionCard({
               <div key={i} className="relative">
                 <Image
                   src={src}
-                  alt=""
+                  alt={`${collection.name} cover ${i + 1}`}
                   fill
                   className="object-cover"
                   sizes="20vw"
