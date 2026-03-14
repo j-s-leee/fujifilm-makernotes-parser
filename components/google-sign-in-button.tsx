@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { signInWithGoogle } from "@/app/login/actions";
+import { signInWithGoogle } from "@/lib/actions/auth";
 
 interface GoogleSignInButtonProps {
   className?: string;
