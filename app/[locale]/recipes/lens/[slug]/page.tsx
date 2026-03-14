@@ -4,11 +4,12 @@ import { createStaticClient } from "@/lib/supabase/server";
 import { GalleryGrid } from "@/components/gallery-grid";
 import { fromLensSlug, toSlug } from "@/lib/slug";
 import { GALLERY_SELECT } from "@/lib/queries";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 
 export const revalidate = 3600;
 
 interface Props {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ slug: string; locale: string }>;
 }
 
 async function getAllLensNames() {
@@ -30,7 +31,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function LensPage({ params }: Props) {
-  const { slug } = await params;
+  const { slug, locale } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations({ locale, namespace: "recipeBrowse" });
   const names = await getAllLensNames();
   const lens = fromLensSlug(slug, names);
 
@@ -51,14 +54,14 @@ export default async function LensPage({ params }: Props) {
         <div>
           <h1 className="text-2xl font-bold tracking-tight">{lens}</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Film simulation recipes shot with {lens}
+            {t("lensSubtitle", { name: lens })}
           </p>
         </div>
         {recipes && recipes.length > 0 ? (
           <GalleryGrid initialRecipes={recipes} />
         ) : (
           <p className="text-center text-sm text-muted-foreground py-20">
-            No recipes found for {lens}.
+            {t("emptyLens", { name: lens })}
           </p>
         )}
       </div>

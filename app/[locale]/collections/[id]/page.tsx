@@ -6,9 +6,10 @@ import { CollectionHeader } from "@/components/collection-header";
 import { GalleryGrid } from "@/components/gallery-grid";
 import { GALLERY_SELECT } from "@/lib/queries";
 import type { GalleryRecipe } from "@/components/gallery-card";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 
 interface CollectionPageProps {
-  params: Promise<{ id: string }>;
+  params: Promise<{ id: string; locale: string }>;
 }
 
 export async function generateMetadata({
@@ -40,7 +41,9 @@ export async function generateMetadata({
 }
 
 export default async function CollectionPage({ params }: CollectionPageProps) {
-  const { id } = await params;
+  const { id, locale } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations({ locale, namespace: "collections" });
   const collectionId = parseInt(id, 10);
   if (isNaN(collectionId)) notFound();
 
@@ -64,7 +67,7 @@ export default async function CollectionPage({ params }: CollectionPageProps) {
     .eq("id", collection.user_id)
     .single();
 
-  // Fetch collection items → recipe IDs, then fetch recipes
+  // Fetch collection items -> recipe IDs, then fetch recipes
   const { data: items } = await supabase
     .from("collection_items")
     .select("recipe_id")
@@ -105,7 +108,7 @@ export default async function CollectionPage({ params }: CollectionPageProps) {
           />
         ) : (
           <p className="py-20 text-center text-sm text-muted-foreground">
-            No recipes in this collection yet.
+            {t("emptyDetail")}
           </p>
         )}
       </div>

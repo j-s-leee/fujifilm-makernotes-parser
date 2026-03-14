@@ -6,15 +6,18 @@ import { BackButton } from "@/components/back-button";
 import { GalleryGrid } from "@/components/gallery-grid";
 import type { GalleryRecipe } from "@/components/gallery-card";
 import { GALLERY_SELECT } from "@/lib/queries";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 
 interface HistoryDetailPageProps {
-  params: Promise<{ id: string }>;
+  params: Promise<{ id: string; locale: string }>;
 }
 
 export default async function HistoryDetailPage({
   params,
 }: HistoryDetailPageProps) {
-  const { id } = await params;
+  const { id, locale } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations({ locale, namespace: "recommend" });
   const recId = parseInt(id, 10);
   if (isNaN(recId)) notFound();
 
@@ -65,13 +68,13 @@ export default async function HistoryDetailPage({
   return (
     <div className="container py-8 md:py-12">
       <div className="flex flex-col gap-6">
-        <BackButton label="Back to History" fallbackHref="/recommend/history" />
+        <BackButton label={t("backToHistory")} fallbackHref="/recommend/history" />
 
         {/* Query preview */}
         {isTextSearch ? (
           <div className="flex flex-col items-center gap-2">
             <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-              Your Search
+              {t("yourSearch")}
             </p>
             <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/50 px-4 py-2">
               <Search className="h-4 w-4 text-muted-foreground" />
@@ -83,7 +86,7 @@ export default async function HistoryDetailPage({
         ) : recommendation.image_path ? (
           <div className="flex flex-col items-center gap-2">
             <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-              Your Photo
+              {t("yourPhoto")}
             </p>
             <div className="overflow-hidden rounded-lg border border-border">
               <Image
@@ -103,13 +106,13 @@ export default async function HistoryDetailPage({
         {recipes.length > 0 ? (
           <div>
             <h2 className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-4">
-              Matched Recipes ({recipes.length})
+              {t("matchedRecipes", { count: recipes.length })}
             </h2>
             <GalleryGrid initialRecipes={recipes} />
           </div>
         ) : (
           <p className="text-center text-sm text-muted-foreground py-10">
-            No results found for this recommendation.
+            {t("noResultsHistory")}
           </p>
         )}
       </div>

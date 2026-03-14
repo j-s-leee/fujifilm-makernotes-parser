@@ -7,6 +7,7 @@ import { GalleryGrid } from "@/components/gallery-grid";
 import { CollectionCard } from "@/components/collection-card";
 import { GALLERY_SELECT } from "@/lib/queries";
 import { getThumbnailUrl } from "@/lib/get-thumbnail-url";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 
 export const revalidate = 60;
 
@@ -38,7 +39,7 @@ const getUserStats = cache(async (userId: string) => {
 });
 
 interface UserProfilePageProps {
-  params: Promise<{ identifier: string }>;
+  params: Promise<{ identifier: string; locale: string }>;
 }
 
 export async function generateMetadata({
@@ -79,7 +80,9 @@ export async function generateMetadata({
 }
 
 export default async function UserProfilePage({ params }: UserProfilePageProps) {
-  const { identifier } = await params;
+  const { identifier, locale } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations({ locale, namespace: "userProfile" });
   const profile = await getProfile(identifier);
   if (!profile) notFound();
 
@@ -181,7 +184,7 @@ export default async function UserProfilePage({ params }: UserProfilePageProps) 
         {/* Collections */}
         {typedCollections.length > 0 && (
           <div className="flex flex-col gap-4">
-            <h2 className="text-lg font-semibold">Collections</h2>
+            <h2 className="text-lg font-semibold">{t("collectionsTitle")}</h2>
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
               {typedCollections.map((c) => (
                 <CollectionCard
@@ -206,7 +209,7 @@ export default async function UserProfilePage({ params }: UserProfilePageProps) 
           />
         ) : (
           <p className="text-center text-sm text-muted-foreground py-20">
-            No recipes shared yet.
+            {t("noRecipes")}
           </p>
         )}
       </div>

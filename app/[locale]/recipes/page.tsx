@@ -11,27 +11,36 @@ import {
   isStringFujifilmSimulation,
 } from "@/fujifilm/simulation";
 import { GALLERY_SELECT } from "@/lib/queries";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 
-export const metadata: Metadata = {
-  title: "Recipes",
-  description: "Browse Fujifilm film simulation recipes",
-  openGraph: {
-    title: "Recipes",
-    description: "Browse Fujifilm film simulation recipes",
-  },
-};
-
-interface RecipesPageProps {
+type Props = {
+  params: Promise<{ locale: string }>;
   searchParams: Promise<{
     simulation?: string;
     sort?: string;
     sensor?: string;
     camera?: string;
   }>;
+};
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "recipes" });
+  return {
+    title: t("title"),
+    description: t("metaDescription"),
+    openGraph: {
+      title: t("title"),
+      description: t("metaDescription"),
+    },
+  };
 }
 
-export default async function RecipesPage({ searchParams }: RecipesPageProps) {
-  const params = await searchParams;
+export default async function RecipesPage({ params, searchParams }: Props) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations({ locale, namespace: "recipes" });
+  const sp = await searchParams;
   const supabase = await createClient();
 
   // Build recipes query
@@ -41,22 +50,22 @@ export default async function RecipesPage({ searchParams }: RecipesPageProps) {
       .select(GALLERY_SELECT)
       .limit(24);
 
-    if (params.simulation && isStringFujifilmSimulation(params.simulation)) {
-      query = query.eq("simulation", params.simulation);
+    if (sp.simulation && isStringFujifilmSimulation(sp.simulation)) {
+      query = query.eq("simulation", sp.simulation);
     }
 
     if (
-      params.sensor &&
-      SENSOR_GENERATIONS.includes(params.sensor as SensorGeneration)
+      sp.sensor &&
+      SENSOR_GENERATIONS.includes(sp.sensor as SensorGeneration)
     ) {
-      query = query.eq("sensor_generation", params.sensor);
+      query = query.eq("sensor_generation", sp.sensor);
     }
 
-    if (params.camera) {
-      query = query.eq("camera_model", params.camera);
+    if (sp.camera) {
+      query = query.eq("camera_model", sp.camera);
     }
 
-    if (params.sort === "popular") {
+    if (sp.sort === "popular") {
       query = query.order("like_count", { ascending: false });
     } else {
       query = query.order("created_at", { ascending: false });
@@ -76,10 +85,10 @@ export default async function RecipesPage({ searchParams }: RecipesPageProps) {
   return (
     <div className="container py-8 md:py-12">
       <div className="flex flex-col gap-4">
-        <h1 className="text-2xl font-bold tracking-tight">Recipes</h1>
+        <h1 className="text-2xl font-bold tracking-tight">{t("title")}</h1>
 
         <RecipesContent
-          params={params}
+          params={sp}
           sensorGenerations={SENSOR_GENERATIONS as unknown as string[]}
           cameraModels={cameraModels}
           simulationOptions={FUJIFILM_SIMULATION_FORM_INPUT_OPTIONS}
@@ -87,14 +96,14 @@ export default async function RecipesPage({ searchParams }: RecipesPageProps) {
           {recipes && recipes.length > 0 ? (
             <GalleryGrid
               initialRecipes={recipes}
-              simulation={params.simulation}
-              sort={params.sort}
-              sensor={params.sensor}
-              camera={params.camera}
+              simulation={sp.simulation}
+              sort={sp.sort}
+              sensor={sp.sensor}
+              camera={sp.camera}
             />
           ) : (
             <p className="text-center text-sm text-muted-foreground py-20">
-              No recipes found. Try a different filter or be the first to share!
+              {t("empty")}
             </p>
           )}
         </RecipesContent>

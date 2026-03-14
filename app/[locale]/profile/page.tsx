@@ -9,11 +9,14 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { useUser } from "@/hooks/use-user";
 import { compressImageToThumbnail } from "@/lib/compress-image";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 
 export default function ProfilePage() {
   const { user, loading: userLoading } = useUser();
   const router = useRouter();
+  const t = useTranslations("profile");
+  const tCommon = useTranslations("common");
   const [displayName, setDisplayName] = useState("");
   const [username, setUsername] = useState("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
@@ -71,11 +74,11 @@ export default function ProfilePage() {
       });
 
       if (res.ok) {
-        toast.success("Profile updated");
+        toast.success(t("profileUpdated"));
         router.push("/");
       } else {
         const data = await res.json();
-        toast.error(data.error ?? "Failed to update profile");
+        toast.error(data.error ?? t("updateFailed"));
       }
     } finally {
       setSaving(false);
@@ -103,7 +106,7 @@ export default function ProfilePage() {
   return (
     <div className="container py-8 md:py-12">
     <div className="w-full max-w-sm">
-      <h1 className="mb-8 text-2xl font-bold tracking-tight">Edit Profile</h1>
+      <h1 className="mb-8 text-2xl font-bold tracking-tight">{t("title")}</h1>
 
       <div className="flex flex-col items-center gap-8">
         <button
@@ -128,33 +131,33 @@ export default function ProfilePage() {
         </button>
 
         <div className="w-full space-y-2">
-          <Label htmlFor="display-name">Display Name</Label>
+          <Label htmlFor="display-name">{t("displayName")}</Label>
           <Input
             id="display-name"
             value={displayName}
             onChange={(e) => setDisplayName(e.target.value)}
-            placeholder="Your name"
+            placeholder={t("displayNamePlaceholder")}
           />
         </div>
 
         <div className="w-full space-y-2">
-          <Label htmlFor="username">Username</Label>
+          <Label htmlFor="username">{t("username")}</Label>
           <Input
             id="username"
             value={username}
             onChange={(e) =>
               setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ""))
             }
-            placeholder="your_username"
+            placeholder={t("usernamePlaceholder")}
             maxLength={30}
           />
           <p className="text-xs text-muted-foreground">
-            Lowercase letters, numbers, and underscores. Your public profile will be at /u/{username || "..."}
+            {t("usernameHint", { username: username || "..." })}
           </p>
         </div>
 
         <Button onClick={handleSave} disabled={saving} className="w-full">
-          {saving ? "Saving..." : "Save"}
+          {saving ? tCommon("saving") : tCommon("save")}
         </Button>
       </div>
     </div>

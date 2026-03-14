@@ -1,10 +1,16 @@
 import type { Metadata } from "next";
+import { setRequestLocale } from "next-intl/server";
 
 export const metadata: Metadata = {
   title: "Terms of Service — Film Recipe Viewer",
 };
 
-export default function TermsPage() {
+type Props = { params: Promise<{ locale: string }> };
+
+export default async function TermsPage({ params }: Props) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+
   return (
     <div className="container py-8 md:py-12">
     <div className="w-full max-w-2xl">

@@ -5,11 +5,12 @@ import { GalleryGrid } from "@/components/gallery-grid";
 import { fromCameraSlug, toSlug } from "@/lib/slug";
 import { ALL_CAMERA_MODELS } from "@/fujifilm/cameras";
 import { GALLERY_SELECT } from "@/lib/queries";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 
 export const revalidate = 3600;
 
 interface Props {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ slug: string; locale: string }>;
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -24,7 +25,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function CameraPage({ params }: Props) {
-  const { slug } = await params;
+  const { slug, locale } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations({ locale, namespace: "recipeBrowse" });
   const camera = fromCameraSlug(slug);
 
   if (!camera) notFound();
@@ -44,14 +47,14 @@ export default async function CameraPage({ params }: Props) {
         <div>
           <h1 className="text-2xl font-bold tracking-tight">{camera}</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Film simulation recipes shot on {camera}
+            {t("cameraSubtitle", { name: camera })}
           </p>
         </div>
         {recipes && recipes.length > 0 ? (
           <GalleryGrid initialRecipes={recipes} />
         ) : (
           <p className="text-center text-sm text-muted-foreground py-20">
-            No recipes found for {camera}.
+            {t("emptyCamera", { name: camera })}
           </p>
         )}
       </div>

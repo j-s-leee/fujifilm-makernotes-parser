@@ -3,8 +3,15 @@ import { AuthPrompt } from "@/components/auth-prompt";
 import { CollectionCard } from "@/components/collection-card";
 import { getThumbnailUrl } from "@/lib/get-thumbnail-url";
 import { CollectionsPageActions } from "@/components/collections-page-actions";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 
-export default async function CollectionsPage() {
+type Props = { params: Promise<{ locale: string }> };
+
+export default async function CollectionsPage({ params }: Props) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations({ locale, namespace: "collections" });
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -13,8 +20,8 @@ export default async function CollectionsPage() {
   if (!user) {
     return (
       <AuthPrompt
-        title="Collections"
-        description="Sign in to create and manage your recipe collections."
+        title={t("authTitle")}
+        description={t("authDescription")}
       />
     );
   }
@@ -83,9 +90,9 @@ export default async function CollectionsPage() {
       <div className="flex flex-col gap-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">Collections</h1>
+            <h1 className="text-2xl font-bold tracking-tight">{t("title")}</h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              Organize your recipes into collections
+              {t("subtitle")}
             </p>
           </div>
           <CollectionsPageActions />
@@ -107,7 +114,7 @@ export default async function CollectionsPage() {
           </div>
         ) : (
           <p className="py-20 text-center text-sm text-muted-foreground">
-            No collections yet. Create one to get started.
+            {t("empty")}
           </p>
         )}
       </div>

@@ -7,6 +7,7 @@ import { BackButton } from "@/components/back-button";
 import { SimilarRecipes } from "@/components/similar-recipes";
 import { SimilarRecipesSkeleton } from "@/components/skeletons";
 import { RECIPE_HERO_SELECT, GALLERY_SELECT } from "@/lib/queries";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 
 const getRecipe = cache(async (recipeId: number) => {
   const supabase = createStaticClient();
@@ -21,7 +22,7 @@ const getRecipe = cache(async (recipeId: number) => {
 export const revalidate = 300;
 
 interface RecipePageProps {
-  params: Promise<{ id: string }>;
+  params: Promise<{ id: string; locale: string }>;
 }
 
 export async function generateMetadata({
@@ -64,14 +65,18 @@ export async function generateMetadata({
 async function SimilarRecipesSection({
   recipeId,
   recipeHash,
+  locale,
 }: {
   recipeId: number;
   recipeHash: string | null;
+  locale: string;
 }) {
+  const t = await getTranslations({ locale, namespace: "recipeDetail" });
+
   if (!recipeHash) {
     return (
       <p className="text-center text-sm text-muted-foreground py-20">
-        No similar recipes found.
+        {t("noSimilarRecipes")}
       </p>
     );
   }
@@ -90,7 +95,7 @@ async function SimilarRecipesSection({
   if (similarRecipes.length === 0) {
     return (
       <p className="text-center text-sm text-muted-foreground py-20">
-        No similar recipes found.
+        {t("noSimilarRecipes")}
       </p>
     );
   }
@@ -99,7 +104,10 @@ async function SimilarRecipesSection({
 }
 
 export default async function RecipePage({ params }: RecipePageProps) {
-  const { id } = await params;
+  const { id, locale } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations({ locale, namespace: "recipeDetail" });
+  const tCommon = await getTranslations({ locale, namespace: "common" });
   const recipeId = parseInt(id, 10);
   if (isNaN(recipeId)) notFound();
 
@@ -119,11 +127,11 @@ export default async function RecipePage({ params }: RecipePageProps) {
       return (
         <div className="container py-8 md:py-12">
           <div className="flex flex-col items-center gap-4 py-20">
-            <p className="text-lg font-medium">이 레시피는 삭제되었습니다</p>
+            <p className="text-lg font-medium">{t("deletedTitle")}</p>
             <p className="text-sm text-muted-foreground">
-              해당 레시피는 소유자에 의해 삭제되었거나 신고로 인해 숨김 처리되었습니다.
+              {t("deletedDescription")}
             </p>
-            <BackButton label="Back to Recipes" fallbackHref="/recipes" />
+            <BackButton label={tCommon("backToRecipes")} fallbackHref="/recipes" />
           </div>
         </div>
       );
@@ -148,7 +156,7 @@ export default async function RecipePage({ params }: RecipePageProps) {
     <div className="container py-8 md:py-12">
       <div className="flex flex-col gap-8">
         {/* Back link */}
-        <BackButton label="Back to Recipes" fallbackHref="/recipes" />
+        <BackButton label={tCommon("backToRecipes")} fallbackHref="/recipes" />
 
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
           {/* Left column: Hero (sticky on desktop) */}
@@ -162,6 +170,7 @@ export default async function RecipePage({ params }: RecipePageProps) {
               <SimilarRecipesSection
                 recipeId={recipeId}
                 recipeHash={recipe.recipe_hash}
+                locale={locale}
               />
             </Suspense>
           </div>

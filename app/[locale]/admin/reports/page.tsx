@@ -1,16 +1,23 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { AdminReportsTable } from "@/components/admin-reports-table";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 
 const PAGE_SIZE = 50;
 
 interface AdminReportsPageProps {
+  params: Promise<{ locale: string }>;
   searchParams: Promise<{ page?: string }>;
 }
 
 export default async function AdminReportsPage({
+  params,
   searchParams,
 }: AdminReportsPageProps) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations({ locale, namespace: "admin" });
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -110,9 +117,9 @@ export default async function AdminReportsPage({
     <div className="container py-8 md:py-12">
       <div className="flex flex-col gap-6">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">신고 관리</h1>
+          <h1 className="text-2xl font-bold tracking-tight">{t("title")}</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            총 {totalCount ?? 0}건의 신고
+            {t("totalReports", { count: totalCount ?? 0 })}
           </p>
         </div>
         <AdminReportsTable

@@ -1,8 +1,15 @@
 import { createClient } from "@/lib/supabase/server";
 import { AuthPrompt } from "@/components/auth-prompt";
 import { RecommendHistory } from "@/components/recommend-history";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 
-export default async function RecommendHistoryPage() {
+type Props = { params: Promise<{ locale: string }> };
+
+export default async function RecommendHistoryPage({ params }: Props) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations({ locale, namespace: "recommend" });
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -11,8 +18,8 @@ export default async function RecommendHistoryPage() {
   if (!user) {
     return (
       <AuthPrompt
-        title="Recommendation History"
-        description="Sign in to view your past recipe recommendations."
+        title={t("historyAuthTitle")}
+        description={t("historyAuthDescription")}
       />
     );
   }

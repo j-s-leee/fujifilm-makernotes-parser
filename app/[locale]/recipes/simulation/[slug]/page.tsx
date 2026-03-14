@@ -5,11 +5,12 @@ import { GalleryGrid } from "@/components/gallery-grid";
 import { fromSimulationSlug } from "@/lib/slug";
 import { FUJIFILM_SIMULATION_FORM_INPUT_OPTIONS } from "@/fujifilm/simulation";
 import { GALLERY_SELECT } from "@/lib/queries";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 
 export const revalidate = 3600;
 
 interface Props {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ slug: string; locale: string }>;
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -24,7 +25,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function SimulationPage({ params }: Props) {
-  const { slug } = await params;
+  const { slug, locale } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations({ locale, namespace: "recipeBrowse" });
   const result = fromSimulationSlug(slug);
   if (!result) notFound();
 
@@ -43,14 +46,14 @@ export default async function SimulationPage({ params }: Props) {
         <div>
           <h1 className="text-2xl font-bold tracking-tight">{result.label}</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Film simulation recipes using {result.label}
+            {t("simulationSubtitle", { name: result.label })}
           </p>
         </div>
         {recipes && recipes.length > 0 ? (
           <GalleryGrid initialRecipes={recipes} simulation={result.dbValue} />
         ) : (
           <p className="text-center text-sm text-muted-foreground py-20">
-            No recipes found for {result.label}.
+            {t("emptySimulation", { name: result.label })}
           </p>
         )}
       </div>

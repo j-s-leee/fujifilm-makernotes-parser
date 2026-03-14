@@ -2,8 +2,15 @@ import { createClient } from "@/lib/supabase/server";
 import { GalleryGrid } from "@/components/gallery-grid";
 import { AuthPrompt } from "@/components/auth-prompt";
 import { GALLERY_SELECT } from "@/lib/queries";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 
-export default async function BookmarksPage() {
+type Props = { params: Promise<{ locale: string }> };
+
+export default async function BookmarksPage({ params }: Props) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations({ locale, namespace: "bookmarks" });
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -12,8 +19,8 @@ export default async function BookmarksPage() {
   if (!user) {
     return (
       <AuthPrompt
-        title="Bookmarks"
-        description="Sign in to view your bookmarked recipes."
+        title={t("authTitle")}
+        description={t("authDescription")}
       />
     );
   }
@@ -40,9 +47,9 @@ export default async function BookmarksPage() {
     <div className="container py-8 md:py-12">
       <div className="flex flex-col gap-6">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Bookmarks</h1>
+          <h1 className="text-2xl font-bold tracking-tight">{t("title")}</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Recipes you&apos;ve saved
+            {t("subtitle")}
           </p>
         </div>
         {typedRecipes.length > 0 ? (
@@ -52,7 +59,7 @@ export default async function BookmarksPage() {
           />
         ) : (
           <p className="text-center text-sm text-muted-foreground py-20">
-            No bookmarks yet.
+            {t("empty")}
           </p>
         )}
       </div>

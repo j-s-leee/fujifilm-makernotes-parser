@@ -5,11 +5,12 @@ import { GalleryGrid } from "@/components/gallery-grid";
 import { fromSensorSlug, toSlug } from "@/lib/slug";
 import { SENSOR_GENERATIONS } from "@/fujifilm/cameras";
 import { GALLERY_SELECT } from "@/lib/queries";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 
 export const revalidate = 3600;
 
 interface Props {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ slug: string; locale: string }>;
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -25,7 +26,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function SensorPage({ params }: Props) {
-  const { slug } = await params;
+  const { slug, locale } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations({ locale, namespace: "recipeBrowse" });
   const sensor = fromSensorSlug(slug);
   if (!sensor) notFound();
 
@@ -44,14 +47,14 @@ export default async function SensorPage({ params }: Props) {
         <div>
           <h1 className="text-2xl font-bold tracking-tight">{sensor}</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Film simulation recipes from {sensor} sensor cameras
+            {t("sensorSubtitle", { name: sensor })}
           </p>
         </div>
         {recipes && recipes.length > 0 ? (
           <GalleryGrid initialRecipes={recipes} sensor={sensor} />
         ) : (
           <p className="text-center text-sm text-muted-foreground py-20">
-            No recipes found for {sensor} cameras.
+            {t("emptySensor", { name: sensor })}
           </p>
         )}
       </div>
