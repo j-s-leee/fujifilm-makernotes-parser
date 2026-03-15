@@ -220,6 +220,7 @@ export function RecipeHero({ recipe, sharer }: RecipeHeroProps) {
           <div className="flex shrink-0 items-center gap-1">
             <button
               onClick={() => toggleLike(recipe.id)}
+              aria-label={tCommon("like")}
               className="flex items-center gap-1 rounded-lg px-2 py-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
             >
               <Heart
@@ -235,6 +236,7 @@ export function RecipeHero({ recipe, sharer }: RecipeHeroProps) {
             </button>
             <button
               onClick={() => toggleBookmark(recipe.id)}
+              aria-label={tCommon("bookmark")}
               className="flex items-center gap-1 rounded-lg px-2 py-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
             >
               <Bookmark
@@ -247,12 +249,13 @@ export function RecipeHero({ recipe, sharer }: RecipeHeroProps) {
               )}
             </button>
             <CollectionPopover recipeId={recipe.id} recipeThumbnailUrl={getThumbnailUrl(recipe.thumbnail_path, 64, !!recipe.thumbnail_width)}>
-              <button className="flex items-center justify-center rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
+              <button aria-label={tCommon("addToCollection")} className="flex items-center justify-center rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
                 <FolderPlus className="h-4 w-4" />
               </button>
             </CollectionPopover>
             <button
               onClick={handleShare}
+              aria-label={tCommon("share")}
               className="flex items-center justify-center rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
             >
               <Share2 className="h-4 w-4" />
@@ -260,7 +263,7 @@ export function RecipeHero({ recipe, sharer }: RecipeHeroProps) {
             {user && (
               <DropdownMenu modal={false}>
                 <DropdownMenuTrigger asChild>
-                  <button className="flex items-center justify-center rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
+                  <button aria-label={tCommon("moreOptions")} className="flex items-center justify-center rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
                     <MoreHorizontal className="h-4 w-4" />
                   </button>
                 </DropdownMenuTrigger>

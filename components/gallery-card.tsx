@@ -153,6 +153,7 @@ export const GalleryCard = memo(function GalleryCard({
           </button>
           <button
             onClick={(e) => toggleBookmark(recipe.id, e)}
+            aria-label={t("bookmark")}
             className="rounded-full bg-black/40 p-1.5 backdrop-blur-sm transition-colors hover:bg-black/60"
           >
             <Bookmark
@@ -164,7 +165,7 @@ export const GalleryCard = memo(function GalleryCard({
             />
           </button>
           <CollectionPopover recipeId={recipe.id} recipeThumbnailUrl={getThumbnailUrl(recipe.thumbnail_path, 64, !!recipe.thumbnail_width)}>
-            <button className="rounded-full bg-black/40 p-1.5 backdrop-blur-sm transition-colors hover:bg-black/60">
+            <button aria-label={t("addToCollection")} className="rounded-full bg-black/40 p-1.5 backdrop-blur-sm transition-colors hover:bg-black/60">
               <FolderPlus className="h-3.5 w-3.5 text-white" />
             </button>
           </CollectionPopover>
@@ -189,7 +190,7 @@ export const GalleryCard = memo(function GalleryCard({
           </span>
         </button>
         <div className="flex items-center gap-2">
-          <button onClick={(e) => toggleBookmark(recipe.id, e)}>
+          <button onClick={(e) => toggleBookmark(recipe.id, e)} aria-label={t("bookmark")}>
             <Bookmark
               className={`h-4 w-4 ${
                 bookmarks.has(recipe.id)
@@ -199,7 +200,7 @@ export const GalleryCard = memo(function GalleryCard({
             />
           </button>
           <CollectionPopover recipeId={recipe.id} recipeThumbnailUrl={getThumbnailUrl(recipe.thumbnail_path, 64, !!recipe.thumbnail_width)}>
-            <button>
+            <button aria-label={t("addToCollection")}>
               <FolderPlus className="h-4 w-4 text-muted-foreground" />
             </button>
           </CollectionPopover>

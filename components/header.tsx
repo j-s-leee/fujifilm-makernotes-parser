@@ -181,6 +181,7 @@ export function Header() {
                   size="icon"
                   className="h-8 w-8 lg:hidden"
                   onClick={() => setUploadModalOpen(true)}
+                  aria-label={t("scan")}
                 >
                   <ScanLine className="h-4 w-4" />
                 </Button>
