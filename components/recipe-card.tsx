@@ -115,6 +115,7 @@ export function RecipeCard({
                 className="h-8 w-8 text-muted-foreground hover:text-foreground"
                 onClick={() => user ? handleShare() : router.push("/login")}
                 disabled={sharing}
+                aria-label="Upload recipe"
               >
                 <Upload className="h-4 w-4" />
               </Button>
@@ -124,6 +125,7 @@ export function RecipeCard({
               size="icon"
               className="h-8 w-8 text-muted-foreground hover:text-foreground"
               onClick={copyRecipe}
+              aria-label="Copy recipe"
             >
               <Copy className="h-4 w-4" />
             </Button>

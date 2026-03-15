@@ -14,7 +14,13 @@
     "backToRecipes": "Back to Recipes",
     "recipes": "recipes",
     "by": "by",
-    "user": "User"
+    "user": "User",
+    "like": "Like",
+    "bookmark": "Bookmark",
+    "addToCollection": "Add to collection",
+    "moreOptions": "More options",
+    "copyRecipe": "Copy recipe",
+    "uploadRecipe": "Upload recipe"
   },
   "metadata": {
     "siteTitle": "film-simulation.site",

@@ -14,7 +14,13 @@
     "backToRecipes": "레시피 목록으로",
     "recipes": "개 레시피",
     "by": "by",
-    "user": "사용자"
+    "user": "사용자",
+    "like": "좋아요",
+    "bookmark": "북마크",
+    "addToCollection": "컬렉션에 추가",
+    "moreOptions": "더보기",
+    "copyRecipe": "레시피 복사",
+    "uploadRecipe": "레시피 업로드"
   },
   "metadata": {
     "siteTitle": "film-simulation.site",
