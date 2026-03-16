@@ -1,4 +1,4 @@
-const BASE_URL = "https://film-simulation.site";
+const BASE_URL = "https://www.film-simulation.site";
 
 /**
  * Build `alternates` metadata for hreflang tags.

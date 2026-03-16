@@ -167,7 +167,7 @@ export default async function RecipePage({ params }: RecipePageProps) {
           "@type": "Person",
           name: sharer.displayName,
           ...(sharer.username && {
-            url: `https://film-simulation.site/u/${sharer.username}`,
+            url: `https://www.film-simulation.site/u/${sharer.username}`,
           }),
         }
       : undefined,
