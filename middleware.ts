@@ -8,7 +8,11 @@ const handleI18nRouting = createMiddleware(routing);
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Serve SEO files from root, even if accessed with locale prefix (e.g. /ko/robots.txt)
+  // SEO files: skip i18n middleware entirely
+  if (pathname === "/robots.txt" || pathname === "/sitemap.xml") {
+    return NextResponse.next();
+  }
+  // Locale-prefixed SEO files (e.g. /ko/robots.txt) → rewrite to root
   if (pathname.endsWith("/robots.txt") || pathname.endsWith("/sitemap.xml")) {
     const file = "/" + pathname.split("/").pop();
     return NextResponse.rewrite(new URL(file, request.url));
