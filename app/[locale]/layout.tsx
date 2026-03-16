@@ -65,6 +65,11 @@ export async function generateMetadata({
     },
     manifest: "/logo/site.webmanifest",
     alternates: getAlternates("/"),
+    verification: {
+      other: {
+        "naver-site-verification": "de0193d70d839b2a9a708d49e5530b97610bd526",
+      },
+    },
   };
 }
 
