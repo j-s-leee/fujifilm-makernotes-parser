@@ -67,7 +67,7 @@ export async function generateMetadata({
     alternates: getAlternates("/"),
     verification: {
       other: {
-        "naver-site-verification": "de0193d70d839b2a9a708d49e5530b97610bd526",
+        "naver-site-verification": "2c88e03135f926ee362c422f6bf2ea0541feac9c",
       },
     },
   };
