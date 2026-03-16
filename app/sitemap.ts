@@ -4,7 +4,7 @@ import { FUJIFILM_SIMULATION_FORM_INPUT_OPTIONS } from "@/fujifilm/simulation";
 import { ALL_CAMERA_MODELS, SENSOR_GENERATIONS } from "@/fujifilm/cameras";
 import { toSlug } from "@/lib/slug";
 
-const BASE_URL = "https://film-simulation.site";
+const BASE_URL = "https://www.film-simulation.site";
 const LOCALES = ["en", "ko"] as const;
 const DEFAULT_LOCALE = "en";
 

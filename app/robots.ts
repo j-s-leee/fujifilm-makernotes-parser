@@ -14,6 +14,18 @@ export default function robots(): MetadataRoute.Robots {
   return {
     rules: [
       {
+        userAgent: [
+          "Bytespider",
+          "CCBot",
+          "ClaudeBot",
+          "Google-Extended",
+          "GPTBot",
+          "meta-externalagent",
+          "Applebot-Extended",
+        ],
+        disallow: "/",
+      },
+      {
         userAgent: "*",
         allow: "/",
         disallow: [
@@ -28,6 +40,6 @@ export default function robots(): MetadataRoute.Robots {
         ],
       },
     ],
-    sitemap: "https://film-simulation.site/sitemap.xml",
+    sitemap: "https://www.film-simulation.site/sitemap.xml",
   };
 }
