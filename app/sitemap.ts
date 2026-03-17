@@ -41,7 +41,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [recipesRes, profilesRes, lensesRes] = await Promise.all([
     supabase
       .from("recipes")
-      .select("id, created_at")
+      .select("id, slug, created_at")
       .is("deleted_at", null),
     supabase
       .from("profiles")
@@ -95,8 +95,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   );
 
   // --- Dynamic pages ---
-  const recipePages = recipes.map(({ id, created_at }) =>
-    localized(`/recipes/${id}`, {
+  const recipePages = recipes.map(({ id, slug, created_at }) =>
+    localized(`/recipes/${slug}-${id}`, {
       priority: 0.7,
       changeFrequency: "monthly",
       lastModified: created_at ? new Date(created_at) : undefined,
