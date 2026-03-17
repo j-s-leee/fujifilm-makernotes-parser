@@ -12,9 +12,7 @@ import {
   MoreHorizontal,
   Trash2,
   Flag,
-  Loader2,
 } from "lucide-react";
-import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -69,6 +67,7 @@ interface RecipeHeroProps {
     bookmark_count: number;
     like_count: number;
   };
+  settings: RecipeSettingsRecipe;
   sharer: {
     userId: string;
     displayName: string;
@@ -77,13 +76,10 @@ interface RecipeHeroProps {
   } | null;
 }
 
-export function RecipeHero({ recipe, sharer }: RecipeHeroProps) {
+export function RecipeHero({ recipe, settings, sharer }: RecipeHeroProps) {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
-  const [settingsRecipe, setSettingsRecipe] =
-    useState<RecipeSettingsRecipe | null>(null);
-  const [settingsLoading, setSettingsLoading] = useState(false);
   const { user } = useUser();
   const isOwner = user?.id === sharer?.userId;
   const t = useTranslations("recipeHero");
@@ -128,27 +124,6 @@ export function RecipeHero({ recipe, sharer }: RecipeHeroProps) {
       navigator.share({ title: recipe.simulation ?? "Recipe", url });
     } else {
       await navigator.clipboard.writeText(url);
-    }
-  };
-
-  const handleOpenSettings = async () => {
-    setSettingsOpen(true);
-    if (!settingsRecipe && !settingsLoading) {
-      setSettingsLoading(true);
-      try {
-        const res = await fetch(`/api/recipes/${recipe.id}/settings`);
-        if (res.ok) {
-          setSettingsRecipe(await res.json());
-        } else {
-          toast.error(t("failedToLoadSettings"));
-          setSettingsOpen(false);
-        }
-      } catch {
-        toast.error(t("failedToLoadSettings"));
-        setSettingsOpen(false);
-      } finally {
-        setSettingsLoading(false);
-      }
     }
   };
 
@@ -309,26 +284,19 @@ export function RecipeHero({ recipe, sharer }: RecipeHeroProps) {
 
         {/* Row 3: View Recipe Settings button */}
         <button
-          onClick={handleOpenSettings}
-          disabled={settingsLoading}
-          className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-70"
+          onClick={() => setSettingsOpen(true)}
+          className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
         >
-          {settingsLoading ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <NotebookText className="h-4 w-4" />
-          )}
-          {settingsLoading ? t("loadingRecipe") : t("viewRecipe")}
+          <NotebookText className="h-4 w-4" />
+          {t("viewRecipe")}
         </button>
       </div>
 
-      {settingsRecipe && (
-        <RecipeSettingsModal
-          recipe={settingsRecipe}
-          open={settingsOpen}
-          onOpenChange={setSettingsOpen}
-        />
-      )}
+      <RecipeSettingsModal
+        recipe={settings}
+        open={settingsOpen}
+        onOpenChange={setSettingsOpen}
+      />
       <DeleteRecipeDialog
         recipeId={recipe.id}
         open={deleteOpen}

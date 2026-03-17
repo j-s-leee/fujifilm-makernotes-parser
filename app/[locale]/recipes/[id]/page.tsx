@@ -6,7 +6,7 @@ import { RecipeHero } from "@/components/recipe-hero";
 import { BackButton } from "@/components/back-button";
 import { SimilarRecipes } from "@/components/similar-recipes";
 import { SimilarRecipesSkeleton } from "@/components/skeletons";
-import { RECIPE_HERO_SELECT, GALLERY_SELECT } from "@/lib/queries";
+import { RECIPE_DETAIL_SELECT, GALLERY_SELECT } from "@/lib/queries";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { getAlternates } from "@/lib/seo";
 
@@ -14,7 +14,7 @@ const getRecipe = cache(async (recipeId: number) => {
   const supabase = createStaticClient();
   const { data } = await supabase
     .from("recipes_with_stats")
-    .select(RECIPE_HERO_SELECT)
+    .select(RECIPE_DETAIL_SELECT)
     .eq("id", recipeId)
     .single();
   return data;
@@ -154,6 +154,29 @@ export default async function RecipePage({ params }: RecipePageProps) {
       }
     : null;
 
+  const settings = {
+    id: recipe.id,
+    simulation: recipe.simulation,
+    sensor_generation: recipe.sensor_generation,
+    dynamic_range_development: recipe.dynamic_range_development,
+    grain_roughness: recipe.grain_roughness,
+    grain_size: recipe.grain_size,
+    color_chrome: recipe.color_chrome,
+    color_chrome_fx_blue: recipe.color_chrome_fx_blue,
+    wb_type: recipe.wb_type,
+    wb_color_temperature: recipe.wb_color_temperature,
+    wb_red: recipe.wb_red,
+    wb_blue: recipe.wb_blue,
+    highlight: recipe.highlight,
+    shadow: recipe.shadow,
+    color: recipe.color,
+    sharpness: recipe.sharpness,
+    noise_reduction: recipe.noise_reduction,
+    clarity: recipe.clarity,
+    bw_adjustment: recipe.bw_adjustment,
+    bw_magenta_green: recipe.bw_magenta_green,
+  };
+
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "ImageObject",
@@ -187,7 +210,7 @@ export default async function RecipePage({ params }: RecipePageProps) {
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
           {/* Left column: Hero (sticky on desktop) */}
           <div className="md:sticky md:top-24 md:self-start">
-            <RecipeHero recipe={recipe} sharer={sharer} />
+            <RecipeHero recipe={recipe} settings={settings} sharer={sharer} />
           </div>
 
           {/* Right column: Similar Recipes */}
