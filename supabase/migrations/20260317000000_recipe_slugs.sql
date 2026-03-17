@@ -12,19 +12,27 @@ SET slug = LOWER(TRIM(BOTH '-' FROM
   REGEXP_REPLACE(
     REGEXP_REPLACE(
       CONCAT_WS('-',
-        COALESCE(s.slug, ''),
-        COALESCE(REGEXP_REPLACE(cm.name, '[^a-zA-Z0-9]+', '-', 'g'), ''),
-        COALESCE(REGEXP_REPLACE(l.name, '[^a-zA-Z0-9]+', '-', 'g'), '')
+        COALESCE(sub.sim_slug, ''),
+        COALESCE(sub.cam_slug, ''),
+        COALESCE(sub.lens_slug, '')
       ),
       '-{2,}', '-', 'g'
     ),
     '(^-|-$)', '', 'g'
   )
 ))
-FROM public.simulations s
-LEFT JOIN public.camera_models cm ON cm.id = r.camera_model_id
-LEFT JOIN public.lenses l ON l.id = r.lens_id
-WHERE s.id = r.simulation_id;
+FROM (
+  SELECT
+    rec.id,
+    s.slug AS sim_slug,
+    REGEXP_REPLACE(cm.name, '[^a-zA-Z0-9]+', '-', 'g') AS cam_slug,
+    REGEXP_REPLACE(l.name, '[^a-zA-Z0-9]+', '-', 'g') AS lens_slug
+  FROM public.recipes rec
+  LEFT JOIN public.simulations s   ON s.id  = rec.simulation_id
+  LEFT JOIN public.camera_models cm ON cm.id = rec.camera_model_id
+  LEFT JOIN public.lenses l         ON l.id  = rec.lens_id
+) sub
+WHERE sub.id = r.id;
 
 -- 3. Handle recipes with no simulation (fallback slug)
 UPDATE public.recipes
