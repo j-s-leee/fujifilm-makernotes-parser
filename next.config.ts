@@ -10,22 +10,22 @@ const nextConfig: NextConfig = {
   },
   headers: async () => [
     {
-      // Recipe detail — high traffic, shared via SNS
-      source: "/:locale*/recipes/:id(\\d+)",
+      // Recipe detail — match both /recipes/123 and /recipes/slug-123
+      source: "/:locale*/recipes/:slugId([\\w-]+-\\d+|\\d+)",
       headers: [
         {
           key: "CDN-Cache-Control",
-          value: "public, max-age=300, stale-while-revalidate=600",
+          value: "public, max-age=86400, stale-while-revalidate=172800",
         },
       ],
     },
     {
-      // User profile — short ISR, frequent origin hits
+      // User profile
       source: "/:locale*/u/:identifier*",
       headers: [
         {
           key: "CDN-Cache-Control",
-          value: "public, max-age=60, stale-while-revalidate=120",
+          value: "public, max-age=3600, stale-while-revalidate=7200",
         },
       ],
     },
@@ -36,16 +36,6 @@ const nextConfig: NextConfig = {
         {
           key: "CDN-Cache-Control",
           value: "public, max-age=3600, stale-while-revalidate=7200",
-        },
-      ],
-    },
-    {
-      // Recipe settings API
-      source: "/api/recipes/:id/settings",
-      headers: [
-        {
-          key: "CDN-Cache-Control",
-          value: "public, max-age=300, stale-while-revalidate=600",
         },
       ],
     },

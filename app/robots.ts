@@ -11,33 +11,30 @@ export default function robots(): MetadataRoute.Robots {
     };
   }
 
+  const privatePaths = [
+    "/api/",
+    "/admin/",
+    "/profile",
+    "/my-recipes",
+    "/likes",
+    "/bookmarks",
+    "/recommend",
+    "/login",
+  ];
+
+  // Block both default (en) and locale-prefixed paths
+  const disallow = [
+    ...privatePaths,
+    ...privatePaths.map((p) => `/ko${p}`),
+  ];
+
   return {
+    // AI training bot blocking is handled by Cloudflare managed robots.txt
     rules: [
-      {
-        userAgent: [
-          "Bytespider",
-          "CCBot",
-          "ClaudeBot",
-          "Google-Extended",
-          "GPTBot",
-          "meta-externalagent",
-          "Applebot-Extended",
-        ],
-        disallow: "/",
-      },
       {
         userAgent: "*",
         allow: "/",
-        disallow: [
-          "/api/",
-          "/admin/",
-          "/profile",
-          "/my-recipes",
-          "/likes",
-          "/bookmarks",
-          "/recommend",
-          "/login",
-        ],
+        disallow,
       },
     ],
     sitemap: "https://www.film-simulation.site/sitemap.xml",

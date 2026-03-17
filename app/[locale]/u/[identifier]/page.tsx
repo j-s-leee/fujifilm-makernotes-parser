@@ -10,7 +10,7 @@ import { getThumbnailUrl } from "@/lib/get-thumbnail-url";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { getAlternates } from "@/lib/seo";
 
-export const revalidate = 60;
+export const revalidate = 3600; // 1 hour — profile content changes infrequently
 
 const UUID_REGEX =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
