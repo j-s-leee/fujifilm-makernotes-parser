@@ -1,9 +1,9 @@
 import { Link } from "@/i18n/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { createStaticClient } from "@/lib/supabase/server";
 import { TrendingGrid } from "@/components/trending-grid";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
-export const revalidate = 3600;
+export const revalidate = 43200; // 12 hours — trending updates are not time-critical
 
 type Props = { params: Promise<{ locale: string }> };
 
@@ -12,7 +12,7 @@ export default async function Home({ params }: Props) {
   setRequestLocale(locale);
   const t = await getTranslations({ locale, namespace: "home" });
 
-  const supabase = await createClient();
+  const supabase = createStaticClient();
 
   const { data: recipes } = await supabase
     .rpc("get_trending_recipes", { p_limit: 24 });

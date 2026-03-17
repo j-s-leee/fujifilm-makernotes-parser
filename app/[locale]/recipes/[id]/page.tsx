@@ -20,7 +20,7 @@ const getRecipe = cache(async (recipeId: number) => {
   return data;
 });
 
-export const revalidate = 300;
+export const revalidate = 86400; // 24 hours — recipe content never changes after creation
 
 interface RecipePageProps {
   params: Promise<{ id: string; locale: string }>;

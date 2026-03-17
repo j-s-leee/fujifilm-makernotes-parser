@@ -15,17 +15,17 @@ const nextConfig: NextConfig = {
       headers: [
         {
           key: "CDN-Cache-Control",
-          value: "public, max-age=300, stale-while-revalidate=600",
+          value: "public, max-age=86400, stale-while-revalidate=172800",
         },
       ],
     },
     {
-      // User profile — short ISR, frequent origin hits
+      // User profile
       source: "/:locale*/u/:identifier*",
       headers: [
         {
           key: "CDN-Cache-Control",
-          value: "public, max-age=60, stale-while-revalidate=120",
+          value: "public, max-age=3600, stale-while-revalidate=7200",
         },
       ],
     },
@@ -45,7 +45,7 @@ const nextConfig: NextConfig = {
       headers: [
         {
           key: "CDN-Cache-Control",
-          value: "public, max-age=300, stale-while-revalidate=600",
+          value: "public, max-age=86400, stale-while-revalidate=172800",
         },
       ],
     },
