@@ -40,16 +40,6 @@ const nextConfig: NextConfig = {
       ],
     },
     {
-      // Recipe settings API
-      source: "/api/recipes/:id/settings",
-      headers: [
-        {
-          key: "CDN-Cache-Control",
-          value: "public, max-age=86400, stale-while-revalidate=172800",
-        },
-      ],
-    },
-    {
       // Static SEO files
       source: "/(sitemap.xml|robots.txt)",
       headers: [

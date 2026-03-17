@@ -116,8 +116,6 @@
     "byAnonymous": "by Anonymous",
     "byUser": "by",
     "viewRecipe": "View Recipe",
-    "loadingRecipe": "Loading...",
-    "failedToLoadSettings": "Failed to load recipe settings.",
     "delete": "Delete",
     "report": "Report"
   },

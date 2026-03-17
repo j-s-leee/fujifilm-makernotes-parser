@@ -116,8 +116,6 @@
     "byAnonymous": "by 익명",
     "byUser": "by",
     "viewRecipe": "레시피 보기",
-    "loadingRecipe": "로딩 중...",
-    "failedToLoadSettings": "레시피 설정을 불러오지 못했습니다.",
     "delete": "삭제",
     "report": "신고"
   },

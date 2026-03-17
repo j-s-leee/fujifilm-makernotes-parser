@@ -1,12 +1,8 @@
 // Select column constants to avoid fetching heavy fields (image_embedding, color_histogram)
 
-// GalleryCard: 14 columns needed for gallery grid display
+// GalleryCard: columns needed for gallery grid display
 export const GALLERY_SELECT =
   "id, user_id, simulation, thumbnail_path, blur_data_url, thumbnail_width, thumbnail_height, bookmark_count, like_count, camera_model, created_at, user_display_name, user_username, user_avatar_path, slug";
-
-// Recipe detail hero: fields needed for initial page render (no settings)
-export const RECIPE_HERO_SELECT =
-  "id, user_id, simulation, sensor_generation, thumbnail_path, blur_data_url, thumbnail_width, thumbnail_height, camera_model, lens_model, bookmark_count, like_count, recipe_hash, user_display_name, user_username, user_avatar_path, slug";
 
 // Recipe detail page: Hero + Settings modal + similar recipe lookup
 export const RECIPE_DETAIL_SELECT =
