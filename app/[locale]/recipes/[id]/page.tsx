@@ -184,6 +184,7 @@ export default async function RecipePage({ params }: RecipePageProps) {
     clarity: recipe.clarity,
     bw_adjustment: recipe.bw_adjustment,
     bw_magenta_green: recipe.bw_magenta_green,
+    slug: recipe.slug,
   };
 
   const jsonLd = {

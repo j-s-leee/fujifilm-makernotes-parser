@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/client";
 import { computeRecipeHash } from "@/lib/recipe-hash";
+import { generateRecipeSlug } from "@/lib/slug";
 import type { FujifilmRecipe } from "@/fujifilm/recipe";
 import type { FujifilmSimulation } from "@/fujifilm/simulation";
 
@@ -64,9 +65,13 @@ export async function shareRecipe(
   const lensId = lensResult.data ?? null;
   const wbTypeId = wbResult.data?.id ?? null;
 
+  // Generate SEO-friendly slug from recipe metadata
+  const slug = generateRecipeSlug(simulation ?? null, normalizedCamera, lensModel ?? null);
+
   // Insert recipe with FK references and enum values
   const { data: inserted, error: insertError } = await supabase.from("recipes").insert({
     user_id: user.id,
+    slug,
     simulation_id: simulationId,
     camera_model_id: cameraModelId,
     lens_id: lensId,

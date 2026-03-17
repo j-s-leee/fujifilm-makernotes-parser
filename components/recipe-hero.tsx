@@ -66,6 +66,7 @@ interface RecipeHeroProps {
     lens_model: string | null;
     bookmark_count: number;
     like_count: number;
+    slug: string;
   };
   settings: RecipeSettingsRecipe;
   sharer: {
@@ -119,7 +120,7 @@ export function RecipeHero({ recipe, settings, sharer }: RecipeHeroProps) {
     : undefined;
 
   const handleShare = async () => {
-    const url = `${window.location.origin}/recipes/${recipe.id}`;
+    const url = `${window.location.origin}/recipes/${recipe.slug}-${recipe.id}`;
     if (navigator.share) {
       navigator.share({ title: recipe.simulation ?? "Recipe", url });
     } else {

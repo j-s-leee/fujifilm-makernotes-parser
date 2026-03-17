@@ -26,6 +26,7 @@ import { useUser } from "@/hooks/use-user";
 import { isRafFile, extractJpegFromRaf } from "@/lib/raf-parser";
 import { shareRecipe } from "@/lib/share-recipe";
 import { compressImageToThumbnail } from "@/lib/compress-image";
+import { generateRecipeSlug } from "@/lib/slug";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Upload } from "lucide-react";
 import { Link } from "@/i18n/navigation";
@@ -215,6 +216,7 @@ export function UploadRecipeModal({
     ? {
         id: 0,
         simulation: simulation ?? null,
+        slug: generateRecipeSlug(simulation ?? null, cameraModel, lensModel),
         sensor_generation: null,
         dynamic_range_development: recipe.dynamicRange?.development ?? null,
         grain_roughness: recipe.grainEffect?.roughness ?? null,

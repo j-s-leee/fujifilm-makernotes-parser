@@ -39,6 +39,7 @@ export interface RecipeSettingsRecipe {
   clarity: number | null;
   bw_adjustment: number | null;
   bw_magenta_green: number | null;
+  slug: string;
 }
 
 interface RecipeSettingsProps {
@@ -103,7 +104,7 @@ export function RecipeSettings({ recipe }: RecipeSettingsProps) {
     if (recipe.clarity != null)
       lines.push(`${t("clarity")}: ${addSign(recipe.clarity)}`);
 
-    const url = `${window.location.origin}/recipes/${recipe.id}`;
+    const url = `${window.location.origin}/recipes/${recipe.slug}-${recipe.id}`;
     const text = lines.join("\n") + `\n\n${url}`;
 
     navigator.clipboard.writeText(text).then(() => {

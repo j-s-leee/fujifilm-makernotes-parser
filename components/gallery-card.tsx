@@ -32,6 +32,7 @@ export interface GalleryRecipe {
   user_display_name: string | null;
   user_username: string | null;
   user_avatar_path: string | null;
+  slug: string;
 }
 
 export const GalleryCard = memo(function GalleryCard({
@@ -111,7 +112,7 @@ export const GalleryCard = memo(function GalleryCard({
 
         {/* Invisible link covering the image area */}
         <Link
-          href={`/recipes/${recipe.id}`}
+          href={`/recipes/${recipe.slug}-${recipe.id}`}
           className="absolute inset-0 z-0"
           aria-label={recipe.simulation ?? t("viewRecipe")}
         />
