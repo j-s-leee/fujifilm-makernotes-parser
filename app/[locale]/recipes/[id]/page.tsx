@@ -1,7 +1,8 @@
 import { cache, Suspense } from "react";
 import type { Metadata } from "next";
 import { createStaticClient } from "@/lib/supabase/server";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
+import { parseRecipeId, buildRecipeSlugId } from "@/lib/slug";
 import { RecipeHero } from "@/components/recipe-hero";
 import { BackButton } from "@/components/back-button";
 import { SimilarRecipes } from "@/components/similar-recipes";
@@ -30,11 +31,13 @@ export async function generateMetadata({
   params,
 }: RecipePageProps): Promise<Metadata> {
   const { id } = await params;
-  const recipeId = parseInt(id, 10);
+  const recipeId = parseRecipeId(id);
   if (isNaN(recipeId)) return {};
 
   const recipe = await getRecipe(recipeId);
   if (!recipe) return {};
+
+  const canonicalSlugId = buildRecipeSlugId(recipe.slug, recipe.id);
 
   const title = `${recipe.simulation} Recipe`;
   const byName = recipe.user_username
@@ -49,7 +52,7 @@ export async function generateMetadata({
   return {
     title,
     description,
-    alternates: getAlternates(`/recipes/${id}`),
+    alternates: getAlternates(`/recipes/${canonicalSlugId}`),
     openGraph: {
       title,
       description,
@@ -110,7 +113,7 @@ export default async function RecipePage({ params }: RecipePageProps) {
   setRequestLocale(locale);
   const t = await getTranslations({ locale, namespace: "recipeDetail" });
   const tCommon = await getTranslations({ locale, namespace: "common" });
-  const recipeId = parseInt(id, 10);
+  const recipeId = parseRecipeId(id);
   if (isNaN(recipeId)) notFound();
 
   const recipe = await getRecipe(recipeId);
@@ -140,6 +143,12 @@ export default async function RecipePage({ params }: RecipePageProps) {
     }
 
     notFound();
+  }
+
+  // Canonical slug redirect — ensures SEO-friendly URL
+  const canonicalSlugId = buildRecipeSlugId(recipe.slug, recipe.id);
+  if (id !== canonicalSlugId) {
+    permanentRedirect(`/recipes/${canonicalSlugId}`);
   }
 
   const r2PublicUrl = process.env.NEXT_PUBLIC_R2_PUBLIC_URL ?? "";

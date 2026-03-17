@@ -10,8 +10,8 @@ const nextConfig: NextConfig = {
   },
   headers: async () => [
     {
-      // Recipe detail — high traffic, shared via SNS
-      source: "/:locale*/recipes/:id(\\d+)",
+      // Recipe detail — match both /recipes/123 and /recipes/slug-123
+      source: "/:locale*/recipes/:slugId([\\w-]+-\\d+|\\d+)",
       headers: [
         {
           key: "CDN-Cache-Control",
