@@ -48,3 +48,41 @@ export function fromLensSlug(
 ): string | null {
   return knownNames.find((n) => toSlug(n) === slug) ?? null;
 }
+
+/**
+ * Generate a recipe slug from parsed metadata.
+ * Example: simulation="classic-chrome", camera="X-T5", lens="XF35mmF1.4 R"
+ * → "classic-chrome-x-t5-xf35mmf1-4-r"
+ */
+export function generateRecipeSlug(
+  simulation: string | null,
+  cameraModel: string | null,
+  lensModel: string | null,
+): string {
+  const parts = [simulation, cameraModel, lensModel]
+    .filter(Boolean)
+    .map((p) => toSlug(p!));
+
+  return parts.join("-") || "recipe";
+}
+
+/**
+ * Build the full slug-id path segment for a recipe URL.
+ * Example: slug="classic-chrome-x-t5", id=123 → "classic-chrome-x-t5-123"
+ */
+export function buildRecipeSlugId(slug: string, id: number): string {
+  return `${slug}-${id}`;
+}
+
+/**
+ * Extract the numeric recipe ID from a slug-id URL segment.
+ * "classic-chrome-x-t5-123" → 123
+ * "123" → 123 (backward compatible with old URLs)
+ */
+export function parseRecipeId(slugId: string): number {
+  // Try slug-id pattern: last hyphen-separated numeric segment
+  const match = slugId.match(/-(\d+)$/);
+  if (match) return parseInt(match[1], 10);
+  // Fallback: entire string is numeric (old URL format)
+  return parseInt(slugId, 10);
+}
