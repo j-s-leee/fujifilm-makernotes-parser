@@ -60,6 +60,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticPages: Entry[] = [
     localized("", { priority: 1.0, changeFrequency: "daily" }),
     localized("/recipes", { priority: 0.9, changeFrequency: "daily" }),
+    localized("/extract", { priority: 0.8, changeFrequency: "monthly" }),
+    localized("/search", { priority: 0.8, changeFrequency: "monthly" }),
     localized("/privacy", { priority: 0.3, changeFrequency: "yearly" }),
     localized("/terms", { priority: 0.3, changeFrequency: "yearly" }),
   ];

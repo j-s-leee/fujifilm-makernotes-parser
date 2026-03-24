@@ -1,6 +1,7 @@
 import { Link } from "@/i18n/navigation";
 import { createStaticClient } from "@/lib/supabase/server";
 import { TrendingGrid } from "@/components/trending-grid";
+import { FeatureShowcase } from "@/components/feature-showcase";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
 export const revalidate = 43200; // 12 hours — trending updates are not time-critical
@@ -28,6 +29,8 @@ export default async function Home({ params }: Props) {
             {t("subtitle")}
           </p>
         </div>
+
+        <FeatureShowcase />
 
         {recipes && recipes.length > 0 ? (
           <>
