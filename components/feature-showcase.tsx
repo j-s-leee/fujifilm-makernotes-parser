@@ -50,6 +50,31 @@ export function FeatureShowcase() {
   );
 }
 
+/** Fade-in + slide-up when element enters viewport. Triggers once. */
+function useReveal() {
+  const ref = useRef<HTMLDivElement>(null);
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setVisible(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.15 },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  return { ref, visible };
+}
+
 function FeatureRow({
   icon: Icon,
   title,
@@ -67,11 +92,14 @@ function FeatureRow({
   mockup: React.ReactNode;
   reverse: boolean;
 }) {
+  const { ref, visible } = useReveal();
+
   return (
     <div
-      className={`flex flex-col gap-8 sm:flex-row sm:items-center sm:gap-12 lg:gap-16 ${
+      ref={ref}
+      className={`flex flex-col gap-8 sm:flex-row sm:items-center sm:gap-12 lg:gap-16 transition-all duration-700 ease-out ${
         reverse ? "sm:flex-row-reverse" : ""
-      }`}
+      } ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
     >
       {/* Mockup */}
       <div className="flex justify-center sm:w-1/2">

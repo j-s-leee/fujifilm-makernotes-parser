@@ -2,6 +2,7 @@ import { Link } from "@/i18n/navigation";
 import { createStaticClient } from "@/lib/supabase/server";
 import { TrendingGrid } from "@/components/trending-grid";
 import { FeatureShowcase } from "@/components/feature-showcase";
+import { RevealOnScroll } from "@/components/reveal-on-scroll";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
 export const revalidate = 43200; // 12 hours — trending updates are not time-critical
@@ -23,7 +24,7 @@ export default async function Home({ params }: Props) {
       <div className="flex flex-col gap-24 sm:gap-32">
         {/* Hero + Features */}
         <div className="flex flex-col gap-16 sm:gap-20">
-          <div className="text-center">
+          <div className="text-center animate-fade-in-up">
             <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
               {t("heroTitle")}
             </h1>
@@ -37,21 +38,23 @@ export default async function Home({ params }: Props) {
 
         {/* Trending Recipes */}
         {recipes && recipes.length > 0 ? (
-          <div className="flex flex-col gap-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold tracking-tight">
-                {t("trendingTitle")}
-              </h2>
-              <Link
-                href="/recipes?sort=popular"
-                className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-              >
-                {t("viewAll")} &rarr;
-              </Link>
-            </div>
+          <RevealOnScroll>
+            <div className="flex flex-col gap-6">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-semibold tracking-tight">
+                  {t("trendingTitle")}
+                </h2>
+                <Link
+                  href="/recipes?sort=popular"
+                  className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  {t("viewAll")} &rarr;
+                </Link>
+              </div>
 
-            <TrendingGrid recipes={recipes} />
-          </div>
+              <TrendingGrid recipes={recipes} />
+            </div>
+          </RevealOnScroll>
         ) : (
           <p className="text-center text-sm text-muted-foreground py-20">
             {t("empty")}
