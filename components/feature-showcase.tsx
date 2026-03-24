@@ -67,8 +67,8 @@ function FeatureCard({
       href={href}
       className="group flex flex-col rounded-lg border border-border overflow-hidden transition-colors hover:border-foreground/20"
     >
-      {/* Mockup area */}
-      <div className="relative flex items-center justify-center bg-muted/40 p-4 sm:p-5 min-h-[180px] overflow-hidden">
+      {/* Mockup area — fixed height to prevent layout shift during animation */}
+      <div className="relative flex items-center justify-center bg-muted/40 p-4 sm:p-5 h-[280px] overflow-hidden">
         {animation}
       </div>
 
@@ -163,12 +163,12 @@ function ExtractMockup() {
         </div>
 
         {/* Extracted settings */}
-        <div
-          className={`border-t border-border transition-all duration-500 ${
-            step >= 2 ? "max-h-40 opacity-100" : "max-h-0 opacity-0"
-          } overflow-hidden`}
-        >
-          <div className="p-3 space-y-1.5">
+        <div className="border-t border-border">
+          <div
+            className={`p-3 space-y-1.5 transition-opacity duration-500 ${
+              step >= 2 ? "opacity-100" : "opacity-0"
+            }`}
+          >
             <SettingMockRow label="Film Simulation" value="Classic Chrome" />
             <SettingMockRow label="Dynamic Range" value="DR400" />
             <SettingMockRow label="Grain Effect" value="Weak / Small" />
@@ -178,7 +178,7 @@ function ExtractMockup() {
 
         {/* Upload button */}
         <div
-          className={`p-3 pt-0 transition-all duration-500 ${
+          className={`p-3 pt-0 transition-opacity duration-500 ${
             step >= 3 ? "opacity-100" : "opacity-0"
           }`}
         >
@@ -234,12 +234,12 @@ function ImageSearchMockup() {
         </div>
 
         {/* Results: mini recipe cards */}
-        <div
-          className={`border-t border-border transition-all duration-500 ${
-            step >= 3 ? "max-h-40 opacity-100" : "max-h-0 opacity-0"
-          } overflow-hidden`}
-        >
-          <div className="p-3 space-y-2">
+        <div className="border-t border-border">
+          <div
+            className={`p-3 space-y-2 transition-opacity duration-500 ${
+              step >= 3 ? "opacity-100" : "opacity-0"
+            }`}
+          >
             <div className="text-[9px] text-muted-foreground mb-1">
               3 recipes found
             </div>
@@ -333,12 +333,12 @@ function TextSearchMockup() {
         </div>
 
         {/* Results */}
-        <div
-          className={`border-t border-border transition-all duration-500 ${
-            step >= 3 ? "max-h-40 opacity-100" : "max-h-0 opacity-0"
-          } overflow-hidden`}
-        >
-          <div className="p-3 space-y-2">
+        <div className="border-t border-border">
+          <div
+            className={`p-3 space-y-2 transition-opacity duration-500 ${
+              step >= 3 ? "opacity-100" : "opacity-0"
+            }`}
+          >
             <div className="text-[9px] text-muted-foreground mb-1">
               3 recipes found
             </div>
