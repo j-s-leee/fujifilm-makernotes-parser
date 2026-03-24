@@ -18,75 +18,86 @@ export function FeatureShowcase() {
   const t = useTranslations("home.features");
 
   return (
-    <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-      <FeatureCard
+    <div className="flex flex-col gap-16 sm:gap-20">
+      <FeatureRow
         icon={ScanLine}
         title={t("extractTitle")}
         description={t("extractDescription")}
         href="/extract"
         cta={t("extractCta")}
-        animation={<ExtractMockup />}
+        mockup={<ExtractMockup />}
+        reverse={false}
       />
-      <FeatureCard
+      <FeatureRow
         icon={ImageIcon}
         title={t("imageSearchTitle")}
         description={t("imageSearchDescription")}
         href="/search"
         cta={t("imageSearchCta")}
-        animation={<ImageSearchMockup />}
+        mockup={<ImageSearchMockup />}
+        reverse={true}
       />
-      <FeatureCard
+      <FeatureRow
         icon={MessageSquareText}
         title={t("textSearchTitle")}
         description={t("textSearchDescription")}
         href="/search"
         cta={t("textSearchCta")}
-        animation={<TextSearchMockup />}
+        mockup={<TextSearchMockup />}
+        reverse={false}
       />
     </div>
   );
 }
 
-function FeatureCard({
+function FeatureRow({
   icon: Icon,
   title,
   description,
   href,
   cta,
-  animation,
+  mockup,
+  reverse,
 }: {
   icon: typeof ScanLine;
   title: string;
   description: string;
   href: string;
   cta: string;
-  animation: React.ReactNode;
+  mockup: React.ReactNode;
+  reverse: boolean;
 }) {
   return (
-    <Link
-      href={href}
-      className="group flex flex-col rounded-lg border border-border overflow-hidden transition-colors hover:border-foreground/20"
+    <div
+      className={`flex flex-col gap-6 sm:flex-row sm:items-center sm:gap-10 ${
+        reverse ? "sm:flex-row-reverse" : ""
+      }`}
     >
-      {/* Mockup area — fixed height to prevent layout shift during animation */}
-      <div className="relative flex items-center justify-center bg-muted/40 p-4 sm:p-5 h-[280px] overflow-hidden">
-        {animation}
+      {/* Mockup */}
+      <div className="flex justify-center sm:w-1/2">
+        <div className="w-full max-w-[280px]">{mockup}</div>
       </div>
 
       {/* Text */}
-      <div className="flex flex-1 flex-col gap-1.5 p-4 pt-3">
+      <div className="flex flex-col gap-3 sm:w-1/2">
         <div className="flex items-center gap-2">
-          <Icon className="h-4 w-4 text-muted-foreground" />
-          <h3 className="text-sm font-medium">{title}</h3>
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted">
+            <Icon className="h-4 w-4 text-muted-foreground" />
+          </div>
         </div>
-        <p className="text-xs text-muted-foreground leading-relaxed">
+        <h3 className="text-lg font-semibold tracking-tight">{title}</h3>
+        <p className="text-sm text-muted-foreground leading-relaxed">
           {description}
         </p>
-        <span className="mt-auto flex items-center gap-1 pt-2 text-xs font-medium text-muted-foreground transition-colors group-hover:text-foreground">
+        <Link
+          href={href}
+          className="group/link mt-1 flex items-center gap-1 text-sm font-medium transition-colors hover:text-foreground"
+        >
           {cta}
-          <ArrowRight className="h-3 w-3" />
-        </span>
+          <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover/link:translate-x-0.5" />
+        </Link>
       </div>
-    </Link>
+    </div>
   );
 }
 
@@ -105,7 +116,6 @@ function useAnimLoop(stepCount: number, interval: number, pauseAtEnd: number) {
     return () => clearInterval(timer);
   }, [stepCount, interval]);
 
-  // Reset after pause at end
   useEffect(() => {
     if (step >= stepCount) {
       timeoutRef.current = setTimeout(() => setStep(0), pauseAtEnd);
@@ -118,152 +128,136 @@ function useAnimLoop(stepCount: number, interval: number, pauseAtEnd: number) {
   return step;
 }
 
-/** Mockup of the upload modal showing EXIF extraction → recipe settings */
 function ExtractMockup() {
   const step = useAnimLoop(3, 1600, 2500);
 
   return (
-    <div className="w-full max-w-[220px]">
-      {/* Mini modal frame */}
-      <div className="rounded-lg border border-border bg-background shadow-sm overflow-hidden">
-        {/* Modal header */}
-        <div className="flex items-center gap-1.5 border-b border-border px-3 py-2">
-          <ScanLine className="h-3 w-3 text-muted-foreground" />
-          <span className="text-[10px] font-medium">Upload Recipe</span>
-        </div>
+    <div className="rounded-lg border border-border bg-background shadow-sm overflow-hidden">
+      <div className="flex items-center gap-1.5 border-b border-border px-3 py-2">
+        <ScanLine className="h-3 w-3 text-muted-foreground" />
+        <span className="text-[10px] font-medium">Upload Recipe</span>
+      </div>
 
-        {/* Dropzone / file */}
-        <div className="p-3">
-          <div
-            className={`flex flex-col items-center justify-center rounded-md border border-dashed py-4 transition-all duration-500 ${
-              step >= 1
-                ? "border-foreground/20 bg-muted/50"
-                : "border-border"
-            }`}
-          >
-            {step < 1 ? (
-              <>
-                <Upload className="h-4 w-4 text-muted-foreground/40 mb-1" />
-                <span className="text-[9px] text-muted-foreground/50">
-                  Drop JPEG or RAF
-                </span>
-              </>
-            ) : (
-              <div className="flex items-center gap-2">
-                <div className="h-8 w-8 rounded bg-muted flex items-center justify-center">
-                  <ImageIcon className="h-4 w-4 text-muted-foreground" />
-                </div>
-                <div>
-                  <div className="text-[10px] font-medium">DSCF4721.RAF</div>
-                  <div className="text-[9px] text-muted-foreground">X-T5 · 26mm</div>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Extracted settings */}
-        <div className="border-t border-border">
-          <div
-            className={`p-3 space-y-1.5 transition-opacity duration-500 ${
-              step >= 2 ? "opacity-100" : "opacity-0"
-            }`}
-          >
-            <SettingMockRow label="Film Simulation" value="Classic Chrome" />
-            <SettingMockRow label="Dynamic Range" value="DR400" />
-            <SettingMockRow label="Grain Effect" value="Weak / Small" />
-            <SettingMockRow label="White Balance" value="Auto" />
-          </div>
-        </div>
-
-        {/* Upload button */}
+      <div className="p-3">
         <div
-          className={`p-3 pt-0 transition-opacity duration-500 ${
-            step >= 3 ? "opacity-100" : "opacity-0"
+          className={`flex flex-col items-center justify-center rounded-md border border-dashed py-4 transition-all duration-500 ${
+            step >= 1
+              ? "border-foreground/20 bg-muted/50"
+              : "border-border"
           }`}
         >
-          <div className="flex items-center justify-center rounded-md bg-foreground py-1.5 text-[10px] font-medium text-background">
-            Upload Recipe
-          </div>
+          {step < 1 ? (
+            <>
+              <Upload className="h-4 w-4 text-muted-foreground/40 mb-1" />
+              <span className="text-[9px] text-muted-foreground/50">
+                Drop JPEG or RAF
+              </span>
+            </>
+          ) : (
+            <div className="flex items-center gap-2">
+              <div className="h-8 w-8 rounded bg-muted flex items-center justify-center">
+                <ImageIcon className="h-4 w-4 text-muted-foreground" />
+              </div>
+              <div>
+                <div className="text-[10px] font-medium">DSCF4721.RAF</div>
+                <div className="text-[9px] text-muted-foreground">X-T5 · 26mm</div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="border-t border-border">
+        <div
+          className={`p-3 space-y-1.5 transition-opacity duration-500 ${
+            step >= 2 ? "opacity-100" : "opacity-0"
+          }`}
+        >
+          <SettingMockRow label="Film Simulation" value="Classic Chrome" />
+          <SettingMockRow label="Dynamic Range" value="DR400" />
+          <SettingMockRow label="Grain Effect" value="Weak / Small" />
+          <SettingMockRow label="White Balance" value="Auto" />
+        </div>
+      </div>
+
+      <div
+        className={`p-3 pt-0 transition-opacity duration-500 ${
+          step >= 3 ? "opacity-100" : "opacity-0"
+        }`}
+      >
+        <div className="flex items-center justify-center rounded-md bg-foreground py-1.5 text-[10px] font-medium text-background">
+          Upload Recipe
         </div>
       </div>
     </div>
   );
 }
 
-/** Mockup of photo upload → recipe gallery results */
 function ImageSearchMockup() {
   const step = useAnimLoop(3, 1600, 2500);
 
   return (
-    <div className="w-full max-w-[220px]">
-      <div className="rounded-lg border border-border bg-background shadow-sm overflow-hidden">
-        {/* Header */}
-        <div className="flex items-center gap-1.5 border-b border-border px-3 py-2">
-          <Search className="h-3 w-3 text-muted-foreground" />
-          <span className="text-[10px] font-medium">Find Similar Recipes</span>
+    <div className="rounded-lg border border-border bg-background shadow-sm overflow-hidden">
+      <div className="flex items-center gap-1.5 border-b border-border px-3 py-2">
+        <Search className="h-3 w-3 text-muted-foreground" />
+        <span className="text-[10px] font-medium">Find Similar Recipes</span>
+      </div>
+
+      <div className="p-3">
+        <div
+          className={`h-24 rounded-md flex items-center justify-center transition-all duration-500 overflow-hidden ${
+            step >= 1
+              ? "bg-gradient-to-br from-amber-200/60 to-orange-300/40 dark:from-amber-900/40 dark:to-orange-900/30"
+              : "bg-muted/30 border border-dashed border-border"
+          }`}
+        >
+          {step < 1 ? (
+            <Upload className="h-4 w-4 text-muted-foreground/40" />
+          ) : (
+            <ImageIcon className="h-6 w-6 text-amber-700/50 dark:text-amber-300/50" />
+          )}
         </div>
 
-        {/* Photo preview */}
-        <div className="p-3">
-          <div
-            className={`h-20 rounded-md flex items-center justify-center transition-all duration-500 overflow-hidden ${
-              step >= 1
-                ? "bg-gradient-to-br from-amber-200/60 to-orange-300/40 dark:from-amber-900/40 dark:to-orange-900/30"
-                : "bg-muted/30 border border-dashed border-border"
-            }`}
-          >
-            {step < 1 ? (
-              <Upload className="h-4 w-4 text-muted-foreground/40" />
-            ) : (
-              <ImageIcon className="h-6 w-6 text-amber-700/50 dark:text-amber-300/50" />
-            )}
-          </div>
-
-          {/* Analyzing indicator */}
-          <div
-            className={`flex items-center justify-center gap-1.5 mt-2 transition-all duration-500 ${
-              step === 2 ? "opacity-100" : "opacity-0"
-            }`}
-          >
-            <div className="h-1 w-1 rounded-full bg-foreground/40 animate-pulse" />
-            <span className="text-[9px] text-muted-foreground">
-              Analyzing color & tone...
-            </span>
-          </div>
+        <div
+          className={`flex items-center justify-center gap-1.5 mt-2 h-4 transition-opacity duration-500 ${
+            step === 2 ? "opacity-100" : "opacity-0"
+          }`}
+        >
+          <div className="h-1 w-1 rounded-full bg-foreground/40 animate-pulse" />
+          <span className="text-[9px] text-muted-foreground">
+            Analyzing color & tone...
+          </span>
         </div>
+      </div>
 
-        {/* Results: mini recipe cards */}
-        <div className="border-t border-border">
-          <div
-            className={`p-3 space-y-2 transition-opacity duration-500 ${
-              step >= 3 ? "opacity-100" : "opacity-0"
-            }`}
-          >
-            <div className="text-[9px] text-muted-foreground mb-1">
-              3 recipes found
-            </div>
-            {[
-              { name: "Classic Chrome", score: "98%" },
-              { name: "PRO Neg. Hi", score: "94%" },
-              { name: "Nostalgic Neg.", score: "91%" },
-            ].map((r, i) => (
-              <RecipeResultRow
-                key={r.name}
-                name={r.name}
-                score={r.score}
-                delay={i * 80}
-                visible={step >= 3}
-              />
-            ))}
+      <div className="border-t border-border">
+        <div
+          className={`p-3 space-y-2 transition-opacity duration-500 ${
+            step >= 3 ? "opacity-100" : "opacity-0"
+          }`}
+        >
+          <div className="text-[9px] text-muted-foreground mb-1">
+            3 recipes found
           </div>
+          {[
+            { name: "Classic Chrome", score: "98%" },
+            { name: "PRO Neg. Hi", score: "94%" },
+            { name: "Nostalgic Neg.", score: "91%" },
+          ].map((r, i) => (
+            <RecipeResultRow
+              key={r.name}
+              name={r.name}
+              score={r.score}
+              delay={i * 80}
+              visible={step >= 3}
+            />
+          ))}
         </div>
       </div>
     </div>
   );
 }
 
-/** Mockup of text search with typing → results */
 function TextSearchMockup() {
   const step = useAnimLoop(3, 1600, 2500);
   const [displayText, setDisplayText] = useState("");
@@ -291,71 +285,65 @@ function TextSearchMockup() {
   }, [step]);
 
   return (
-    <div className="w-full max-w-[220px]">
-      <div className="rounded-lg border border-border bg-background shadow-sm overflow-hidden">
-        {/* Header */}
-        <div className="flex items-center gap-1.5 border-b border-border px-3 py-2">
-          <MessageSquareText className="h-3 w-3 text-muted-foreground" />
-          <span className="text-[10px] font-medium">Text Search</span>
+    <div className="rounded-lg border border-border bg-background shadow-sm overflow-hidden">
+      <div className="flex items-center gap-1.5 border-b border-border px-3 py-2">
+        <MessageSquareText className="h-3 w-3 text-muted-foreground" />
+        <span className="text-[10px] font-medium">Text Search</span>
+      </div>
+
+      <div className="p-3">
+        <div
+          className={`flex items-center rounded-md border px-2 py-1.5 transition-all duration-300 ${
+            step >= 1 ? "border-foreground/20" : "border-border"
+          }`}
+        >
+          <Search className="h-3 w-3 text-muted-foreground mr-1.5 shrink-0" />
+          <span className="text-[10px] text-foreground/80 truncate">
+            {displayText || (
+              <span className="text-muted-foreground/40">
+                Describe the look...
+              </span>
+            )}
+            {step >= 1 && displayText.length < fullText.length && (
+              <span className="animate-pulse text-foreground/60">|</span>
+            )}
+          </span>
         </div>
 
-        {/* Search input mockup */}
-        <div className="p-3">
-          <div
-            className={`flex items-center rounded-md border px-2 py-1.5 transition-all duration-300 ${
-              step >= 1 ? "border-foreground/20" : "border-border"
-            }`}
-          >
-            <Search className="h-3 w-3 text-muted-foreground mr-1.5 shrink-0" />
-            <span className="text-[10px] text-foreground/80 truncate">
-              {displayText || (
-                <span className="text-muted-foreground/40">
-                  Describe the look...
-                </span>
-              )}
-              {step >= 1 && displayText.length < fullText.length && (
-                <span className="animate-pulse text-foreground/60">|</span>
-              )}
-            </span>
-          </div>
-
-          {/* Processing */}
-          <div
-            className={`flex items-center justify-center gap-1.5 mt-2 transition-all duration-500 ${
-              step === 2 ? "opacity-100" : "opacity-0"
-            }`}
-          >
-            <div className="h-1 w-1 rounded-full bg-foreground/40 animate-pulse" />
-            <span className="text-[9px] text-muted-foreground">
-              Matching recipes...
-            </span>
-          </div>
+        <div
+          className={`flex items-center justify-center gap-1.5 mt-2 h-4 transition-opacity duration-500 ${
+            step === 2 ? "opacity-100" : "opacity-0"
+          }`}
+        >
+          <div className="h-1 w-1 rounded-full bg-foreground/40 animate-pulse" />
+          <span className="text-[9px] text-muted-foreground">
+            Matching recipes...
+          </span>
         </div>
+      </div>
 
-        {/* Results */}
-        <div className="border-t border-border">
-          <div
-            className={`p-3 space-y-2 transition-opacity duration-500 ${
-              step >= 3 ? "opacity-100" : "opacity-0"
-            }`}
-          >
-            <div className="text-[9px] text-muted-foreground mb-1">
-              3 recipes found
-            </div>
-            {[
-              { name: "ASTIA", score: "95%" },
-              { name: "Classic Chrome", score: "92%" },
-              { name: "PRO Neg. Std", score: "88%" },
-            ].map((r, i) => (
-              <RecipeResultRow
-                key={r.name}
-                name={r.name}
-                score={r.score}
-                delay={i * 80}
-                visible={step >= 3}
-              />
-            ))}
+      <div className="border-t border-border">
+        <div
+          className={`p-3 space-y-2 transition-opacity duration-500 ${
+            step >= 3 ? "opacity-100" : "opacity-0"
+          }`}
+        >
+          <div className="text-[9px] text-muted-foreground mb-1">
+            3 recipes found
           </div>
+          {[
+            { name: "ASTIA", score: "95%" },
+            { name: "Classic Chrome", score: "92%" },
+            { name: "PRO Neg. Std", score: "88%" },
+          ].map((r, i) => (
+            <RecipeResultRow
+              key={r.name}
+              name={r.name}
+              score={r.score}
+              delay={i * 80}
+              visible={step >= 3}
+            />
+          ))}
         </div>
       </div>
     </div>
