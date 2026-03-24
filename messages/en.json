@@ -175,7 +175,7 @@
     "emptyLens": "No recipes found for {name}."
   },
   "upload": {
-    "title": "Upload Recipe",
+    "title": "Extract & Share Recipe",
     "description": "Drop a Fujifilm JPEG or RAF to extract and share its film recipe.",
     "dropzoneText": "Drag & drop a Fujifilm image here, or click to select",
     "dropzoneFormats": "Supports JPG and RAF files",
