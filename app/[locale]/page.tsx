@@ -20,22 +20,28 @@ export default async function Home({ params }: Props) {
 
   return (
     <div className="container py-8 md:py-12">
-      <div className="flex flex-col gap-6">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">
-            {t("title")}
-          </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            {t("subtitle")}
-          </p>
+      <div className="flex flex-col gap-10">
+        {/* Hero + Features */}
+        <div className="flex flex-col gap-6">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
+              {t("heroTitle")}
+            </h1>
+            <p className="text-sm text-muted-foreground mt-2 max-w-lg mx-auto">
+              {t("heroSubtitle")}
+            </p>
+          </div>
+
+          <FeatureShowcase />
         </div>
 
-        <FeatureShowcase />
-
+        {/* Trending Recipes */}
         {recipes && recipes.length > 0 ? (
-          <>
-            <TrendingGrid recipes={recipes} />
-            <div className="flex justify-center pt-4">
+          <div className="flex flex-col gap-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold tracking-tight">
+                {t("trendingTitle")}
+              </h2>
               <Link
                 href="/recipes?sort=popular"
                 className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
@@ -43,7 +49,9 @@ export default async function Home({ params }: Props) {
                 {t("viewAll")} &rarr;
               </Link>
             </div>
-          </>
+
+            <TrendingGrid recipes={recipes} />
+          </div>
         ) : (
           <p className="text-center text-sm text-muted-foreground py-20">
             {t("empty")}

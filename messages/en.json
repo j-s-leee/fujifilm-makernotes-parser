@@ -96,9 +96,10 @@
     }
   },
   "home": {
-    "title": "Trending Recipes",
-    "subtitle": "Most engaging recipes from the community",
-    "viewAll": "View all recipes",
+    "heroTitle": "Discover & Share Fujifilm Film Simulation Recipes",
+    "heroSubtitle": "Extract recipes from your photos, search by image or text, and explore community recipes.",
+    "trendingTitle": "Trending Recipes",
+    "viewAll": "View all",
     "empty": "No recipes yet. Be the first to share a film recipe!",
     "features": {
       "extractTitle": "Extract Recipe",
