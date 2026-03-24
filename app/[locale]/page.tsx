@@ -19,15 +19,15 @@ export default async function Home({ params }: Props) {
     .rpc("get_trending_recipes", { p_limit: 24 });
 
   return (
-    <div className="container py-8 md:py-12">
-      <div className="flex flex-col gap-10">
+    <div className="container py-12 md:py-20">
+      <div className="flex flex-col gap-24 sm:gap-32">
         {/* Hero + Features */}
-        <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-16 sm:gap-20">
           <div className="text-center">
             <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
               {t("heroTitle")}
             </h1>
-            <p className="text-sm text-muted-foreground mt-2 max-w-lg mx-auto">
+            <p className="text-sm text-muted-foreground mt-3 max-w-lg mx-auto">
               {t("heroSubtitle")}
             </p>
           </div>
