@@ -67,6 +67,19 @@ export async function checkRateLimit(
   return { limited: false };
 }
 
+/**
+ * Hash an IP address for privacy-safe rate limiting.
+ * Uses a simple non-reversible hash (not crypto-grade, just for bucketing).
+ */
+export function hashIp(ip: string): string {
+  let hash = 0;
+  for (let i = 0; i < ip.length; i++) {
+    const char = ip.charCodeAt(i);
+    hash = ((hash << 5) - hash + char) | 0;
+  }
+  return `anon:${hash.toString(36)}`;
+}
+
 // Pre-configured rate limit checkers for each endpoint
 export const rateLimits = {
   imageRecommend: (userId: string) =>
@@ -76,4 +89,11 @@ export const rateLimits = {
     checkRateLimit("recommend:text", userId, 30, "1 h"),
 
   upload: (userId: string) => checkRateLimit("upload", userId, 10, "1 h"),
+
+  // Anonymous rate limits (IP-based, daily)
+  anonImageRecommend: (hashedIp: string) =>
+    checkRateLimit("recommend:image:anon", hashedIp, 3, "1 d"),
+
+  anonTextRecommend: (hashedIp: string) =>
+    checkRateLimit("recommend:text:anon", hashedIp, 3, "1 d"),
 } as const;
