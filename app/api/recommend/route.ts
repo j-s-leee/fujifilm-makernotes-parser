@@ -2,30 +2,38 @@ import { NextRequest, NextResponse } from "next/server";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import sharp from "sharp";
 import { createClient } from "@/lib/supabase/server";
+import { createStaticClient } from "@/lib/supabase/server";
 import { r2, R2_BUCKET } from "@/lib/r2";
 import { getImageEmbedding } from "@/lib/embedding";
 import { computeColorHistogram } from "@/lib/color-histogram";
 import { GALLERY_SELECT } from "@/lib/queries";
-import { rateLimits } from "@/lib/rate-limit";
+import { rateLimits, hashIp } from "@/lib/rate-limit";
 
 export async function POST(request: NextRequest) {
-  // 1. Auth check
+  // 1. Auth check (optional — anonymous users allowed with rate limit)
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
   // 2. Rate limit check
-  const rl = await rateLimits.imageRecommend(user.id);
-  if (rl.limited) {
-    return NextResponse.json(
-      { error: "Too many requests. Please try again later." },
-      { status: 429, headers: { "Retry-After": String(rl.retryAfter) } },
-    );
+  if (user) {
+    const rl = await rateLimits.imageRecommend(user.id);
+    if (rl.limited) {
+      return NextResponse.json(
+        { error: "Too many requests. Please try again later." },
+        { status: 429, headers: { "Retry-After": String(rl.retryAfter) } },
+      );
+    }
+  } else {
+    const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+    const rl = await rateLimits.anonImageRecommend(hashIp(ip));
+    if (rl.limited) {
+      return NextResponse.json(
+        { error: "Daily limit reached. Sign in for more searches." },
+        { status: 429, headers: { "Retry-After": String(rl.retryAfter) } },
+      );
+    }
   }
 
   // 3. Validate file
@@ -56,7 +64,7 @@ export async function POST(request: NextRequest) {
 
   const buffer = Buffer.from(await file.arrayBuffer());
 
-  // 3. Generate blur placeholder
+  // 4. Generate blur placeholder
   const blurBuffer = await sharp(buffer)
     .resize(10, 10, { fit: "cover" })
     .jpeg({ quality: 40 })
@@ -65,10 +73,10 @@ export async function POST(request: NextRequest) {
 
   const metadata = await sharp(buffer).metadata();
 
-  // 4. Upload to R2 at recommend/{userId}/{timestamp}.webp
-  const key = `recommend/${user.id}/${Date.now()}.webp`;
+  // 5. Upload to R2
+  const uploadId = user?.id ?? "anon";
+  const key = `recommend/${uploadId}/${Date.now()}.webp`;
 
-  // Convert to WebP for consistent storage (image is already compressed on client)
   const webpBuffer = await sharp(buffer).webp({ quality: 80 }).toBuffer();
 
   await r2.send(
@@ -77,11 +85,11 @@ export async function POST(request: NextRequest) {
       Key: key,
       Body: webpBuffer,
       ContentType: "image/webp",
-      CacheControl: "public, max-age=604800", // 7 days (temporary)
+      CacheControl: "public, max-age=604800",
     })
   );
 
-  // 5. Generate CLIP embedding and color histogram in parallel
+  // 6. Generate CLIP embedding and color histogram in parallel
   const r2PublicUrl = process.env.NEXT_PUBLIC_R2_PUBLIC_URL!;
   const imageUrl = `${r2PublicUrl}/${key}`;
   const [embedding, colorHistogram] = await Promise.all([
@@ -96,10 +104,12 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // 6. Resolve sensor generation from camera model (if provided)
+  // 7. Resolve sensor generation from camera model (if provided)
+  // Use static client for public reads (works for both auth and anon)
+  const publicClient = createStaticClient();
   let sensorGeneration: string | null = null;
   if (cameraModel) {
-    const { data: cam } = await supabase
+    const { data: cam } = await publicClient
       .from("camera_models")
       .select("sensor_generation")
       .eq("name", cameraModel)
@@ -107,14 +117,14 @@ export async function POST(request: NextRequest) {
     sensorGeneration = cam?.sensor_generation ?? null;
   }
 
-  // 7. Query pgvector for similar recipes
+  // 8. Query pgvector for similar recipes
   const matchCountParam = request.nextUrl.searchParams.get("count");
   const matchCount = Math.min(
     Math.max(parseInt(matchCountParam ?? "10", 10) || 10, 1),
     50
   );
 
-  const { data: matches, error: matchError } = await supabase.rpc(
+  const { data: matches, error: matchError } = await publicClient.rpc(
     "match_recipes_by_image",
     {
       query_embedding: JSON.stringify(embedding),
@@ -140,17 +150,16 @@ export async function POST(request: NextRequest) {
     ])
   );
 
-  // 7. Fetch full recipe data for matched IDs
+  // 9. Fetch full recipe data for matched IDs
   let recipes: (Record<string, unknown> & { id: number })[] = [];
   if (matchedIds.length > 0) {
-    const { data } = await supabase
+    const { data } = await publicClient
       .from("recipes_with_stats")
       .select(GALLERY_SELECT)
       .in("id", matchedIds);
     recipes = (data ?? []) as (Record<string, unknown> & { id: number })[];
   }
 
-  // Sort by similarity (highest first) and attach scores
   const rankedRecipes = recipes
     .map((r) => ({
       ...r,
@@ -158,39 +167,40 @@ export async function POST(request: NextRequest) {
     }))
     .sort((a, b) => (b.similarity as number) - (a.similarity as number));
 
-  // 8. Save recommendation + results to DB
-  const { data: recommendation, error: recError } = await supabase
-    .from("recommendations")
-    .insert({
-      user_id: user.id,
-      image_path: key,
-      image_width: (metadata.width ?? null) as number | null,
-      image_height: (metadata.height ?? null) as number | null,
-      blur_data_url: blurDataUrl,
-    })
-    .select("id")
-    .single();
+  // 10. Save recommendation to DB (authenticated users only)
+  let recommendationId: number | null = null;
+  if (user) {
+    const { data: recommendation, error: recError } = await supabase
+      .from("recommendations")
+      .insert({
+        user_id: user.id,
+        image_path: key,
+        image_width: (metadata.width ?? null) as number | null,
+        image_height: (metadata.height ?? null) as number | null,
+        blur_data_url: blurDataUrl,
+      })
+      .select("id")
+      .single();
 
-  if (recError || !recommendation) {
-    console.error("Failed to save recommendation:", recError);
-    // Still return results even if history save fails
-  } else {
-    // Save individual results
-    const resultRows = rankedRecipes.map((r, i) => ({
-      recommendation_id: recommendation.id,
-      recipe_id: r.id as number,
-      similarity: r.similarity,
-      rank: i + 1,
-    }));
+    if (recError || !recommendation) {
+      console.error("Failed to save recommendation:", recError);
+    } else {
+      recommendationId = recommendation.id;
+      const resultRows = rankedRecipes.map((r, i) => ({
+        recommendation_id: recommendation.id,
+        recipe_id: r.id as number,
+        similarity: r.similarity,
+        rank: i + 1,
+      }));
 
-    if (resultRows.length > 0) {
-      await supabase.from("recommendation_results").insert(resultRows);
+      if (resultRows.length > 0) {
+        await supabase.from("recommendation_results").insert(resultRows);
+      }
     }
   }
 
-  // 9. Return results
   return NextResponse.json({
-    recommendationId: recommendation?.id ?? null,
+    recommendationId,
     imagePath: key,
     blurDataUrl,
     imageWidth: metadata.width ?? null,

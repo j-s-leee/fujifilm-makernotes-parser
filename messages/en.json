@@ -96,18 +96,36 @@
     }
   },
   "home": {
-    "title": "Trending Recipes",
-    "subtitle": "Most engaging recipes from the community",
-    "viewAll": "View all recipes",
+    "heroTitle": "Discover & Share Fujifilm Film Simulation Recipes",
+    "heroSubtitle": "Extract recipes from your photos, search by image or text, and explore community recipes.",
+    "trendingTitle": "Trending Recipes",
+    "viewAll": "View all",
     "empty": "No recipes yet. Be the first to share a film recipe!",
     "features": {
-      "extractTitle": "Extract Recipe",
-      "extractDescription": "Upload a Fujifilm JPEG or RAF file to automatically extract the film simulation recipe from your photo.",
-      "imageSearchTitle": "Search by Image",
-      "imageSearchDescription": "Upload any photo and AI will find film simulation recipes that match its look and color tone.",
-      "textSearchTitle": "Search by Text",
-      "textSearchDescription": "Describe the mood you want — like \"warm sunset\" or \"moody street\" — and discover matching recipes.",
-      "learnMore": "Learn more"
+      "extractTab": "Extract",
+      "imageSearchTab": "Image Search",
+      "textSearchTab": "Text Search",
+
+      "extractTitle": "Extract Recipe from Photo",
+      "extractDescription": "Upload a Fujifilm photo and automatically read the film simulation settings from its metadata.",
+      "extractStep1": "Upload a JPEG or RAF file from your Fujifilm camera",
+      "extractStep2": "Camera model, lens, and all recipe settings are detected automatically",
+      "extractStep3": "Review the extracted recipe and share it with the community",
+      "extractCta": "Learn more about extraction",
+
+      "imageSearchTitle": "Find Recipes by Image",
+      "imageSearchDescription": "Upload any photo — from any camera — and AI finds recipes with a similar look and color tone.",
+      "imageSearchStep1": "Upload any photo (not just Fujifilm — phone photos work too)",
+      "imageSearchStep2": "AI analyzes the color tone, contrast, and mood of your photo",
+      "imageSearchStep3": "Get a ranked list of recipes that produce a similar look",
+      "imageSearchCta": "Try image search",
+
+      "textSearchTitle": "Describe the Look You Want",
+      "textSearchDescription": "Type a description like \"warm sunset\" or \"moody street\" and discover matching recipes.",
+      "textSearchStep1": "Describe the aesthetic you want in any language",
+      "textSearchStep2": "AI translates your description into a visual concept",
+      "textSearchStep3": "Get recipes matching the mood and style you described",
+      "textSearchCta": "Try text search"
     }
   },
   "recipes": {
@@ -157,7 +175,7 @@
     "emptyLens": "No recipes found for {name}."
   },
   "upload": {
-    "title": "Upload Recipe",
+    "title": "Extract & Share Recipe",
     "description": "Drop a Fujifilm JPEG or RAF to extract and share its film recipe.",
     "dropzoneText": "Drag & drop a Fujifilm image here, or click to select",
     "dropzoneFormats": "Supports JPG and RAF files",

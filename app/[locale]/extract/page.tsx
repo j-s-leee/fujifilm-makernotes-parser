@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { ScanLine, Camera, Settings, Upload } from "lucide-react";
-import { Link } from "@/i18n/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { getAlternates } from "@/lib/seo";
 import { ALL_CAMERA_MODELS } from "@/fujifilm/cameras";
+import { ScanButton } from "@/components/scan-button";
 
 type Props = { params: Promise<{ locale: string }> };
 
@@ -129,15 +129,8 @@ export default async function ExtractPage({ params }: Props) {
         </div>
 
         {/* CTA */}
-        <div className="mt-12 text-center">
-          <Link
-            href="/recipes"
-            className="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-          >
-            <ScanLine className="h-4 w-4" />
-            {t("cta")}
-          </Link>
-          <p className="mt-2 text-xs text-muted-foreground">{t("ctaHint")}</p>
+        <div className="mt-12">
+          <ScanButton label={t("cta")} hint={t("ctaHint")} />
         </div>
 
         {/* FAQ */}

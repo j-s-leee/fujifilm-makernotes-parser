@@ -8,7 +8,11 @@ import { RecommendResults } from "@/components/recommend-results";
 import type { RecommendResult } from "@/components/recommend-uploader";
 import { useTranslations } from "next-intl";
 
-export function RecommendPageClient() {
+interface RecommendPageClientProps {
+  isAuthenticated?: boolean;
+}
+
+export function RecommendPageClient({ isAuthenticated = true }: RecommendPageClientProps) {
   const [result, setResult] = useState<RecommendResult | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [exampleLoading, setExampleLoading] = useState<string | null>(null);
@@ -68,12 +72,14 @@ export function RecommendPageClient() {
           <p className="text-sm text-muted-foreground mt-1">
             {t("subtitle")}
           </p>
-          <Link
-            href="/recommend/history"
-            className="text-sm text-muted-foreground hover:text-foreground underline mt-1 inline-block"
-          >
-            {t("viewHistory")}
-          </Link>
+          {isAuthenticated && (
+            <Link
+              href="/recommend/history"
+              className="text-sm text-muted-foreground hover:text-foreground underline mt-1 inline-block"
+            >
+              {t("viewHistory")}
+            </Link>
+          )}
         </div>
 
         <RecommendUploader onResult={handleResult} />
