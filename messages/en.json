@@ -108,7 +108,14 @@
       "imageSearchDescription": "Upload any photo and AI will find film simulation recipes that match its look and color tone.",
       "textSearchTitle": "Search by Text",
       "textSearchDescription": "Describe the mood you want — like \"warm sunset\" or \"moody street\" — and discover matching recipes.",
-      "learnMore": "Learn more"
+      "learnMore": "Learn more",
+      "searchPlaceholder": "Describe the look you want, e.g. \"warm sunset portrait\"",
+      "extractDrop": "Drop a Fujifilm JPEG or RAF here",
+      "imageDrop": "Drop any photo here to search",
+      "example1": "warm golden hour portrait",
+      "example2": "moody street at night",
+      "example3": "vintage film look",
+      "example4": "soft pastel tones"
     }
   },
   "recipes": {
