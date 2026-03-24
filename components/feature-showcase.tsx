@@ -18,7 +18,7 @@ export function FeatureShowcase() {
   const t = useTranslations("home.features");
 
   return (
-    <div className="flex flex-col gap-16 sm:gap-20">
+    <div className="flex flex-col gap-24 sm:gap-32">
       <FeatureRow
         icon={ScanLine}
         title={t("extractTitle")}
@@ -69,13 +69,13 @@ function FeatureRow({
 }) {
   return (
     <div
-      className={`flex flex-col gap-6 sm:flex-row sm:items-center sm:gap-10 ${
+      className={`flex flex-col gap-8 sm:flex-row sm:items-center sm:gap-12 lg:gap-16 ${
         reverse ? "sm:flex-row-reverse" : ""
       }`}
     >
       {/* Mockup */}
       <div className="flex justify-center sm:w-1/2">
-        <div className="w-full max-w-[280px]">{mockup}</div>
+        <div className="w-full max-w-[300px]">{mockup}</div>
       </div>
 
       {/* Text */}
@@ -101,38 +101,87 @@ function FeatureRow({
   );
 }
 
-function useAnimLoop(stepCount: number, interval: number, pauseAtEnd: number) {
+/**
+ * Starts animation when the element scrolls into view.
+ * Loops: step 0 → stepCount, pauses, then resets.
+ * Pauses when out of view.
+ */
+function useScrollAnim(stepCount: number, interval: number, pauseAtEnd: number) {
   const [step, setStep] = useState(0);
+  const [inView, setInView] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const timerRef = useRef<ReturnType<typeof setInterval>>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout>>(null);
 
+  // IntersectionObserver to detect visibility
   useEffect(() => {
-    const timer = setInterval(() => {
-      setStep((prev) => {
-        if (prev >= stepCount) return prev;
-        return prev + 1;
-      });
-    }, interval);
+    const el = ref.current;
+    if (!el) return;
 
-    return () => clearInterval(timer);
-  }, [stepCount, interval]);
+    const observer = new IntersectionObserver(
+      ([entry]) => setInView(entry.isIntersecting),
+      { threshold: 0.4 },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
+  // Run animation only when in view
   useEffect(() => {
-    if (step >= stepCount) {
-      timeoutRef.current = setTimeout(() => setStep(0), pauseAtEnd);
+    if (!inView) {
+      if (timerRef.current) clearInterval(timerRef.current);
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      return;
+    }
+
+    // Reset and start fresh when entering view
+    setStep(0);
+
+    // Small delay before starting so the user sees step 0
+    const startDelay = setTimeout(() => {
+      timerRef.current = setInterval(() => {
+        setStep((prev) => {
+          if (prev >= stepCount) return prev;
+          return prev + 1;
+        });
+      }, interval);
+    }, 400);
+
+    return () => {
+      clearTimeout(startDelay);
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, [inView, stepCount, interval]);
+
+  // Reset after completing
+  useEffect(() => {
+    if (step >= stepCount && inView) {
+      if (timerRef.current) clearInterval(timerRef.current);
+      timeoutRef.current = setTimeout(() => {
+        setStep(0);
+        // Restart the interval
+        timerRef.current = setInterval(() => {
+          setStep((prev) => {
+            if (prev >= stepCount) return prev;
+            return prev + 1;
+          });
+        }, interval);
+      }, pauseAtEnd);
+
       return () => {
         if (timeoutRef.current) clearTimeout(timeoutRef.current);
       };
     }
-  }, [step, stepCount, pauseAtEnd]);
+  }, [step, stepCount, interval, pauseAtEnd, inView]);
 
-  return step;
+  return { step, ref };
 }
 
 function ExtractMockup() {
-  const step = useAnimLoop(3, 1600, 2500);
+  const { step, ref } = useScrollAnim(3, 1600, 2500);
 
   return (
-    <div className="rounded-lg border border-border bg-background shadow-sm overflow-hidden">
+    <div ref={ref} className="rounded-lg border border-border bg-background shadow-sm overflow-hidden">
       <div className="flex items-center gap-1.5 border-b border-border px-3 py-2">
         <ScanLine className="h-3 w-3 text-muted-foreground" />
         <span className="text-[10px] font-medium">Upload Recipe</span>
@@ -194,10 +243,10 @@ function ExtractMockup() {
 }
 
 function ImageSearchMockup() {
-  const step = useAnimLoop(3, 1600, 2500);
+  const { step, ref } = useScrollAnim(3, 1600, 2500);
 
   return (
-    <div className="rounded-lg border border-border bg-background shadow-sm overflow-hidden">
+    <div ref={ref} className="rounded-lg border border-border bg-background shadow-sm overflow-hidden">
       <div className="flex items-center gap-1.5 border-b border-border px-3 py-2">
         <Search className="h-3 w-3 text-muted-foreground" />
         <span className="text-[10px] font-medium">Find Similar Recipes</span>
@@ -259,7 +308,7 @@ function ImageSearchMockup() {
 }
 
 function TextSearchMockup() {
-  const step = useAnimLoop(3, 1600, 2500);
+  const { step, ref } = useScrollAnim(3, 1600, 2500);
   const [displayText, setDisplayText] = useState("");
   const fullText = "warm sunset portrait";
   const prevStepRef = useRef(0);
@@ -285,7 +334,7 @@ function TextSearchMockup() {
   }, [step]);
 
   return (
-    <div className="rounded-lg border border-border bg-background shadow-sm overflow-hidden">
+    <div ref={ref} className="rounded-lg border border-border bg-background shadow-sm overflow-hidden">
       <div className="flex items-center gap-1.5 border-b border-border px-3 py-2">
         <MessageSquareText className="h-3 w-3 text-muted-foreground" />
         <span className="text-[10px] font-medium">Text Search</span>
