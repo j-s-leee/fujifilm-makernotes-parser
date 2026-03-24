@@ -6,15 +6,10 @@ import {
   ImageIcon,
   MessageSquareText,
   ArrowRight,
-  Camera,
-  Settings,
-  Share2,
   Upload,
-  Palette,
   Search,
-  Globe,
-  Sparkles,
-  ListFilter,
+  Heart,
+  Bookmark,
 } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
@@ -30,7 +25,7 @@ export function FeatureShowcase() {
         description={t("extractDescription")}
         href="/extract"
         cta={t("extractCta")}
-        animation={<ExtractAnimation />}
+        animation={<ExtractMockup />}
       />
       <FeatureCard
         icon={ImageIcon}
@@ -38,7 +33,7 @@ export function FeatureShowcase() {
         description={t("imageSearchDescription")}
         href="/search"
         cta={t("imageSearchCta")}
-        animation={<ImageSearchAnimation />}
+        animation={<ImageSearchMockup />}
       />
       <FeatureCard
         icon={MessageSquareText}
@@ -46,7 +41,7 @@ export function FeatureShowcase() {
         description={t("textSearchDescription")}
         href="/search"
         cta={t("textSearchCta")}
-        animation={<TextSearchAnimation />}
+        animation={<TextSearchMockup />}
       />
     </div>
   );
@@ -72,13 +67,13 @@ function FeatureCard({
       href={href}
       className="group flex flex-col rounded-lg border border-border overflow-hidden transition-colors hover:border-foreground/20"
     >
-      {/* Animation area */}
-      <div className="flex items-center justify-center bg-muted/30 px-4 py-6 min-h-[140px]">
+      {/* Mockup area */}
+      <div className="relative flex items-center justify-center bg-muted/40 p-4 sm:p-5 min-h-[180px] overflow-hidden">
         {animation}
       </div>
 
-      {/* Text content */}
-      <div className="flex flex-1 flex-col gap-2 p-4 pt-3">
+      {/* Text */}
+      <div className="flex flex-1 flex-col gap-1.5 p-4 pt-3">
         <div className="flex items-center gap-2">
           <Icon className="h-4 w-4 text-muted-foreground" />
           <h3 className="text-sm font-medium">{title}</h3>
@@ -86,7 +81,7 @@ function FeatureCard({
         <p className="text-xs text-muted-foreground leading-relaxed">
           {description}
         </p>
-        <span className="mt-auto flex items-center gap-1 pt-1 text-xs font-medium text-muted-foreground transition-colors group-hover:text-foreground">
+        <span className="mt-auto flex items-center gap-1 pt-2 text-xs font-medium text-muted-foreground transition-colors group-hover:text-foreground">
           {cta}
           <ArrowRight className="h-3 w-3" />
         </span>
@@ -95,150 +90,188 @@ function FeatureCard({
   );
 }
 
-/** Loops animation steps 0→1→2→3 then resets */
 function useAnimLoop(stepCount: number, interval: number, pauseAtEnd: number) {
   const [step, setStep] = useState(0);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout>>(null);
 
   useEffect(() => {
-    let timeout: ReturnType<typeof setTimeout>;
-
-    const advance = () => {
+    const timer = setInterval(() => {
       setStep((prev) => {
-        const next = prev + 1;
-        if (next > stepCount) {
-          // Pause at end then reset
-          timeout = setTimeout(() => setStep(0), pauseAtEnd);
-          return prev;
-        }
-        return next;
+        if (prev >= stepCount) return prev;
+        return prev + 1;
       });
-    };
+    }, interval);
 
-    const timer = setInterval(advance, interval);
+    return () => clearInterval(timer);
+  }, [stepCount, interval]);
 
-    return () => {
-      clearInterval(timer);
-      clearTimeout(timeout);
-    };
-  }, [stepCount, interval, pauseAtEnd]);
+  // Reset after pause at end
+  useEffect(() => {
+    if (step >= stepCount) {
+      timeoutRef.current = setTimeout(() => setStep(0), pauseAtEnd);
+      return () => {
+        if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      };
+    }
+  }, [step, stepCount, pauseAtEnd]);
 
   return step;
 }
 
-function ExtractAnimation() {
-  const step = useAnimLoop(3, 1500, 2000);
+/** Mockup of the upload modal showing EXIF extraction → recipe settings */
+function ExtractMockup() {
+  const step = useAnimLoop(3, 1600, 2500);
 
   return (
-    <div className="flex flex-col items-center gap-2.5 w-full max-w-[180px]">
-      {/* Photo placeholder */}
-      <div
-        className={`flex h-16 w-full items-center justify-center rounded-md border-2 border-dashed transition-all duration-500 ${
-          step >= 1
-            ? "border-foreground/20 bg-muted"
-            : "border-border/50"
-        }`}
-      >
-        <div className="flex flex-col items-center gap-0.5">
-          <Upload
-            className={`h-4 w-4 transition-all duration-500 ${
-              step >= 1 ? "text-foreground/50" : "text-muted-foreground/30"
+    <div className="w-full max-w-[220px]">
+      {/* Mini modal frame */}
+      <div className="rounded-lg border border-border bg-background shadow-sm overflow-hidden">
+        {/* Modal header */}
+        <div className="flex items-center gap-1.5 border-b border-border px-3 py-2">
+          <ScanLine className="h-3 w-3 text-muted-foreground" />
+          <span className="text-[10px] font-medium">Upload Recipe</span>
+        </div>
+
+        {/* Dropzone / file */}
+        <div className="p-3">
+          <div
+            className={`flex flex-col items-center justify-center rounded-md border border-dashed py-4 transition-all duration-500 ${
+              step >= 1
+                ? "border-foreground/20 bg-muted/50"
+                : "border-border"
             }`}
-          />
-          <span className="text-[9px] text-muted-foreground/60">DSC_0042.RAF</span>
+          >
+            {step < 1 ? (
+              <>
+                <Upload className="h-4 w-4 text-muted-foreground/40 mb-1" />
+                <span className="text-[9px] text-muted-foreground/50">
+                  Drop JPEG or RAF
+                </span>
+              </>
+            ) : (
+              <div className="flex items-center gap-2">
+                <div className="h-8 w-8 rounded bg-muted flex items-center justify-center">
+                  <ImageIcon className="h-4 w-4 text-muted-foreground" />
+                </div>
+                <div>
+                  <div className="text-[10px] font-medium">DSCF4721.RAF</div>
+                  <div className="text-[9px] text-muted-foreground">X-T5 · 26mm</div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Extracted settings */}
+        <div
+          className={`border-t border-border transition-all duration-500 ${
+            step >= 2 ? "max-h-40 opacity-100" : "max-h-0 opacity-0"
+          } overflow-hidden`}
+        >
+          <div className="p-3 space-y-1.5">
+            <SettingMockRow label="Film Simulation" value="Classic Chrome" />
+            <SettingMockRow label="Dynamic Range" value="DR400" />
+            <SettingMockRow label="Grain Effect" value="Weak / Small" />
+            <SettingMockRow label="White Balance" value="Auto" />
+          </div>
+        </div>
+
+        {/* Upload button */}
+        <div
+          className={`p-3 pt-0 transition-all duration-500 ${
+            step >= 3 ? "opacity-100" : "opacity-0"
+          }`}
+        >
+          <div className="flex items-center justify-center rounded-md bg-foreground py-1.5 text-[10px] font-medium text-background">
+            Upload Recipe
+          </div>
         </div>
       </div>
-
-      {/* Settings */}
-      <div className="flex w-full flex-col gap-1">
-        {[
-          { icon: Camera, label: "X-T5", showAt: 2 },
-          { icon: Palette, label: "Classic Chrome", showAt: 2 },
-          { icon: Settings, label: "Grain: Weak", showAt: 2 },
-        ].map(({ icon: Ic, label, showAt }, i) => (
-          <div
-            key={label}
-            className={`flex items-center gap-1.5 rounded-md bg-muted px-2 py-1 transition-all duration-400 ${
-              step >= showAt ? "opacity-100 translate-y-0" : "opacity-0 translate-y-1"
-            }`}
-            style={{ transitionDelay: `${i * 120}ms` }}
-          >
-            <Ic className="h-2.5 w-2.5 text-muted-foreground" />
-            <span className="text-[10px]">{label}</span>
-          </div>
-        ))}
-      </div>
-
-      {/* Share */}
-      <div
-        className={`flex items-center gap-1 text-[10px] text-muted-foreground transition-all duration-500 ${
-          step >= 3 ? "opacity-100" : "opacity-0"
-        }`}
-      >
-        <Share2 className="h-2.5 w-2.5" />
-        <span>Share recipe</span>
-      </div>
     </div>
   );
 }
 
-function ImageSearchAnimation() {
-  const step = useAnimLoop(3, 1500, 2000);
+/** Mockup of photo upload → recipe gallery results */
+function ImageSearchMockup() {
+  const step = useAnimLoop(3, 1600, 2500);
 
   return (
-    <div className="flex flex-col items-center gap-2.5 w-full max-w-[180px]">
-      {/* Photo */}
-      <div
-        className={`flex h-14 w-full items-center justify-center rounded-md transition-all duration-500 ${
-          step >= 1
-            ? "bg-gradient-to-br from-amber-100 to-orange-100 dark:from-amber-950/30 dark:to-orange-950/30"
-            : "bg-muted/50"
-        }`}
-      >
-        <ImageIcon
-          className={`h-5 w-5 transition-all duration-500 ${
-            step >= 1 ? "text-amber-600 dark:text-amber-400" : "text-muted-foreground/30"
-          }`}
-        />
-      </div>
+    <div className="w-full max-w-[220px]">
+      <div className="rounded-lg border border-border bg-background shadow-sm overflow-hidden">
+        {/* Header */}
+        <div className="flex items-center gap-1.5 border-b border-border px-3 py-2">
+          <Search className="h-3 w-3 text-muted-foreground" />
+          <span className="text-[10px] font-medium">Find Similar Recipes</span>
+        </div>
 
-      {/* Analyzing */}
-      <div
-        className={`flex items-center gap-1.5 text-[10px] text-muted-foreground transition-all duration-500 ${
-          step >= 2 ? "opacity-100" : "opacity-0"
-        }`}
-      >
-        <Search className={`h-2.5 w-2.5 ${step === 2 ? "animate-pulse" : ""}`} />
-        <span>Analyzing mood & tone...</span>
-      </div>
-
-      {/* Results */}
-      <div className="flex w-full gap-1.5">
-        {["Classic Chrome", "PRO Neg. Hi", "Nostalgic"].map((name, i) => (
+        {/* Photo preview */}
+        <div className="p-3">
           <div
-            key={name}
-            className={`flex-1 rounded-md bg-muted px-1.5 py-1.5 text-center transition-all duration-400 ${
-              step >= 3 ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"
+            className={`h-20 rounded-md flex items-center justify-center transition-all duration-500 overflow-hidden ${
+              step >= 1
+                ? "bg-gradient-to-br from-amber-200/60 to-orange-300/40 dark:from-amber-900/40 dark:to-orange-900/30"
+                : "bg-muted/30 border border-dashed border-border"
             }`}
-            style={{ transitionDelay: `${i * 100}ms` }}
           >
-            <div className="text-[9px] font-medium truncate">{name}</div>
-            <div className="text-[9px] text-muted-foreground">{98 - i * 3}%</div>
+            {step < 1 ? (
+              <Upload className="h-4 w-4 text-muted-foreground/40" />
+            ) : (
+              <ImageIcon className="h-6 w-6 text-amber-700/50 dark:text-amber-300/50" />
+            )}
           </div>
-        ))}
+
+          {/* Analyzing indicator */}
+          <div
+            className={`flex items-center justify-center gap-1.5 mt-2 transition-all duration-500 ${
+              step === 2 ? "opacity-100" : "opacity-0"
+            }`}
+          >
+            <div className="h-1 w-1 rounded-full bg-foreground/40 animate-pulse" />
+            <span className="text-[9px] text-muted-foreground">
+              Analyzing color & tone...
+            </span>
+          </div>
+        </div>
+
+        {/* Results: mini recipe cards */}
+        <div
+          className={`border-t border-border transition-all duration-500 ${
+            step >= 3 ? "max-h-40 opacity-100" : "max-h-0 opacity-0"
+          } overflow-hidden`}
+        >
+          <div className="p-3 space-y-2">
+            <div className="text-[9px] text-muted-foreground mb-1">
+              3 recipes found
+            </div>
+            {[
+              { name: "Classic Chrome", score: "98%" },
+              { name: "PRO Neg. Hi", score: "94%" },
+              { name: "Nostalgic Neg.", score: "91%" },
+            ].map((r, i) => (
+              <RecipeResultRow
+                key={r.name}
+                name={r.name}
+                score={r.score}
+                delay={i * 80}
+                visible={step >= 3}
+              />
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );
 }
 
-function TextSearchAnimation() {
-  const step = useAnimLoop(3, 1500, 2000);
+/** Mockup of text search with typing → results */
+function TextSearchMockup() {
+  const step = useAnimLoop(3, 1600, 2500);
   const [displayText, setDisplayText] = useState("");
   const fullText = "warm sunset portrait";
   const prevStepRef = useRef(0);
 
   useEffect(() => {
     if (step >= 1 && prevStepRef.current < 1) {
-      // Start typing
       let i = 0;
       setDisplayText("");
       const timer = setInterval(() => {
@@ -246,60 +279,124 @@ function TextSearchAnimation() {
         setDisplayText(fullText.slice(0, i));
         if (i >= fullText.length) clearInterval(timer);
       }, 50);
+      prevStepRef.current = step;
       return () => clearInterval(timer);
     }
     if (step === 0) {
       setDisplayText("");
+      prevStepRef.current = 0;
+    } else {
+      prevStepRef.current = step;
     }
-    prevStepRef.current = step;
   }, [step]);
 
   return (
-    <div className="flex flex-col items-center gap-2.5 w-full max-w-[180px]">
-      {/* Text input */}
-      <div
-        className={`flex h-8 w-full items-center rounded-md border px-2 transition-all duration-500 ${
-          step >= 1 ? "border-foreground/20" : "border-border/50"
-        }`}
-      >
-        <Search className="h-2.5 w-2.5 text-muted-foreground mr-1.5 shrink-0" />
-        <span className="text-[10px] truncate">
-          {displayText}
-          {step >= 1 && displayText.length < fullText.length && (
-            <span className="animate-pulse">|</span>
-          )}
-        </span>
-      </div>
+    <div className="w-full max-w-[220px]">
+      <div className="rounded-lg border border-border bg-background shadow-sm overflow-hidden">
+        {/* Header */}
+        <div className="flex items-center gap-1.5 border-b border-border px-3 py-2">
+          <MessageSquareText className="h-3 w-3 text-muted-foreground" />
+          <span className="text-[10px] font-medium">Text Search</span>
+        </div>
 
-      {/* Translation/matching */}
-      <div
-        className={`flex items-center gap-1.5 text-[10px] text-muted-foreground transition-all duration-500 ${
-          step >= 2 ? "opacity-100" : "opacity-0"
-        }`}
-      >
-        <Globe className="h-2.5 w-2.5" />
-        <span>→</span>
-        <Sparkles className={`h-2.5 w-2.5 ${step === 2 ? "animate-pulse" : ""}`} />
-        <span>Visual matching</span>
-      </div>
-
-      {/* Results */}
-      <div className="flex w-full gap-1.5">
-        {["ASTIA", "Classic Chrome", "PRO Neg."].map((name, i) => (
+        {/* Search input mockup */}
+        <div className="p-3">
           <div
-            key={name}
-            className={`flex-1 rounded-md bg-muted px-1.5 py-1.5 text-center transition-all duration-400 ${
-              step >= 3 ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"
+            className={`flex items-center rounded-md border px-2 py-1.5 transition-all duration-300 ${
+              step >= 1 ? "border-foreground/20" : "border-border"
             }`}
-            style={{ transitionDelay: `${i * 100}ms` }}
           >
-            <div className="text-[9px] font-medium truncate">{name}</div>
-            <div className="text-[9px] text-muted-foreground">
-              <ListFilter className="h-2 w-2 inline mr-0.5" />
-              {95 - i * 4}%
-            </div>
+            <Search className="h-3 w-3 text-muted-foreground mr-1.5 shrink-0" />
+            <span className="text-[10px] text-foreground/80 truncate">
+              {displayText || (
+                <span className="text-muted-foreground/40">
+                  Describe the look...
+                </span>
+              )}
+              {step >= 1 && displayText.length < fullText.length && (
+                <span className="animate-pulse text-foreground/60">|</span>
+              )}
+            </span>
           </div>
-        ))}
+
+          {/* Processing */}
+          <div
+            className={`flex items-center justify-center gap-1.5 mt-2 transition-all duration-500 ${
+              step === 2 ? "opacity-100" : "opacity-0"
+            }`}
+          >
+            <div className="h-1 w-1 rounded-full bg-foreground/40 animate-pulse" />
+            <span className="text-[9px] text-muted-foreground">
+              Matching recipes...
+            </span>
+          </div>
+        </div>
+
+        {/* Results */}
+        <div
+          className={`border-t border-border transition-all duration-500 ${
+            step >= 3 ? "max-h-40 opacity-100" : "max-h-0 opacity-0"
+          } overflow-hidden`}
+        >
+          <div className="p-3 space-y-2">
+            <div className="text-[9px] text-muted-foreground mb-1">
+              3 recipes found
+            </div>
+            {[
+              { name: "ASTIA", score: "95%" },
+              { name: "Classic Chrome", score: "92%" },
+              { name: "PRO Neg. Std", score: "88%" },
+            ].map((r, i) => (
+              <RecipeResultRow
+                key={r.name}
+                name={r.name}
+                score={r.score}
+                delay={i * 80}
+                visible={step >= 3}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SettingMockRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-center justify-between">
+      <span className="text-[9px] text-muted-foreground">{label}</span>
+      <span className="text-[10px] font-medium">{value}</span>
+    </div>
+  );
+}
+
+function RecipeResultRow({
+  name,
+  score,
+  delay,
+  visible,
+}: {
+  name: string;
+  score: string;
+  delay: number;
+  visible: boolean;
+}) {
+  return (
+    <div
+      className={`flex items-center gap-2 rounded-md bg-muted/50 p-1.5 transition-all duration-400 ${
+        visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-1"
+      }`}
+      style={{ transitionDelay: `${delay}ms` }}
+    >
+      <div className="h-6 w-6 rounded bg-muted shrink-0" />
+      <div className="flex-1 min-w-0">
+        <div className="text-[10px] font-medium truncate">{name}</div>
+      </div>
+      <div className="flex items-center gap-2 shrink-0">
+        <span className="text-[9px] text-muted-foreground">{score}</span>
+        <Heart className="h-2.5 w-2.5 text-muted-foreground/50" />
+        <Bookmark className="h-2.5 w-2.5 text-muted-foreground/50" />
       </div>
     </div>
   );
