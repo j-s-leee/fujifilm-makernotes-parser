@@ -8,6 +8,7 @@ import {
   lookupTextQueryCache,
   insertTextQueryCache,
 } from "@/lib/text-query-cache";
+import { rateLimits } from "@/lib/rate-limit";
 
 export async function POST(request: NextRequest) {
   // 1. Auth check
@@ -20,7 +21,16 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  // 2. Parse text input
+  // 2. Rate limit check
+  const rl = await rateLimits.textRecommend(user.id);
+  if (rl.limited) {
+    return NextResponse.json(
+      { error: "Too many requests. Please try again later." },
+      { status: 429, headers: { "Retry-After": String(rl.retryAfter) } },
+    );
+  }
+
+  // 3. Parse text input
   const body = await request.json().catch(() => null);
   const text = body?.text?.trim();
   const cameraModel = (body?.cameraModel as string | undefined)?.trim() || null;

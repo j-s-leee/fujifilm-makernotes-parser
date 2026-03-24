@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { r2, R2_BUCKET } from "@/lib/r2";
 import { getImageEmbedding } from "@/lib/embedding";
 import { computeColorHistogram } from "@/lib/color-histogram";
+import { rateLimits } from "@/lib/rate-limit";
 
 export async function POST(request: NextRequest) {
   const supabase = await createClient();
@@ -14,6 +15,15 @@ export async function POST(request: NextRequest) {
 
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  // Rate limit check
+  const rl = await rateLimits.upload(user.id);
+  if (rl.limited) {
+    return NextResponse.json(
+      { error: "Too many requests. Please try again later." },
+      { status: 429, headers: { "Retry-After": String(rl.retryAfter) } },
+    );
   }
 
   const formData = await request.formData();

@@ -6,6 +6,7 @@ import { r2, R2_BUCKET } from "@/lib/r2";
 import { getImageEmbedding } from "@/lib/embedding";
 import { computeColorHistogram } from "@/lib/color-histogram";
 import { GALLERY_SELECT } from "@/lib/queries";
+import { rateLimits } from "@/lib/rate-limit";
 
 export async function POST(request: NextRequest) {
   // 1. Auth check
@@ -18,7 +19,16 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  // 2. Validate file
+  // 2. Rate limit check
+  const rl = await rateLimits.imageRecommend(user.id);
+  if (rl.limited) {
+    return NextResponse.json(
+      { error: "Too many requests. Please try again later." },
+      { status: 429, headers: { "Retry-After": String(rl.retryAfter) } },
+    );
+  }
+
+  // 3. Validate file
   const formData = await request.formData();
   const file = formData.get("file") as File | null;
 
