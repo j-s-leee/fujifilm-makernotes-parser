@@ -102,20 +102,30 @@
     "viewAll": "전체 보기",
     "empty": "아직 레시피가 없습니다. 첫 번째 필름 레시피를 공유해 보세요!",
     "features": {
-      "extractTitle": "레시피 추출",
-      "extractDescription": "후지필름 JPEG 또는 RAF 파일을 업로드하면 사진에서 필름 시뮬레이션 레시피를 자동으로 추출합니다.",
-      "imageSearchTitle": "이미지로 검색",
-      "imageSearchDescription": "아무 사진이나 업로드하면 AI가 비슷한 분위기와 색감의 필름 시뮬레이션 레시피를 찾아줍니다.",
-      "textSearchTitle": "텍스트로 검색",
-      "textSearchDescription": "\"따뜻한 일몰\"이나 \"무디한 거리\" 같은 원하는 분위기를 설명하면 맞는 레시피를 찾아드립니다.",
-      "learnMore": "자세히 보기",
-      "searchPlaceholder": "원하는 분위기를 설명하세요, 예: \"따뜻한 일몰 인물\"",
-      "extractDrop": "후지필름 JPEG 또는 RAF 파일을 여기에 드롭",
-      "imageDrop": "아무 사진이나 여기에 드롭하여 검색",
-      "example1": "따뜻한 골든아워 인물",
-      "example2": "무디한 밤거리",
-      "example3": "빈티지 필름 느낌",
-      "example4": "소프트 파스텔 톤"
+      "extractTab": "추출",
+      "imageSearchTab": "이미지 검색",
+      "textSearchTab": "텍스트 검색",
+
+      "extractTitle": "사진에서 레시피 추출",
+      "extractDescription": "후지필름 사진을 업로드하면 메타데이터에서 필름 시뮬레이션 설정을 자동으로 읽어옵니다.",
+      "extractStep1": "후지필름 카메라의 JPEG 또는 RAF 파일을 업로드",
+      "extractStep2": "카메라 모델, 렌즈, 모든 레시피 설정을 자동 감지",
+      "extractStep3": "추출된 레시피를 확인하고 커뮤니티와 공유",
+      "extractCta": "추출 기능 자세히 보기",
+
+      "imageSearchTitle": "이미지로 레시피 찾기",
+      "imageSearchDescription": "아무 사진이나 — 다른 카메라도 가능 — 업로드하면 AI가 비슷한 분위기의 레시피를 찾아줍니다.",
+      "imageSearchStep1": "아무 사진이나 업로드 (후지필름이 아니어도, 폰 사진도 가능)",
+      "imageSearchStep2": "AI가 사진의 색감, 콘트라스트, 분위기를 분석",
+      "imageSearchStep3": "비슷한 분위기를 내는 레시피를 순위별로 추천",
+      "imageSearchCta": "이미지 검색 시작",
+
+      "textSearchTitle": "원하는 분위기를 설명하세요",
+      "textSearchDescription": "\"따뜻한 일몰\"이나 \"무디한 거리\" 같이 원하는 분위기를 설명하면 맞는 레시피를 찾아줍니다.",
+      "textSearchStep1": "원하는 미학을 아무 언어로 설명",
+      "textSearchStep2": "AI가 설명을 시각적 개념으로 변환",
+      "textSearchStep3": "설명한 분위기와 스타일에 맞는 레시피 추천",
+      "textSearchCta": "텍스트 검색 시작"
     }
   },
   "recipes": {
