@@ -90,12 +90,12 @@ export function RecipeSettings({ recipe }: RecipeSettingsProps) {
         : recipe.wb_type.replace("-", " ");
       lines.push(`${t("whiteBalance")}: ${wb}`);
       lines.push(
-        `WB Shift: R:${addSign(recipe.wb_red ?? 0)} B:${addSign(recipe.wb_blue ?? 0)}`,
+        `${t("wbShift")}: R:${addSign(recipe.wb_red ?? 0)} B:${addSign(recipe.wb_blue ?? 0)}`,
       );
     }
     if (recipe.highlight != null)
-      lines.push(`Highlight: ${addSign(recipe.highlight)}`);
-    if (recipe.shadow != null) lines.push(`Shadow: ${addSign(recipe.shadow)}`);
+      lines.push(`${t("highlight")}: ${addSign(recipe.highlight)}`);
+    if (recipe.shadow != null) lines.push(`${t("shadow")}: ${addSign(recipe.shadow)}`);
     if (recipe.color != null) lines.push(`${t("color")}: ${addSign(recipe.color)}`);
     if (recipe.sharpness != null)
       lines.push(`${t("sharpness")}: ${addSign(recipe.sharpness)}`);
