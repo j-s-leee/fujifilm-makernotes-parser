@@ -162,7 +162,10 @@
     "bwAdjustment": "BW Adjustment",
     "bwMG": "BW M/G",
     "copyRecipe": "Copy Recipe",
-    "copied": "Copied!"
+    "copied": "Copied!",
+    "highlight": "Highlight",
+    "shadow": "Shadow",
+    "wbShift": "WB Shift"
   },
   "recipeBrowse": {
     "simulationSubtitle": "Film simulation recipes using {name}",
