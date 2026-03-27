@@ -41,7 +41,9 @@
     "copyright": "\u00a9 {year} film-simulation.site",
     "privacy": "개인정보취급방침",
     "terms": "이용약관",
-    "contact": "문의하기"
+    "contact": "문의하기",
+    "changelog": "업데이트",
+    "guide": "가이드"
   },
   "auth": {
     "siteTitle": "film-simulation.site",
@@ -369,6 +371,14 @@
     "light": "라이트",
     "dark": "다크",
     "system": "시스템"
+  },
+  "changelog": {
+    "title": "업데이트",
+    "description": "film-simulation.site의 최신 업데이트 및 개선 사항"
+  },
+  "guide": {
+    "title": "가이드",
+    "description": "film-simulation.site 사용 방법 안내"
   },
   "notFound": {
     "title": "페이지를 찾을 수 없습니다",

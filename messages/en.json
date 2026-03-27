@@ -41,7 +41,9 @@
     "copyright": "\u00a9 {year} film-simulation.site",
     "privacy": "Privacy",
     "terms": "Terms",
-    "contact": "Contact"
+    "contact": "Contact",
+    "changelog": "Changelog",
+    "guide": "Guides"
   },
   "auth": {
     "siteTitle": "film-simulation.site",
@@ -369,6 +371,14 @@
     "light": "Light",
     "dark": "Dark",
     "system": "System"
+  },
+  "changelog": {
+    "title": "Changelog",
+    "description": "Latest updates and improvements to film-simulation.site"
+  },
+  "guide": {
+    "title": "Guides",
+    "description": "Learn how to use film-simulation.site"
   },
   "notFound": {
     "title": "Page Not Found",

@@ -33,6 +33,18 @@ export function Footer() {
           >
             {t("contact")}
           </a>
+          <Link
+            href="/changelog"
+            className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+          >
+            {t("changelog")}
+          </Link>
+          <Link
+            href="/guide"
+            className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+          >
+            {t("guide")}
+          </Link>
         </nav>
       </div>
     </footer>

@@ -3,6 +3,7 @@ import { createStaticClient } from "@/lib/supabase/server";
 import { FUJIFILM_SIMULATION_FORM_INPUT_OPTIONS } from "@/fujifilm/simulation";
 import { ALL_CAMERA_MODELS, SENSOR_GENERATIONS } from "@/fujifilm/cameras";
 import { toSlug } from "@/lib/slug";
+import { getAllSlugs } from "@/lib/content";
 
 const BASE_URL = "https://www.film-simulation.site";
 const LOCALES = ["en", "ko"] as const;
@@ -112,6 +113,22 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }),
   );
 
+  const changelogSlugs = getAllSlugs("changelog");
+  const changelogPages = [
+    localized("/changelog", { priority: 0.5, changeFrequency: "weekly" as const }),
+    ...changelogSlugs.map((slug) =>
+      localized(`/changelog/${slug}`, { priority: 0.4, changeFrequency: "monthly" as const }),
+    ),
+  ];
+
+  const guideSlugs = getAllSlugs("guide");
+  const guidePages = [
+    localized("/guide", { priority: 0.6, changeFrequency: "monthly" as const }),
+    ...guideSlugs.map((slug) =>
+      localized(`/guide/${slug}`, { priority: 0.5, changeFrequency: "monthly" as const }),
+    ),
+  ];
+
   return [
     ...staticPages,
     ...simulationPages,
@@ -120,5 +137,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...lensPages,
     ...recipePages,
     ...profilePages,
+    ...changelogPages,
+    ...guidePages,
   ];
 }
