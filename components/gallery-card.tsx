@@ -3,7 +3,7 @@
 import { memo } from "react";
 import Image from "next/image";
 import { Link } from "@/i18n/navigation";
-import { Bookmark, FolderPlus, Heart } from "lucide-react";
+import { Bookmark, FolderPlus, Heart, Images } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useUserInteractions } from "@/contexts/user-interactions-context";
 import { getThumbnailUrl } from "@/lib/get-thumbnail-url";
@@ -33,6 +33,7 @@ export interface GalleryRecipe {
   user_username: string | null;
   user_avatar_path: string | null;
   slug: string;
+  photo_count: number;
 }
 
 export const GalleryCard = memo(function GalleryCard({
@@ -107,6 +108,14 @@ export const GalleryCard = memo(function GalleryCard({
         ) : (
           <div className="flex aspect-square items-center justify-center text-muted-foreground text-sm">
             {t("noImage")}
+          </div>
+        )}
+
+        {/* Multi-photo badge */}
+        {recipe.photo_count > 1 && (
+          <div className="absolute right-2 top-2 z-10 flex items-center gap-1 rounded-md bg-black/50 px-1.5 py-0.5 text-xs font-medium text-white backdrop-blur-sm">
+            <Images className="h-3 w-3" />
+            <span>{recipe.photo_count}</span>
           </div>
         )}
 
