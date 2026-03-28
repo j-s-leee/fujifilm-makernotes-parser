@@ -6,7 +6,7 @@ export function HeroSection({ children }: { children: React.ReactNode }) {
   return (
     <LazyMotion features={domAnimation}>
       <m.div
-        className="text-center"
+        className="text-center break-keep [word-break:keep-all]"
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ type: "spring", stiffness: 200, damping: 20 }}
