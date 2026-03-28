@@ -1,8 +1,9 @@
 import { Link } from "@/i18n/navigation";
 import { createStaticClient } from "@/lib/supabase/server";
 import { TrendingGrid } from "@/components/trending-grid";
-import { FeatureShowcase } from "@/components/feature-showcase";
-import { RevealOnScroll } from "@/components/reveal-on-scroll";
+import { FeatureCarousel } from "@/components/feature-carousel";
+import { TrendingSection } from "@/components/trending-section";
+import { HeroSection } from "@/components/hero-section";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
 export const revalidate = 43200; // 12 hours — trending updates are not time-critical
@@ -24,21 +25,21 @@ export default async function Home({ params }: Props) {
       <div className="flex flex-col gap-24 sm:gap-32">
         {/* Hero + Features */}
         <div className="flex flex-col gap-16 sm:gap-20">
-          <div className="text-center animate-fade-in-up">
+          <HeroSection>
             <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
               {t("heroTitle")}
             </h1>
             <p className="text-sm text-muted-foreground mt-3 max-w-lg mx-auto">
               {t("heroSubtitle")}
             </p>
-          </div>
+          </HeroSection>
 
-          <FeatureShowcase />
+          <FeatureCarousel />
         </div>
 
         {/* Trending Recipes */}
         {recipes && recipes.length > 0 ? (
-          <RevealOnScroll>
+          <TrendingSection>
             <div className="flex flex-col gap-6">
               <div className="flex items-center justify-between">
                 <h2 className="text-lg font-semibold tracking-tight">
@@ -54,7 +55,7 @@ export default async function Home({ params }: Props) {
 
               <TrendingGrid recipes={recipes} />
             </div>
-          </RevealOnScroll>
+          </TrendingSection>
         ) : (
           <p className="text-center text-sm text-muted-foreground py-20">
             {t("empty")}

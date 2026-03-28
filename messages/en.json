@@ -41,7 +41,9 @@
     "copyright": "\u00a9 {year} film-simulation.site",
     "privacy": "Privacy",
     "terms": "Terms",
-    "contact": "Contact"
+    "contact": "Contact",
+    "changelog": "Changelog",
+    "guide": "Guides"
   },
   "auth": {
     "siteTitle": "film-simulation.site",
@@ -125,7 +127,8 @@
       "textSearchStep1": "Describe the aesthetic you want in any language",
       "textSearchStep2": "AI translates your description into a visual concept",
       "textSearchStep3": "Get recipes matching the mood and style you described",
-      "textSearchCta": "Try text search"
+      "textSearchCta": "Try text search",
+      "showFeatures": "See how it works"
     }
   },
   "recipes": {
@@ -162,7 +165,10 @@
     "bwAdjustment": "BW Adjustment",
     "bwMG": "BW M/G",
     "copyRecipe": "Copy Recipe",
-    "copied": "Copied!"
+    "copied": "Copied!",
+    "highlight": "Highlight",
+    "shadow": "Shadow",
+    "wbShift": "WB Shift"
   },
   "recipeBrowse": {
     "simulationSubtitle": "Film simulation recipes using {name}",
@@ -369,6 +375,14 @@
     "light": "Light",
     "dark": "Dark",
     "system": "System"
+  },
+  "changelog": {
+    "title": "Changelog",
+    "description": "Latest updates and improvements to film-simulation.site"
+  },
+  "guide": {
+    "title": "Guides",
+    "description": "Learn how to use film-simulation.site"
   },
   "notFound": {
     "title": "Page Not Found",

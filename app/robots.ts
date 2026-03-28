@@ -18,7 +18,6 @@ export default function robots(): MetadataRoute.Robots {
     "/my-recipes",
     "/likes",
     "/bookmarks",
-    "/recommend",
     "/login",
   ];
 
