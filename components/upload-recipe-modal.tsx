@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   Dialog,
@@ -28,12 +28,19 @@ import { shareRecipe } from "@/lib/share-recipe";
 import { compressImageToThumbnail } from "@/lib/compress-image";
 import { generateRecipeSlug } from "@/lib/slug";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Upload } from "lucide-react";
+import { Upload, X, Star } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import type { FujifilmRecipe } from "@/fujifilm/recipe";
 import type { FujifilmSimulation } from "@/fujifilm/simulation";
 import type { RecipeSettingsRecipe } from "@/components/recipe-settings";
+
+interface PhotoEntry {
+  id: string;
+  file: File | Blob;
+  previewUrl: string;
+  isPrimary: boolean;
+}
 
 interface UploadRecipeModalProps {
   open: boolean;
@@ -48,28 +55,29 @@ export function UploadRecipeModal({
   const { user } = useUser();
   const isDesktop = useMediaQuery("(min-width: 640px)");
   const t = useTranslations("upload");
-  const [image, setImage] = useState<string | null>(null);
+  const [photos, setPhotos] = useState<PhotoEntry[]>([]);
   const [recipe, setRecipe] = useState<FujifilmRecipe | null>(null);
   const [uploading, setUploading] = useState(false);
   const [loginPromptOpen, setLoginPromptOpen] = useState(false);
   const [simulation, setSimulation] = useState<FujifilmSimulation | null>(
     null,
   );
-  const [imageSource, setImageSource] = useState<File | Blob | null>(null);
   const [cameraModel, setCameraModel] = useState<string | null>(null);
   const [lensModel, setLensModel] = useState<string | null>(null);
   const [agreedToTerms, setAgreedToTerms] = useState<boolean | null>(null);
   const [termsChecked, setTermsChecked] = useState(false);
   const [agreeingToTerms, setAgreeingToTerms] = useState(false);
 
+  const MAX_PHOTOS = 5;
+
   const resetState = useCallback(() => {
-    setImage(null);
+    photos.forEach((p) => URL.revokeObjectURL(p.previewUrl));
+    setPhotos([]);
     setRecipe(null);
     setSimulation(null);
-    setImageSource(null);
     setCameraModel(null);
     setLensModel(null);
-  }, []);
+  }, [photos]);
 
   const handleOpenChange = useCallback(
     (nextOpen: boolean) => {
@@ -114,16 +122,176 @@ export function UploadRecipeModal({
     }
   }, [t]);
 
+  const onDrop = useCallback(
+    async (acceptedFiles: File[]) => {
+      const currentCount = photos.length;
+      const slotsAvailable = MAX_PHOTOS - currentCount;
+
+      if (slotsAvailable <= 0) {
+        toast.error(t("maxPhotosReached"));
+        return;
+      }
+
+      const filesToProcess = acceptedFiles.slice(0, slotsAvailable);
+      if (acceptedFiles.length > slotsAvailable) {
+        toast.error(t("maxPhotosReached"));
+      }
+
+      const newEntries: PhotoEntry[] = [];
+
+      for (const file of filesToProcess) {
+        let parseTarget: File | Blob = file;
+
+        if (isRafFile(file)) {
+          try {
+            const jpegBlob = await extractJpegFromRaf(file);
+            parseTarget = jpegBlob;
+          } catch (error) {
+            console.error("RAF parsing error:", error);
+            toast.error(
+              error instanceof Error ? error.message : t("rafExtractFailed"),
+            );
+            continue;
+          }
+        }
+
+        try {
+          const exifr = await import("exifr");
+          const exifrData = await exifr.parse(parseTarget, {
+            tiff: true,
+            exif: true,
+            makerNote: true,
+          });
+
+          if (!exifrData?.Make || !exifrData.Make.toUpperCase().includes("FUJIFILM")) {
+            toast.error(t("notFujifilmExtra"));
+            continue;
+          }
+
+          newEntries.push({
+            id: crypto.randomUUID(),
+            file: parseTarget,
+            previewUrl: URL.createObjectURL(parseTarget),
+            isPrimary: false,
+          });
+        } catch {
+          toast.error(t("extractFailed"));
+          continue;
+        }
+      }
+
+      if (newEntries.length === 0) return;
+
+      setPhotos((prev) => {
+        const updated = [...prev, ...newEntries];
+        if (!updated.some((p) => p.isPrimary)) {
+          updated[0].isPrimary = true;
+        }
+        return updated;
+      });
+    },
+    [photos.length, t],
+  );
+
+  const primaryPhoto = photos.find((p) => p.isPrimary);
+  const primaryPhotoId = primaryPhoto?.id;
+
+  useEffect(() => {
+    if (!primaryPhoto) {
+      setRecipe(null);
+      setSimulation(null);
+      setCameraModel(null);
+      setLensModel(null);
+      return;
+    }
+
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const exifr = await import("exifr");
+        const exifrData = await exifr.parse(primaryPhoto.file, {
+          tiff: true,
+          exif: true,
+          makerNote: true,
+        });
+
+        if (cancelled) return;
+
+        if (exifrData.Make && exifrData.Model) {
+          setCameraModel(`${exifrData.Make} ${exifrData.Model}`.trim());
+        }
+        setLensModel(exifrData.LensModel ?? null);
+
+        if (exifrData.makerNote) {
+          const { getFujifilmRecipeFromMakerNote } = await import("@/fujifilm/recipe");
+          const { getFujifilmSimulationFromMakerNote } = await import("@/fujifilm/simulation");
+          const makerNoteBytes = new Uint8Array(Object.values(exifrData.makerNote));
+
+          try {
+            setRecipe(getFujifilmRecipeFromMakerNote(makerNoteBytes));
+            const parsedSim = getFujifilmSimulationFromMakerNote(makerNoteBytes);
+            if (parsedSim) setSimulation(parsedSim);
+          } catch (error) {
+            console.error("Error parsing Fujifilm MakerNote:", error);
+            toast.error(t("makerNoteParseFailed"));
+          }
+        } else {
+          toast.error(t("notFujifilm"));
+        }
+      } catch (error) {
+        if (!cancelled) {
+          console.error("Error extracting Fujifilm metadata:", error);
+          toast.error(t("extractFailed"));
+        }
+      }
+    })();
+
+    return () => { cancelled = true; };
+  }, [primaryPhotoId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const setPrimaryPhoto = useCallback((id: string) => {
+    setPhotos((prev) =>
+      prev.map((p) => ({ ...p, isPrimary: p.id === id })),
+    );
+  }, []);
+
+  const removePhoto = useCallback((id: string) => {
+    setPhotos((prev) => {
+      const photo = prev.find((p) => p.id === id);
+      if (photo) URL.revokeObjectURL(photo.previewUrl);
+      const updated = prev.filter((p) => p.id !== id);
+      if (photo?.isPrimary && updated.length > 0) {
+        updated[0].isPrimary = true;
+      }
+      return updated;
+    });
+  }, []);
+
   const handleUpload = useCallback(async () => {
-    if (!recipe || !imageSource || !user) return;
+    if (!recipe || photos.length === 0 || !user) return;
 
     const agreed = await checkTermsAgreement();
     if (!agreed) return;
 
     setUploading(true);
     try {
-      const thumbnail = await compressImageToThumbnail(imageSource);
-      const result = await shareRecipe(recipe, simulation, thumbnail, cameraModel, lensModel);
+      const primary = photos.find((p) => p.isPrimary)!;
+      const extras = photos.filter((p) => !p.isPrimary);
+
+      const [primaryThumbnail, ...extraThumbnails] = await Promise.all(
+        [primary, ...extras].map((p) => compressImageToThumbnail(p.file)),
+      );
+
+      const result = await shareRecipe(
+        recipe,
+        simulation,
+        primaryThumbnail,
+        cameraModel,
+        lensModel,
+        extraThumbnails.length > 0 ? extraThumbnails : undefined,
+      );
+
       if (result.success) {
         toast.success(t("uploadSuccess"));
         handleOpenChange(false);
@@ -137,80 +305,7 @@ export function UploadRecipeModal({
     } finally {
       setUploading(false);
     }
-  }, [recipe, simulation, imageSource, cameraModel, lensModel, user, handleOpenChange, router, checkTermsAgreement, t]);
-
-  const onDrop = useCallback(
-    async (acceptedFiles: File[]) => {
-      const file = acceptedFiles[0];
-      if (!file) return;
-
-      resetState();
-
-      let parseTarget: File | Blob = file;
-      if (isRafFile(file)) {
-        try {
-          const jpegBlob = await extractJpegFromRaf(file);
-          parseTarget = jpegBlob;
-          setImageSource(jpegBlob);
-          setImage(URL.createObjectURL(jpegBlob));
-        } catch (error) {
-          console.error("RAF parsing error:", error);
-          toast.error(
-            error instanceof Error
-              ? error.message
-              : t("rafExtractFailed"),
-          );
-          return;
-        }
-      } else {
-        setImageSource(file);
-        setImage(URL.createObjectURL(file));
-      }
-
-      try {
-        const exifr = await import("exifr");
-        const exifrData = await exifr.parse(parseTarget, {
-          tiff: true,
-          exif: true,
-          makerNote: true,
-        });
-
-        if (exifrData.Make && exifrData.Model) {
-          setCameraModel(`${exifrData.Make} ${exifrData.Model}`.trim());
-        }
-        setLensModel(exifrData.LensModel ?? null);
-
-        if (exifrData.makerNote) {
-          const { getFujifilmRecipeFromMakerNote } = await import(
-            "@/fujifilm/recipe"
-          );
-          const { getFujifilmSimulationFromMakerNote } = await import(
-            "@/fujifilm/simulation"
-          );
-
-          const makerNoteBytes = new Uint8Array(
-            Object.values(exifrData.makerNote),
-          );
-
-          try {
-            setRecipe(getFujifilmRecipeFromMakerNote(makerNoteBytes));
-            const parsedSim =
-              getFujifilmSimulationFromMakerNote(makerNoteBytes);
-            if (parsedSim) setSimulation(parsedSim);
-          } catch (error) {
-            console.error("Error parsing Fujifilm MakerNote:", error);
-            toast.error(t("makerNoteParseFailed"));
-          }
-        } else {
-          toast.error(t("notFujifilm"));
-        }
-      } catch (error) {
-        console.error("Error extracting Fujifilm metadata:", error);
-        toast.error(t("extractFailed"));
-      }
-    },
-    [resetState, t],
-  );
+  }, [recipe, simulation, photos, cameraModel, lensModel, user, handleOpenChange, router, checkTermsAgreement, t]);
 
   const settingsRecipe: RecipeSettingsRecipe | null = recipe
     ? {
@@ -238,19 +333,64 @@ export function UploadRecipeModal({
       }
     : null;
 
+  const hasPhotos = photos.length > 0;
+
   const body = (
     <div className="flex flex-col gap-6">
-      <ImageDropzone onFileDrop={onDrop} hasImage={!!image} />
+      <ImageDropzone
+        onFileDrop={onDrop}
+        hasImage={hasPhotos}
+        multiple
+        maxFiles={MAX_PHOTOS}
+      />
 
-      {(image || settingsRecipe) && (
+      {hasPhotos && (
         <div className="grid grid-cols-1 items-start gap-6 md:grid-cols-2">
-          {image && (
-            <img
-              src={image}
-              alt="Selected photo"
-              className="h-auto max-h-[50vh] w-full rounded-lg object-contain shadow-sm animate-in fade-in duration-300"
-            />
-          )}
+          <div className="flex flex-col gap-3">
+            {primaryPhoto && (
+              <img
+                src={primaryPhoto.previewUrl}
+                alt="Primary photo"
+                className="h-auto max-h-[50vh] w-full rounded-lg object-contain shadow-sm animate-in fade-in duration-300"
+              />
+            )}
+            {photos.length > 1 && (
+              <div className="flex gap-2 overflow-x-auto pb-1">
+                {photos.map((photo) => (
+                  <div key={photo.id} className="relative shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => setPrimaryPhoto(photo.id)}
+                      className={`relative h-16 w-16 overflow-hidden rounded-md border-2 transition-all ${
+                        photo.isPrimary
+                          ? "border-primary ring-2 ring-primary/20"
+                          : "border-transparent hover:border-border"
+                      }`}
+                    >
+                      <img
+                        src={photo.previewUrl}
+                        alt=""
+                        className="h-full w-full object-cover"
+                      />
+                      {photo.isPrimary && (
+                        <div className="absolute bottom-0 left-0 right-0 bg-primary/90 py-0.5 text-center">
+                          <Star className="mx-auto h-3 w-3 fill-primary-foreground text-primary-foreground" />
+                        </div>
+                      )}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => removePhoto(photo.id)}
+                      className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
           {settingsRecipe && (
             <div className="w-full rounded-lg border border-border">
               <RecipeSettings recipe={settingsRecipe} />
