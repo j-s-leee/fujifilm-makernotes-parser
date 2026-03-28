@@ -127,7 +127,8 @@
       "textSearchStep1": "Describe the aesthetic you want in any language",
       "textSearchStep2": "AI translates your description into a visual concept",
       "textSearchStep3": "Get recipes matching the mood and style you described",
-      "textSearchCta": "Try text search"
+      "textSearchCta": "Try text search",
+      "showFeatures": "See how it works"
     }
   },
   "recipes": {

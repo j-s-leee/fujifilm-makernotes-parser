@@ -597,7 +597,23 @@ export function FeatureCarousel() {
   const transition = prefersReduced ? reducedTransition : springTransition;
   const dragX = useRef(0);
 
-  if (dismissed) return null;
+  if (dismissed) {
+    return (
+      <div className="flex justify-center">
+        <button
+          onClick={() => {
+            setDismissed(false);
+            setActiveIndex(0);
+            seenSlides.current = new Set([0]);
+          }}
+          className="flex items-center gap-1.5 text-xs text-muted-foreground/60 transition-colors hover:text-muted-foreground"
+        >
+          <ScanLine className="h-3 w-3" />
+          <span>{t("showFeatures")}</span>
+        </button>
+      </div>
+    );
+  }
 
   return (
     <LazyMotion features={domAnimation}>

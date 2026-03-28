@@ -127,7 +127,8 @@
       "textSearchStep1": "원하는 미학을 아무 언어로 설명",
       "textSearchStep2": "AI가 설명을 시각적 개념으로 변환",
       "textSearchStep3": "설명한 분위기와 스타일에 맞는 레시피 추천",
-      "textSearchCta": "텍스트 검색 시작"
+      "textSearchCta": "텍스트 검색 시작",
+      "showFeatures": "기능 소개 보기"
     }
   },
   "recipes": {
