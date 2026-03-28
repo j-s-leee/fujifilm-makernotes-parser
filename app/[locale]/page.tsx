@@ -1,7 +1,7 @@
 import { Link } from "@/i18n/navigation";
 import { createStaticClient } from "@/lib/supabase/server";
 import { TrendingGrid } from "@/components/trending-grid";
-import { FeatureShowcase } from "@/components/feature-showcase";
+import { FeatureCarousel } from "@/components/feature-carousel";
 import { TrendingSection } from "@/components/trending-section";
 import { HeroSection } from "@/components/hero-section";
 import { getTranslations, setRequestLocale } from "next-intl/server";
@@ -34,7 +34,7 @@ export default async function Home({ params }: Props) {
             </p>
           </HeroSection>
 
-          <FeatureShowcase />
+          <FeatureCarousel />
         </div>
 
         {/* Trending Recipes */}
