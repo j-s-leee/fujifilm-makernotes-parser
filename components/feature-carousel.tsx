@@ -606,10 +606,10 @@ export function FeatureCarousel() {
             setActiveIndex(0);
             seenSlides.current = new Set([0]);
           }}
-          className="flex items-center gap-1.5 text-xs text-muted-foreground/60 transition-colors hover:text-muted-foreground"
+          className="inline-flex items-center gap-2 rounded-md bg-foreground px-4 py-2 text-sm font-medium text-background transition-opacity hover:opacity-80"
         >
-          <ScanLine className="h-3 w-3" />
-          <span>{t("showFeatures")}</span>
+          <ScanLine className="h-4 w-4" />
+          {t("showFeatures")}
         </button>
       </div>
     );
