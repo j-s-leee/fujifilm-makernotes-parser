@@ -2,7 +2,7 @@
 
 // GalleryCard: columns needed for gallery grid display
 export const GALLERY_SELECT =
-  "id, user_id, simulation, thumbnail_path, blur_data_url, thumbnail_width, thumbnail_height, bookmark_count, like_count, camera_model, created_at, user_display_name, user_username, user_avatar_path, slug";
+  "id, user_id, simulation, thumbnail_path, blur_data_url, thumbnail_width, thumbnail_height, bookmark_count, like_count, camera_model, created_at, user_display_name, user_username, user_avatar_path, slug, photo_count";
 
 // Recipe detail page: Hero + Settings modal + similar recipe lookup
 export const RECIPE_DETAIL_SELECT =

@@ -10,6 +10,7 @@ import { SimilarRecipesSkeleton } from "@/components/skeletons";
 import { RECIPE_DETAIL_SELECT, GALLERY_SELECT } from "@/lib/queries";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { getAlternates } from "@/lib/seo";
+import { getThumbnailUrl } from "@/lib/get-thumbnail-url";
 
 const getRecipe = cache(async (recipeId: number) => {
   const supabase = createStaticClient();
@@ -19,6 +20,16 @@ const getRecipe = cache(async (recipeId: number) => {
     .eq("id", recipeId)
     .single();
   return data;
+});
+
+const getRecipePhotos = cache(async (recipeId: number) => {
+  const supabase = createStaticClient();
+  const { data } = await supabase
+    .from("recipe_photos")
+    .select("storage_path, blur_data_url, width, height, position")
+    .eq("recipe_id", recipeId)
+    .order("position", { ascending: true });
+  return data ?? [];
 });
 
 export const revalidate = 86400; // 24 hours — recipe content never changes after creation
@@ -151,7 +162,31 @@ export default async function RecipePage({ params }: RecipePageProps) {
     permanentRedirect(`/recipes/${canonicalSlugId}`);
   }
 
+  const recipePhotos = await getRecipePhotos(recipeId);
+
   const r2PublicUrl = process.env.NEXT_PUBLIC_R2_PUBLIC_URL ?? "";
+
+  const allPhotos = [
+    ...(recipe.thumbnail_path
+      ? [{
+          src: recipe.thumbnail_width
+            ? recipe.thumbnail_path
+            : getThumbnailUrl(recipe.thumbnail_path),
+          blurDataUrl: recipe.blur_data_url as string | null,
+          width: recipe.thumbnail_width as number | null,
+          height: recipe.thumbnail_height as number | null,
+          alt: recipe.simulation ?? "Recipe photo",
+        }]
+      : []),
+    ...recipePhotos.map((photo) => ({
+      src: photo.storage_path,
+      blurDataUrl: photo.blur_data_url,
+      width: photo.width,
+      height: photo.height,
+      alt: recipe.simulation ?? "Recipe photo",
+    })),
+  ];
+
   const sharer = recipe.user_display_name
     ? {
         userId: recipe.user_id as string,
@@ -220,7 +255,7 @@ export default async function RecipePage({ params }: RecipePageProps) {
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
           {/* Left column: Hero (sticky on desktop) */}
           <div className="md:sticky md:top-24 md:self-start">
-            <RecipeHero recipe={recipe} settings={settings} sharer={sharer} />
+            <RecipeHero recipe={recipe} settings={settings} sharer={sharer} photos={allPhotos} />
           </div>
 
           {/* Right column: Similar Recipes */}

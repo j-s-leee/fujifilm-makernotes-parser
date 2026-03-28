@@ -17,13 +17,17 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  // Rate limit check
-  const rl = await rateLimits.upload(user.id);
-  if (rl.limited) {
-    return NextResponse.json(
-      { error: "Too many requests. Please try again later." },
-      { status: 429, headers: { "Retry-After": String(rl.retryAfter) } },
-    );
+  // Skip rate limit for batch uploads (extra photos in multi-photo recipe)
+  const skipRateLimit = request.nextUrl.searchParams.get("batch") === "1";
+
+  if (!skipRateLimit) {
+    const rl = await rateLimits.upload(user.id);
+    if (rl.limited) {
+      return NextResponse.json(
+        { error: "Too many requests. Please try again later." },
+        { status: 429, headers: { "Retry-After": String(rl.retryAfter) } },
+      );
+    }
   }
 
   const formData = await request.formData();
@@ -84,10 +88,11 @@ export async function POST(request: NextRequest) {
   const blurDataUrl = `data:image/jpeg;base64,${blurBuffer.toString("base64")}`;
 
   // Generate CLIP embedding and color histogram in parallel
+  // Skip embedding for batch uploads (extra photos) to avoid Replicate rate limits
   const r2PublicUrl = process.env.NEXT_PUBLIC_R2_PUBLIC_URL;
   const imageUrl = r2PublicUrl ? `${r2PublicUrl}/${key}` : null;
   const [embedding, colorHistogram] = await Promise.all([
-    imageUrl ? getImageEmbedding(imageUrl) : Promise.resolve(null),
+    !skipRateLimit && imageUrl ? getImageEmbedding(imageUrl) : Promise.resolve(null),
     computeColorHistogram(buffer),
   ]);
 
