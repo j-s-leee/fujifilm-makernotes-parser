@@ -70,7 +70,7 @@ export const GalleryCard = memo(function GalleryCard({
   return (
     <div className="group relative overflow-hidden rounded-md">
       {/* Mobile: top bar with avatar + username */}
-      <div className="flex items-center gap-2 px-2.5 py-2 sm:hidden">
+      <div className="flex items-center gap-2 py-2 sm:hidden">
         <Link href={profileHref} className="flex items-center gap-2">
           <Avatar className="h-6 w-6">
             {avatarUrl && (
@@ -174,7 +174,7 @@ export const GalleryCard = memo(function GalleryCard({
       </div>
 
       {/* Mobile: bottom bar with like + bookmark + collection */}
-      <div className="flex items-center justify-between px-2.5 py-2 sm:hidden">
+      <div className="flex items-center justify-between py-2 sm:hidden">
         <button
           onClick={(e) => toggleLike(recipe.id, e)}
           className="flex items-center gap-1 text-xs"
