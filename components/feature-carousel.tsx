@@ -534,28 +534,15 @@ export function FeatureCarousel() {
   const t = useTranslations("home.features");
   const prefersReduced = useReducedMotion();
 
-  // [activeIndex, direction]
-  const [[activeIndex, direction], setSlide] = useState([0, 1]);
-  const lastInteraction = useRef(Date.now());
+  const [activeIndex, setActiveIndex] = useState(0);
+  const lastInteraction = useRef(0);
 
   const paginate = useCallback(
     (dir: number) => {
       lastInteraction.current = Date.now();
-      setSlide(([prev]) => [(prev + dir + 3) % 3, dir]);
+      setActiveIndex((prev) => (prev + dir + 3) % 3);
     },
     [],
-  );
-
-  const handleDragEnd = useCallback(
-    (_: unknown, info: { offset: { x: number }; velocity: { x: number } }) => {
-      const { offset, velocity } = info;
-      if (offset.x > 50 || velocity.x > 500) {
-        paginate(-1);
-      } else if (offset.x < -50 || velocity.x < -500) {
-        paginate(1);
-      }
-    },
-    [paginate],
   );
 
   const handleKeyDown = useCallback(
@@ -584,9 +571,8 @@ export function FeatureCarousel() {
     return () => clearInterval(timer);
   }, [activeIndex, prefersReduced, paginate]);
 
-  const slide = slides[activeIndex];
-  const Icon = slide.icon;
   const transition = prefersReduced ? reducedTransition : springTransition;
+  const dragX = useRef(0);
 
   return (
     <LazyMotion features={domAnimation}>
@@ -598,56 +584,73 @@ export function FeatureCarousel() {
         onKeyDown={handleKeyDown}
         className="relative outline-none"
       >
-        {/* Carousel content — no fixed height, content determines size */}
-        <div className="relative overflow-hidden">
-          <m.div
-            key={activeIndex}
-            initial={{
-              opacity: 0,
-              x: direction > 0 ? 100 : -100,
-            }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={transition}
-            drag="x"
-            dragConstraints={{ left: 0, right: 0 }}
-            dragElastic={0.2}
-            onDragEnd={handleDragEnd}
-            style={{ touchAction: "pan-y" }}
-            role="group"
-            aria-roledescription="slide"
-            className="flex flex-col sm:flex-row sm:items-center gap-6 sm:gap-12 lg:gap-16 cursor-grab active:cursor-grabbing"
-          >
-            {/* Text */}
-            <div className="flex flex-col gap-3 sm:w-1/2">
-              <div className="flex items-center gap-2">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted">
-                  <Icon className="h-4 w-4 text-muted-foreground" />
-                </div>
-              </div>
-              <h3 className="text-lg font-semibold tracking-tight">
-                {t(slide.titleKey)}
-              </h3>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                {t(slide.descriptionKey)}
-              </p>
-              <Link
-                href={slide.href}
-                className="group/link mt-1 flex items-center gap-1 text-sm font-medium transition-colors hover:text-foreground"
-              >
-                {t(slide.ctaKey)}
-                <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover/link:translate-x-0.5" />
-              </Link>
-            </div>
+        {/* Carousel — all slides rendered, only active visible */}
+        <div
+          className="relative overflow-hidden touch-pan-y"
+          onPointerDown={() => { dragX.current = 0; }}
+          onPointerMove={(e) => {
+            if (e.buttons > 0) dragX.current += e.movementX;
+          }}
+          onPointerUp={() => {
+            if (dragX.current > 60) {
+              paginate(-1);
+            } else if (dragX.current < -60) {
+              paginate(1);
+            }
+            dragX.current = 0;
+          }}
+        >
+          {slides.map((slide, i) => {
+            const Icon = slide.icon;
+            const isActive = i === activeIndex;
 
-            {/* Mockup */}
-            <div className="flex justify-center sm:w-1/2">
-              <div className="w-full max-w-[300px]">
-                <slide.Mockup
-                  isActive={activeIndex === slides.indexOf(slide)}
-                />
-              </div>
-            </div>
-          </m.div>
+            return (
+              <m.div
+                key={i}
+                animate={{
+                  opacity: isActive ? 1 : 0,
+                  x: isActive ? 0 : i > activeIndex ? 60 : -60,
+                  position: isActive ? "relative" as const : "absolute" as const,
+                }}
+                transition={transition}
+                role="group"
+                aria-roledescription="slide"
+                aria-hidden={!isActive}
+                className={`top-0 left-0 right-0 flex flex-col sm:flex-row sm:items-center gap-6 sm:gap-12 lg:gap-16 ${
+                  !isActive ? "pointer-events-none" : ""
+                }`}
+              >
+                {/* Text */}
+                <div className="flex flex-col gap-3 sm:w-1/2">
+                  <div className="flex items-center gap-2">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted">
+                      <Icon className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                  </div>
+                  <h3 className="text-lg font-semibold tracking-tight">
+                    {t(slide.titleKey)}
+                  </h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    {t(slide.descriptionKey)}
+                  </p>
+                  <Link
+                    href={slide.href}
+                    className="group/link mt-1 flex items-center gap-1 text-sm font-medium transition-colors hover:text-foreground"
+                  >
+                    {t(slide.ctaKey)}
+                    <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover/link:translate-x-0.5" />
+                  </Link>
+                </div>
+
+                {/* Mockup */}
+                <div className="flex justify-center sm:w-1/2">
+                  <div className="w-full max-w-[300px]">
+                    <slide.Mockup isActive={isActive} />
+                  </div>
+                </div>
+              </m.div>
+            );
+          })}
         </div>
 
         {/* Navigation: arrows inline with dots */}
@@ -667,7 +670,7 @@ export function FeatureCarousel() {
                 key={i}
                 onClick={() => {
                   lastInteraction.current = Date.now();
-                  setSlide([i, i > activeIndex ? 1 : -1]);
+                  setActiveIndex(i);
                 }}
                 aria-label={`Go to feature ${i + 1}`}
                 className="relative flex items-center justify-center py-2"
@@ -685,7 +688,7 @@ export function FeatureCarousel() {
                       initial={{ width: "0%" }}
                       animate={{ width: "100%" }}
                       transition={{ duration: 4, ease: "linear" }}
-                      key={`progress-${activeIndex}-${Date.now()}`}
+                      key={`progress-${activeIndex}`}
                     />
                   )}
                 </div>
