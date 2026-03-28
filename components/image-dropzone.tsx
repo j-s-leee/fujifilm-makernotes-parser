@@ -8,9 +8,11 @@ import { useTranslations } from "next-intl";
 interface ImageDropzoneProps {
   onFileDrop: (files: File[]) => void;
   hasImage: boolean;
+  multiple?: boolean;
+  maxFiles?: number;
 }
 
-export function ImageDropzone({ onFileDrop, hasImage }: ImageDropzoneProps) {
+export function ImageDropzone({ onFileDrop, hasImage, multiple = false, maxFiles = 1 }: ImageDropzoneProps) {
   const t = useTranslations("upload");
 
   const onDrop = useCallback(
@@ -26,7 +28,8 @@ export function ImageDropzone({ onFileDrop, hasImage }: ImageDropzoneProps) {
       "image/jpeg": [".jpg", ".jpeg"],
       "image/x-fuji-raf": [".raf"],
     },
-    multiple: false,
+    multiple,
+    maxFiles: multiple ? maxFiles : 1,
   });
 
   if (hasImage) {
@@ -42,7 +45,7 @@ export function ImageDropzone({ onFileDrop, hasImage }: ImageDropzoneProps) {
         <input {...getInputProps()} />
         <Upload className="h-4 w-4 text-muted-foreground" />
         <p className="text-sm text-muted-foreground">
-          {t("tryAnother")}
+          {multiple ? t("addMorePhotos") : t("tryAnother")}
         </p>
       </div>
     );
@@ -63,7 +66,7 @@ export function ImageDropzone({ onFileDrop, hasImage }: ImageDropzoneProps) {
         {t("dropzoneText")}
       </p>
       <p className="text-xs text-muted-foreground">
-        {t("dropzoneFormats")}
+        {multiple ? t("dropzoneFormatsMulti") : t("dropzoneFormats")}
       </p>
     </div>
   );
