@@ -27,6 +27,8 @@ import { toSlug } from "@/lib/slug";
 import dynamic from "next/dynamic";
 import type { RecipeSettingsRecipe } from "@/components/recipe-settings";
 import { useTranslations } from "next-intl";
+import { PhotoCarousel } from "@/components/photo-carousel";
+import type { CarouselPhoto } from "@/components/photo-carousel";
 
 const CollectionPopover = dynamic(
   () =>
@@ -75,9 +77,10 @@ interface RecipeHeroProps {
     username: string | null;
     avatarUrl: string | null;
   } | null;
+  photos?: CarouselPhoto[];
 }
 
-export function RecipeHero({ recipe, settings, sharer }: RecipeHeroProps) {
+export function RecipeHero({ recipe, settings, sharer, photos }: RecipeHeroProps) {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
@@ -132,8 +135,10 @@ export function RecipeHero({ recipe, settings, sharer }: RecipeHeroProps) {
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Photo */}
-      {thumbnailUrl ? (
+      {/* Photo(s) */}
+      {photos && photos.length > 1 ? (
+        <PhotoCarousel photos={photos} />
+      ) : thumbnailUrl ? (
         <div className="relative w-full overflow-hidden rounded-xl shadow-lg">
           <Image
             src={thumbnailUrl}
