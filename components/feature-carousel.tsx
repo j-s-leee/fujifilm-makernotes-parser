@@ -139,11 +139,11 @@ function RecipeResultRow({
 }
 
 /* ------------------------------------------------------------------ */
-/*  ExtractMockup                                                      */
+/*  ExtractMockup — 4-step with drag-and-drop animation                */
 /* ------------------------------------------------------------------ */
 
 function ExtractMockup({ isActive }: { isActive: boolean }) {
-  const step = useSlideAnim(isActive, 3, 1600, 2500);
+  const step = useSlideAnim(isActive, 4, 1400, 2500);
 
   return (
     <div className="rounded-lg border border-border bg-background shadow-sm overflow-hidden">
@@ -152,20 +152,23 @@ function ExtractMockup({ isActive }: { isActive: boolean }) {
         <span className="text-[10px] font-medium">Upload Recipe</span>
       </div>
 
-      <div className="p-3">
+      <div className="p-3 relative">
+        {/* Drop zone */}
         <m.div
-          animate={
-            step >= 1
-              ? { borderColor: "var(--border-active, rgba(0,0,0,0.2))" }
-              : {}
-          }
-          className={`flex flex-col items-center justify-center rounded-md border border-dashed py-4 ${
-            step >= 1
-              ? "border-foreground/20 bg-muted/50"
-              : "border-border"
-          }`}
+          animate={{
+            borderColor:
+              step >= 1 && step < 2
+                ? "hsl(var(--foreground) / 0.3)"
+                : step >= 2
+                  ? "hsl(var(--foreground) / 0.2)"
+                  : "hsl(var(--border))",
+            backgroundColor:
+              step >= 2 ? "hsl(var(--muted) / 0.5)" : "transparent",
+          }}
+          transition={{ type: "spring", stiffness: 300, damping: 25 }}
+          className="flex flex-col items-center justify-center rounded-md border border-dashed py-4 relative overflow-hidden"
         >
-          {step < 1 ? (
+          {step < 2 ? (
             <>
               <Upload className="h-4 w-4 text-muted-foreground/40 mb-1" />
               <span className="text-[9px] text-muted-foreground/50">
@@ -173,7 +176,12 @@ function ExtractMockup({ isActive }: { isActive: boolean }) {
               </span>
             </>
           ) : (
-            <div className="flex items-center gap-2">
+            <m.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ type: "spring", stiffness: 400, damping: 20 }}
+              className="flex items-center gap-2"
+            >
               <div className="h-8 w-8 rounded bg-muted flex items-center justify-center">
                 <ImageIcon className="h-4 w-4 text-muted-foreground" />
               </div>
@@ -183,17 +191,48 @@ function ExtractMockup({ isActive }: { isActive: boolean }) {
                   X-T5 &middot; 26mm
                 </div>
               </div>
-            </div>
+            </m.div>
           )}
         </m.div>
+
+        {/* Animated cursor with file — visible during step 1 */}
+        <AnimatePresence>
+          {step === 1 && (
+            <m.div
+              initial={{ x: 80, y: -30, opacity: 0 }}
+              animate={{ x: 0, y: 10, opacity: 1 }}
+              exit={{ opacity: 0, scale: 0.5 }}
+              transition={{ type: "spring", stiffness: 200, damping: 20 }}
+              className="absolute top-2 right-4 pointer-events-none flex items-center gap-1"
+            >
+              <div className="flex items-center gap-1 rounded bg-muted/80 px-1.5 py-0.5 shadow-sm border border-border">
+                <ImageIcon className="h-3 w-3 text-muted-foreground" />
+                <span className="text-[8px] text-muted-foreground font-medium">
+                  DSCF4721.RAF
+                </span>
+              </div>
+              {/* Cursor icon */}
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 12 12"
+                className="text-foreground/60 -ml-1 mt-2"
+              >
+                <path
+                  d="M1 1L5 11L6.5 6.5L11 5L1 1Z"
+                  fill="currentColor"
+                />
+              </svg>
+            </m.div>
+          )}
+        </AnimatePresence>
       </div>
 
+      {/* Settings — step 3 */}
       <div className="border-t border-border">
         <m.div
           animate={
-            step >= 2
-              ? { opacity: 1, y: 0 }
-              : { opacity: 0, y: 8 }
+            step >= 3 ? { opacity: 1, y: 0 } : { opacity: 0, y: 8 }
           }
           transition={{ type: "spring", stiffness: 300, damping: 25 }}
           className="p-3 space-y-1.5"
@@ -205,11 +244,10 @@ function ExtractMockup({ isActive }: { isActive: boolean }) {
         </m.div>
       </div>
 
+      {/* Upload button — step 4 */}
       <m.div
         animate={
-          step >= 3
-            ? { opacity: 1, y: 0 }
-            : { opacity: 0, y: 8 }
+          step >= 4 ? { opacity: 1, y: 0 } : { opacity: 0, y: 8 }
         }
         transition={{ type: "spring", stiffness: 300, damping: 25 }}
         className="p-3 pt-0"
@@ -223,11 +261,11 @@ function ExtractMockup({ isActive }: { isActive: boolean }) {
 }
 
 /* ------------------------------------------------------------------ */
-/*  ImageSearchMockup                                                  */
+/*  ImageSearchMockup — 4-step with drag-and-drop animation            */
 /* ------------------------------------------------------------------ */
 
 function ImageSearchMockup({ isActive }: { isActive: boolean }) {
-  const step = useSlideAnim(isActive, 3, 1600, 2500);
+  const step = useSlideAnim(isActive, 4, 1400, 2500);
 
   return (
     <div className="rounded-lg border border-border bg-background shadow-sm overflow-hidden">
@@ -236,27 +274,63 @@ function ImageSearchMockup({ isActive }: { isActive: boolean }) {
         <span className="text-[10px] font-medium">Find Similar Recipes</span>
       </div>
 
-      <div className="p-3">
+      <div className="p-3 relative">
         <div
           className={`h-24 rounded-md flex items-center justify-center transition-all duration-500 overflow-hidden ${
-            step >= 1
+            step >= 2
               ? "bg-gradient-to-br from-amber-200/60 to-orange-300/40 dark:from-amber-900/40 dark:to-orange-900/30"
               : "bg-muted/30 border border-dashed border-border"
           }`}
         >
-          {step < 1 ? (
+          {step < 2 ? (
             <Upload className="h-4 w-4 text-muted-foreground/40" />
           ) : (
-            <ImageIcon className="h-6 w-6 text-amber-700/50 dark:text-amber-300/50" />
+            <m.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ type: "spring", stiffness: 400, damping: 20 }}
+            >
+              <ImageIcon className="h-6 w-6 text-amber-700/50 dark:text-amber-300/50" />
+            </m.div>
           )}
         </div>
 
+        {/* Animated cursor with photo — visible during step 1 */}
+        <AnimatePresence>
+          {step === 1 && (
+            <m.div
+              initial={{ x: 80, y: -30, opacity: 0 }}
+              animate={{ x: 0, y: 10, opacity: 1 }}
+              exit={{ opacity: 0, scale: 0.5 }}
+              transition={{ type: "spring", stiffness: 200, damping: 20 }}
+              className="absolute top-2 right-4 pointer-events-none flex items-center gap-1"
+            >
+              <div className="flex items-center gap-1 rounded bg-muted/80 px-1.5 py-0.5 shadow-sm border border-border">
+                <div className="h-4 w-5 rounded-sm bg-gradient-to-br from-amber-200/80 to-orange-300/60 dark:from-amber-900/60 dark:to-orange-900/40 flex items-center justify-center">
+                  <ImageIcon className="h-2.5 w-2.5 text-amber-700/60 dark:text-amber-300/60" />
+                </div>
+                <span className="text-[8px] text-muted-foreground font-medium">
+                  IMG_2847.jpg
+                </span>
+              </div>
+              {/* Cursor icon */}
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 12 12"
+                className="text-foreground/60 -ml-1 mt-2"
+              >
+                <path
+                  d="M1 1L5 11L6.5 6.5L11 5L1 1Z"
+                  fill="currentColor"
+                />
+              </svg>
+            </m.div>
+          )}
+        </AnimatePresence>
+
         <m.div
-          animate={
-            step === 2
-              ? { opacity: 1 }
-              : { opacity: 0 }
-          }
+          animate={step === 3 ? { opacity: 1 } : { opacity: 0 }}
           transition={{ type: "spring", stiffness: 300, damping: 25 }}
           className="flex items-center justify-center gap-1.5 mt-2 h-4"
         >
@@ -270,7 +344,7 @@ function ImageSearchMockup({ isActive }: { isActive: boolean }) {
       <div className="border-t border-border">
         <m.div
           animate={
-            step >= 3
+            step >= 4
               ? { opacity: 1, y: 0 }
               : { opacity: 0, y: 8 }
           }
@@ -283,7 +357,7 @@ function ImageSearchMockup({ isActive }: { isActive: boolean }) {
           <m.div
             variants={resultContainerVariants}
             initial="hidden"
-            animate={step >= 3 ? "show" : "hidden"}
+            animate={step >= 4 ? "show" : "hidden"}
             className="space-y-2"
           >
             {[
@@ -442,16 +516,14 @@ const slides: SlideConfig[] = [
 ];
 
 /* ------------------------------------------------------------------ */
-/*  Carousel variants                                                  */
+/*  Carousel transition                                                */
 /* ------------------------------------------------------------------ */
 
-const carouselVariants = {
-  enter: (dir: number) => ({ x: dir > 0 ? 300 : -300, opacity: 0 }),
-  center: { x: 0, opacity: 1 },
-  exit: (dir: number) => ({ x: dir > 0 ? -300 : 300, opacity: 0 }),
+const springTransition = {
+  type: "spring" as const,
+  stiffness: 300,
+  damping: 30,
 };
-
-const springTransition = { type: "spring" as const, stiffness: 300, damping: 30 };
 const reducedTransition = { duration: 0 };
 
 /* ------------------------------------------------------------------ */
@@ -526,104 +598,108 @@ export function FeatureCarousel() {
         onKeyDown={handleKeyDown}
         className="relative outline-none"
       >
-        {/* Carousel content */}
-        <div className="relative overflow-hidden h-[450px] sm:h-[320px]">
-          <AnimatePresence mode="wait" custom={direction}>
-            <m.div
-              key={activeIndex}
-              custom={direction}
-              variants={carouselVariants}
-              initial="enter"
-              animate="center"
-              exit="exit"
-              transition={transition}
-              drag="x"
-              dragConstraints={{ left: 0, right: 0 }}
-              dragElastic={0.2}
-              onDragEnd={handleDragEnd}
-              role="group"
-              aria-roledescription="slide"
-              className="absolute inset-0 flex flex-col sm:flex-row sm:items-center gap-8 sm:gap-12 lg:gap-16 cursor-grab active:cursor-grabbing"
-            >
-              {/* Text */}
-              <div className="flex flex-col gap-3 sm:w-1/2">
-                <div className="flex items-center gap-2">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted">
-                    <Icon className="h-4 w-4 text-muted-foreground" />
-                  </div>
+        {/* Carousel content — no fixed height, content determines size */}
+        <div className="relative overflow-hidden">
+          <m.div
+            key={activeIndex}
+            initial={{
+              opacity: 0,
+              x: direction > 0 ? 100 : -100,
+            }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={transition}
+            drag="x"
+            dragConstraints={{ left: 0, right: 0 }}
+            dragElastic={0.2}
+            onDragEnd={handleDragEnd}
+            style={{ touchAction: "pan-y" }}
+            role="group"
+            aria-roledescription="slide"
+            className="flex flex-col sm:flex-row sm:items-center gap-6 sm:gap-12 lg:gap-16 cursor-grab active:cursor-grabbing"
+          >
+            {/* Text */}
+            <div className="flex flex-col gap-3 sm:w-1/2">
+              <div className="flex items-center gap-2">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted">
+                  <Icon className="h-4 w-4 text-muted-foreground" />
                 </div>
-                <h3 className="text-lg font-semibold tracking-tight">
-                  {t(slide.titleKey)}
-                </h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  {t(slide.descriptionKey)}
-                </p>
-                <Link
-                  href={slide.href}
-                  className="group/link mt-1 flex items-center gap-1 text-sm font-medium transition-colors hover:text-foreground"
-                >
-                  {t(slide.ctaKey)}
-                  <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover/link:translate-x-0.5" />
-                </Link>
               </div>
+              <h3 className="text-lg font-semibold tracking-tight">
+                {t(slide.titleKey)}
+              </h3>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                {t(slide.descriptionKey)}
+              </p>
+              <Link
+                href={slide.href}
+                className="group/link mt-1 flex items-center gap-1 text-sm font-medium transition-colors hover:text-foreground"
+              >
+                {t(slide.ctaKey)}
+                <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover/link:translate-x-0.5" />
+              </Link>
+            </div>
 
-              {/* Mockup */}
-              <div className="flex justify-center sm:w-1/2">
-                <div className="w-full max-w-[300px]">
-                  <slide.Mockup isActive={activeIndex === slides.indexOf(slide)} />
-                </div>
+            {/* Mockup */}
+            <div className="flex justify-center sm:w-1/2">
+              <div className="w-full max-w-[300px]">
+                <slide.Mockup
+                  isActive={activeIndex === slides.indexOf(slide)}
+                />
               </div>
-            </m.div>
-          </AnimatePresence>
+            </div>
+          </m.div>
         </div>
 
-        {/* Arrow buttons — desktop only */}
-        <button
-          onClick={() => paginate(-1)}
-          className="hidden sm:flex absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 h-8 w-8 items-center justify-center rounded-full border border-border bg-background shadow-sm transition-colors hover:bg-muted"
-          aria-label="Previous feature"
-        >
-          <ChevronLeft className="h-4 w-4" />
-        </button>
-        <button
-          onClick={() => paginate(1)}
-          className="hidden sm:flex absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 h-8 w-8 items-center justify-center rounded-full border border-border bg-background shadow-sm transition-colors hover:bg-muted"
-          aria-label="Next feature"
-        >
-          <ChevronRight className="h-4 w-4" />
-        </button>
+        {/* Navigation: arrows inline with dots */}
+        <div className="flex items-center justify-center gap-4 mt-6">
+          <button
+            onClick={() => paginate(-1)}
+            className="hidden sm:flex h-8 w-8 items-center justify-center rounded-full border border-border bg-background shadow-sm transition-colors hover:bg-muted"
+            aria-label="Previous feature"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </button>
 
-        {/* Dot indicators */}
-        <div className="flex items-center justify-center gap-2 mt-6">
-          {slides.map((_, i) => (
-            <button
-              key={i}
-              onClick={() => {
-                lastInteraction.current = Date.now();
-                setSlide([i, i > activeIndex ? 1 : -1]);
-              }}
-              aria-label={`Go to feature ${i + 1}`}
-              className="relative flex items-center justify-center py-2"
-            >
-              <div
-                className={`rounded-full transition-all duration-300 ${
-                  i === activeIndex
-                    ? "h-1.5 w-8 bg-muted-foreground/30"
-                    : "h-1.5 w-1.5 bg-muted-foreground/20 hover:bg-muted-foreground/30"
-                }`}
+          {/* Dot indicators */}
+          <div className="flex items-center gap-2">
+            {slides.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => {
+                  lastInteraction.current = Date.now();
+                  setSlide([i, i > activeIndex ? 1 : -1]);
+                }}
+                aria-label={`Go to feature ${i + 1}`}
+                className="relative flex items-center justify-center py-2"
               >
-                {i === activeIndex && !prefersReduced && (
-                  <m.div
-                    className="h-full rounded-full bg-foreground"
-                    initial={{ width: "0%" }}
-                    animate={{ width: "100%" }}
-                    transition={{ duration: 4, ease: "linear" }}
-                    key={`progress-${activeIndex}-${Date.now()}`}
-                  />
-                )}
-              </div>
-            </button>
-          ))}
+                <div
+                  className={`rounded-full transition-all duration-300 ${
+                    i === activeIndex
+                      ? "h-1.5 w-8 bg-muted-foreground/30"
+                      : "h-1.5 w-1.5 bg-muted-foreground/20 hover:bg-muted-foreground/30"
+                  }`}
+                >
+                  {i === activeIndex && !prefersReduced && (
+                    <m.div
+                      className="h-full rounded-full bg-foreground"
+                      initial={{ width: "0%" }}
+                      animate={{ width: "100%" }}
+                      transition={{ duration: 4, ease: "linear" }}
+                      key={`progress-${activeIndex}-${Date.now()}`}
+                    />
+                  )}
+                </div>
+              </button>
+            ))}
+          </div>
+
+          <button
+            onClick={() => paginate(1)}
+            className="hidden sm:flex h-8 w-8 items-center justify-center rounded-full border border-border bg-background shadow-sm transition-colors hover:bg-muted"
+            aria-label="Next feature"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </button>
         </div>
       </div>
     </LazyMotion>
