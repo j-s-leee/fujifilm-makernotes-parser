@@ -2,7 +2,7 @@ import { Link } from "@/i18n/navigation";
 import { createStaticClient } from "@/lib/supabase/server";
 import { TrendingGrid } from "@/components/trending-grid";
 import { FeatureShowcase } from "@/components/feature-showcase";
-import { RevealOnScroll } from "@/components/reveal-on-scroll";
+import { TrendingSection } from "@/components/trending-section";
 import { HeroSection } from "@/components/hero-section";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
@@ -39,7 +39,7 @@ export default async function Home({ params }: Props) {
 
         {/* Trending Recipes */}
         {recipes && recipes.length > 0 ? (
-          <RevealOnScroll>
+          <TrendingSection>
             <div className="flex flex-col gap-6">
               <div className="flex items-center justify-between">
                 <h2 className="text-lg font-semibold tracking-tight">
@@ -55,7 +55,7 @@ export default async function Home({ params }: Props) {
 
               <TrendingGrid recipes={recipes} />
             </div>
-          </RevealOnScroll>
+          </TrendingSection>
         ) : (
           <p className="text-center text-sm text-muted-foreground py-20">
             {t("empty")}
