@@ -586,7 +586,7 @@ export function FeatureCarousel() {
       >
         {/* Carousel — all slides rendered, only active visible */}
         <div
-          className="relative overflow-hidden touch-pan-y"
+          className="relative overflow-hidden touch-pan-y h-[480px] sm:h-[340px] lg:h-[320px]"
           onPointerDown={() => { dragX.current = 0; }}
           onPointerMove={(e) => {
             if (e.buttons > 0) dragX.current += e.movementX;
@@ -610,13 +610,12 @@ export function FeatureCarousel() {
                 animate={{
                   opacity: isActive ? 1 : 0,
                   x: isActive ? 0 : i > activeIndex ? 60 : -60,
-                  position: isActive ? "relative" as const : "absolute" as const,
                 }}
                 transition={transition}
                 role="group"
                 aria-roledescription="slide"
                 aria-hidden={!isActive}
-                className={`top-0 left-0 right-0 flex flex-col sm:flex-row sm:items-center gap-6 sm:gap-12 lg:gap-16 ${
+                className={`absolute inset-0 flex flex-col sm:flex-row sm:items-center gap-6 sm:gap-12 lg:gap-16 ${
                   !isActive ? "pointer-events-none" : ""
                 }`}
               >
