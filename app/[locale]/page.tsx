@@ -3,6 +3,7 @@ import { createStaticClient } from "@/lib/supabase/server";
 import { TrendingGrid } from "@/components/trending-grid";
 import { FeatureShowcase } from "@/components/feature-showcase";
 import { RevealOnScroll } from "@/components/reveal-on-scroll";
+import { HeroSection } from "@/components/hero-section";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
 export const revalidate = 43200; // 12 hours — trending updates are not time-critical
@@ -24,14 +25,14 @@ export default async function Home({ params }: Props) {
       <div className="flex flex-col gap-24 sm:gap-32">
         {/* Hero + Features */}
         <div className="flex flex-col gap-16 sm:gap-20">
-          <div className="text-center animate-fade-in-up">
+          <HeroSection>
             <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
               {t("heroTitle")}
             </h1>
             <p className="text-sm text-muted-foreground mt-3 max-w-lg mx-auto">
               {t("heroSubtitle")}
             </p>
-          </div>
+          </HeroSection>
 
           <FeatureShowcase />
         </div>
