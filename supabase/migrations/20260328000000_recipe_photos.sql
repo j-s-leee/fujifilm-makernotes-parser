@@ -80,6 +80,7 @@ SELECT
   r.bookmark_count,
   r.like_count,
   r.created_at,
+  r.slug,
   s.slug        AS simulation,
   cm.name       AS camera_model,
   cm.sensor_generation,
@@ -94,4 +95,5 @@ LEFT JOIN public.simulations s   ON s.id  = r.simulation_id
 LEFT JOIN public.camera_models cm ON cm.id = r.camera_model_id
 LEFT JOIN public.lenses l         ON l.id  = r.lens_id
 LEFT JOIN public.wb_types w       ON w.id  = r.wb_type_id
-LEFT JOIN public.profiles p       ON p.id  = r.user_id;
+LEFT JOIN public.profiles p       ON p.id  = r.user_id
+WHERE r.deleted_at IS NULL;
