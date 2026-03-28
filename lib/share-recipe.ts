@@ -9,7 +9,8 @@ export async function shareRecipe(
   simulation: FujifilmSimulation | null,
   thumbnail: { blob: Blob; contentType: string; extension: string },
   cameraModel?: string | null,
-  lensModel?: string | null
+  lensModel?: string | null,
+  extraThumbnails?: { blob: Blob; contentType: string; extension: string }[],
 ): Promise<{ success: true; recipeId: number } | { success: false; error: string }> {
   const supabase = createClient();
 
@@ -21,23 +22,45 @@ export async function shareRecipe(
     return { success: false, error: "Not authenticated" };
   }
 
-  // Upload thumbnail via API route (R2)
-  const formData = new FormData();
-  const file = new File([thumbnail.blob], `upload.${thumbnail.extension}`, {
-    type: thumbnail.contentType,
-  });
-  formData.append("file", file);
+  async function uploadFile(
+    file: { blob: Blob; contentType: string; extension: string },
+    batch = false,
+  ): Promise<{ key: string; blurDataUrl: string; width: number | null; height: number | null; embedding: number[] | null; colorHistogram: number[] | null }> {
+    const formData = new FormData();
+    const f = new File([file.blob], `upload.${file.extension}`, {
+      type: file.contentType,
+    });
+    formData.append("file", f);
 
-  const uploadRes = await fetch("/api/upload", {
-    method: "POST",
-    body: formData,
-  });
+    const url = batch ? "/api/upload?batch=1" : "/api/upload";
+    const uploadRes = await fetch(url, {
+      method: "POST",
+      body: formData,
+    });
 
-  if (!uploadRes.ok) {
-    return { success: false, error: "Failed to upload thumbnail" };
+    if (!uploadRes.ok) {
+      throw new Error("Failed to upload file");
+    }
+
+    return uploadRes.json();
   }
 
-  const { key: fileName, blurDataUrl, width, height, embedding, colorHistogram } = await uploadRes.json();
+  // Upload all photos in parallel (primary + extras)
+  let primaryUpload: Awaited<ReturnType<typeof uploadFile>>;
+  let extraUploads: Awaited<ReturnType<typeof uploadFile>>[] = [];
+
+  try {
+    const uploads = await Promise.all([
+      uploadFile(thumbnail),
+      ...(extraThumbnails ?? []).map((t) => uploadFile(t, true)),
+    ]);
+    primaryUpload = uploads[0];
+    extraUploads = uploads.slice(1);
+  } catch {
+    return { success: false, error: "Failed to upload photos" };
+  }
+
+  const { key: fileName, blurDataUrl, width, height, embedding, colorHistogram } = primaryUpload;
 
   // Resolve all FK lookups in parallel
   const wbSlug = recipe.whiteBalance?.type ?? null;
@@ -113,6 +136,30 @@ export async function shareRecipe(
 
   if (insertError || !inserted) {
     return { success: false, error: "Failed to save recipe" };
+  }
+
+  // Insert additional photos into recipe_photos
+  if (extraUploads.length > 0) {
+    const photoRows = extraUploads.map((upload, index) => ({
+      recipe_id: inserted.id,
+      storage_path: upload.key,
+      blur_data_url: upload.blurDataUrl ?? null,
+      width: upload.width ?? null,
+      height: upload.height ?? null,
+      position: index + 1,
+      image_embedding: upload.embedding ?? null,
+      color_histogram: upload.colorHistogram ?? null,
+    }));
+
+    const { error: photosError } = await supabase
+      .from("recipe_photos")
+      .insert(photoRows);
+
+    if (photosError) {
+      // Clean up: delete the recipe if photo insert fails (transaction safety)
+      await supabase.from("recipes").delete().eq("id", inserted.id);
+      return { success: false, error: "Failed to save additional photos" };
+    }
   }
 
   return { success: true, recipeId: inserted.id };
