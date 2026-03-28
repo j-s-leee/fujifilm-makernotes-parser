@@ -530,12 +530,35 @@ const reducedTransition = { duration: 0 };
 /*  FeatureCarousel                                                    */
 /* ------------------------------------------------------------------ */
 
+const SEEN_KEY = "feature-carousel-seen";
+
 export function FeatureCarousel() {
   const t = useTranslations("home.features");
   const prefersReduced = useReducedMotion();
 
+  const [dismissed, setDismissed] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
   const lastInteraction = useRef(0);
+
+  // Hide for returning visitors
+  useEffect(() => {
+    try {
+      if (localStorage.getItem(SEEN_KEY)) {
+        setDismissed(true);
+      }
+    } catch {}
+  }, []);
+
+  // Mark as seen after autoplay completes one full cycle (all 3 slides)
+  const seenSlides = useRef(new Set<number>([0]));
+  useEffect(() => {
+    seenSlides.current.add(activeIndex);
+    if (seenSlides.current.size >= 3) {
+      try {
+        localStorage.setItem(SEEN_KEY, "1");
+      } catch {}
+    }
+  }, [activeIndex]);
 
   const paginate = useCallback(
     (dir: number) => {
@@ -573,6 +596,8 @@ export function FeatureCarousel() {
 
   const transition = prefersReduced ? reducedTransition : springTransition;
   const dragX = useRef(0);
+
+  if (dismissed) return null;
 
   return (
     <LazyMotion features={domAnimation}>
@@ -620,15 +645,15 @@ export function FeatureCarousel() {
                 }`}
               >
                 {/* Text */}
-                <div className="flex flex-col gap-3 sm:w-1/2">
+                <div className="flex flex-col gap-3 sm:w-1/2 break-keep [word-break:keep-all]">
                   <div className="flex items-center gap-2">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted">
-                      <Icon className="h-4 w-4 text-muted-foreground" />
+                    <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-muted shrink-0">
+                      <Icon className="h-3.5 w-3.5 text-muted-foreground" />
                     </div>
+                    <h3 className="text-lg font-semibold tracking-tight">
+                      {t(slide.titleKey)}
+                    </h3>
                   </div>
-                  <h3 className="text-lg font-semibold tracking-tight">
-                    {t(slide.titleKey)}
-                  </h3>
                   <p className="text-sm text-muted-foreground leading-relaxed">
                     {t(slide.descriptionKey)}
                   </p>
