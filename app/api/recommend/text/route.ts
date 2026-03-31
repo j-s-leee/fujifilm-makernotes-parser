@@ -110,7 +110,7 @@ export async function POST(request: NextRequest) {
   const { data: matches, error: matchError } = await publicClient.rpc(
     "match_recipes_by_image",
     {
-      query_embedding: JSON.stringify(embedding),
+      query_embedding: typeof embedding === "string" ? embedding : JSON.stringify(embedding),
       match_count: matchCount,
       query_histogram: null,
       filter_sensor_generation: sensorGeneration,
