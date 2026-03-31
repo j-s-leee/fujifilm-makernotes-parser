@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { revalidateOnRecipeChanged } from "@/lib/actions/revalidate";
 
 export async function PATCH(
   _request: NextRequest,
@@ -21,10 +22,10 @@ export async function PATCH(
     return NextResponse.json({ error: "Invalid recipe ID" }, { status: 400 });
   }
 
-  // Verify ownership
+  // Verify ownership and fetch metadata for revalidation
   const { data: recipe, error: fetchError } = await supabase
-    .from("recipes")
-    .select("user_id")
+    .from("recipes_with_stats")
+    .select("user_id, slug, simulation, camera_model, user_username")
     .eq("id", recipeId)
     .single();
 
@@ -48,6 +49,16 @@ export async function PATCH(
       { status: 500 },
     );
   }
+
+  revalidateOnRecipeChanged({
+    recipeSlug: recipe.slug,
+    recipeId,
+    userId: recipe.user_id,
+    userIdentifier: recipe.user_username ?? recipe.user_id,
+    simulationSlug: recipe.simulation ?? null,
+    cameraModel: recipe.camera_model ?? null,
+    lensModel: null,
+  });
 
   return NextResponse.json({ success: true });
 }

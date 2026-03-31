@@ -75,7 +75,8 @@ export default function ProfilePage() {
 
       if (res.ok) {
         toast.success(t("profileUpdated"));
-        router.push("/");
+        // Full reload to refresh header profile state (avatar, username, profile link)
+        window.location.href = "/";
       } else {
         const data = await res.json();
         toast.error(data.error ?? t("updateFailed"));

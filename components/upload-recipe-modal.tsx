@@ -25,6 +25,7 @@ import { toast } from "sonner";
 import { useUser } from "@/hooks/use-user";
 import { isRafFile, extractJpegFromRaf } from "@/lib/raf-parser";
 import { shareRecipe } from "@/lib/share-recipe";
+import { revalidateOnRecipeCreated } from "@/lib/actions/revalidate";
 import { compressImageToThumbnail } from "@/lib/compress-image";
 import { generateRecipeSlug } from "@/lib/slug";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -293,6 +294,17 @@ export function UploadRecipeModal({
       );
 
       if (result.success) {
+        // Revalidate affected pages in the background (fire-and-forget)
+        revalidateOnRecipeCreated({
+          userId: user.id,
+          userIdentifier: null,
+          simulationSlug: simulation ?? null,
+          cameraModel: cameraModel
+            ? cameraModel.replace(/^FUJIFILM\s*/i, "").trim()
+            : null,
+          lensModel: lensModel ?? null,
+        }).catch(() => {});
+
         toast.success(t("uploadSuccess"));
         handleOpenChange(false);
         router.push(`/recipes/${result.recipeId}`);

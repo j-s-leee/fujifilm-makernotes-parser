@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { revalidateOnRecipeChanged } from "@/lib/actions/revalidate";
 
 export async function PATCH(
   _request: NextRequest,
@@ -42,6 +43,25 @@ export async function PATCH(
       { error: "Failed to restore recipe" },
       { status: 500 },
     );
+  }
+
+  // Fetch recipe metadata after restore for revalidation
+  const { data: recipe } = await supabase
+    .from("recipes_with_stats")
+    .select("user_id, slug, simulation, camera_model, user_username")
+    .eq("id", recipeId)
+    .single();
+
+  if (recipe) {
+    revalidateOnRecipeChanged({
+      recipeSlug: recipe.slug,
+      recipeId,
+      userId: recipe.user_id,
+      userIdentifier: recipe.user_username ?? recipe.user_id,
+      simulationSlug: recipe.simulation ?? null,
+      cameraModel: recipe.camera_model ?? null,
+      lensModel: null,
+    });
   }
 
   return NextResponse.json({ success: true });

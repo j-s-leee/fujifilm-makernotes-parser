@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { DeleteObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 import { createClient } from "@/lib/supabase/server";
 import { r2, R2_BUCKET } from "@/lib/r2";
+import { revalidateOnProfileUpdated } from "@/lib/actions/revalidate";
 
 function resolveAvatarUrl(
   avatarPath: string | null | undefined,
@@ -73,16 +74,16 @@ export async function PUT(request: NextRequest) {
   const avatarFile = formData.get("avatar") as File | null;
   const agreedToTerms = formData.get("agreed_to_terms") as string | null;
 
+  // Fetch current profile for old avatar cleanup and old username revalidation
+  const { data: currentProfile } = await supabase
+    .from("profiles")
+    .select("avatar_path, username")
+    .eq("id", user.id)
+    .single();
+
   let avatarPath: string | undefined;
 
   if (avatarFile && avatarFile.size > 0) {
-    // Fetch current avatar_path to delete old file later
-    const { data: currentProfile } = await supabase
-      .from("profiles")
-      .select("avatar_path")
-      .eq("id", user.id)
-      .single();
-
     const oldAvatarPath = currentProfile?.avatar_path;
 
     const ext = avatarFile.name.split(".").pop() ?? "jpg";
@@ -160,6 +161,14 @@ export async function PUT(request: NextRequest) {
 
   const oauthAvatarUrl = user.user_metadata?.avatar_url ?? null;
   const avatarUrl = resolveAvatarUrl(profile?.avatar_path, oauthAvatarUrl);
+
+  // Revalidate cached pages that show this user's profile data
+  const oldUsername = currentProfile?.username ?? null;
+  revalidateOnProfileUpdated({
+    userId: user.id,
+    username: profile?.username ?? null,
+    oldUsername: oldUsername !== (profile?.username ?? null) ? oldUsername : null,
+  });
 
   return NextResponse.json({
     display_name: profile?.display_name ?? null,

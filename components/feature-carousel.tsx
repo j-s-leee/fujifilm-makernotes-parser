@@ -20,11 +20,26 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerDescription,
+} from "@/components/ui/drawer";
 import { Link } from "@/i18n/navigation";
+import { useMediaQuery } from "@/hooks/use-media-query";
 import { useTranslations } from "next-intl";
 
 /* ------------------------------------------------------------------ */
-/*  useSlideAnim — replaces useScrollAnim                              */
+/*  useSlideAnim                                                       */
 /* ------------------------------------------------------------------ */
 
 function useSlideAnim(
@@ -39,14 +54,12 @@ function useSlideAnim(
 
   useEffect(() => {
     if (!isActive) {
-      // Reset instantly when slide becomes inactive
       if (timerRef.current) clearInterval(timerRef.current);
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
       setStep(0);
       return;
     }
 
-    // Start with a small delay so user sees step 0
     const startDelay = setTimeout(() => {
       timerRef.current = setInterval(() => {
         setStep((prev) => {
@@ -62,13 +75,11 @@ function useSlideAnim(
     };
   }, [isActive, stepCount, interval]);
 
-  // Reset after completing a cycle
   useEffect(() => {
     if (step >= stepCount && isActive) {
       if (timerRef.current) clearInterval(timerRef.current);
       timeoutRef.current = setTimeout(() => {
         setStep(0);
-        // Restart the interval
         timerRef.current = setInterval(() => {
           setStep((prev) => {
             if (prev >= stepCount) return prev;
@@ -139,7 +150,7 @@ function RecipeResultRow({
 }
 
 /* ------------------------------------------------------------------ */
-/*  ExtractMockup — 4-step with drag-and-drop animation                */
+/*  ExtractMockup                                                      */
 /* ------------------------------------------------------------------ */
 
 function ExtractMockup({ isActive }: { isActive: boolean }) {
@@ -153,20 +164,14 @@ function ExtractMockup({ isActive }: { isActive: boolean }) {
       </div>
 
       <div className="p-3 relative">
-        {/* Drop zone */}
-        <m.div
-          animate={{
-            borderColor:
-              step >= 1 && step < 2
-                ? "hsl(var(--foreground) / 0.3)"
-                : step >= 2
-                  ? "hsl(var(--foreground) / 0.2)"
-                  : "hsl(var(--border))",
-            backgroundColor:
-              step >= 2 ? "hsl(var(--muted) / 0.5)" : "transparent",
-          }}
-          transition={{ type: "spring", stiffness: 300, damping: 25 }}
-          className="flex flex-col items-center justify-center rounded-md border border-dashed py-4 relative overflow-hidden"
+        <div
+          className={`flex flex-col items-center justify-center rounded-md border border-dashed py-4 relative overflow-hidden transition-colors duration-300 ${
+            step >= 2
+              ? "border-foreground/20 bg-muted/50"
+              : step >= 1
+                ? "border-foreground/30"
+                : "border-border"
+          }`}
         >
           {step < 2 ? (
             <>
@@ -193,9 +198,8 @@ function ExtractMockup({ isActive }: { isActive: boolean }) {
               </div>
             </m.div>
           )}
-        </m.div>
+        </div>
 
-        {/* Animated cursor with file — visible during step 1 */}
         <AnimatePresence>
           {step === 1 && (
             <m.div
@@ -211,7 +215,6 @@ function ExtractMockup({ isActive }: { isActive: boolean }) {
                   DSCF4721.RAF
                 </span>
               </div>
-              {/* Cursor icon */}
               <svg
                 width="12"
                 height="12"
@@ -228,7 +231,6 @@ function ExtractMockup({ isActive }: { isActive: boolean }) {
         </AnimatePresence>
       </div>
 
-      {/* Settings — step 3 */}
       <div className="border-t border-border">
         <m.div
           animate={
@@ -244,7 +246,6 @@ function ExtractMockup({ isActive }: { isActive: boolean }) {
         </m.div>
       </div>
 
-      {/* Upload button — step 4 */}
       <m.div
         animate={
           step >= 4 ? { opacity: 1, y: 0 } : { opacity: 0, y: 8 }
@@ -261,7 +262,7 @@ function ExtractMockup({ isActive }: { isActive: boolean }) {
 }
 
 /* ------------------------------------------------------------------ */
-/*  ImageSearchMockup — 4-step with drag-and-drop animation            */
+/*  ImageSearchMockup                                                  */
 /* ------------------------------------------------------------------ */
 
 function ImageSearchMockup({ isActive }: { isActive: boolean }) {
@@ -295,7 +296,6 @@ function ImageSearchMockup({ isActive }: { isActive: boolean }) {
           )}
         </div>
 
-        {/* Animated cursor with photo — visible during step 1 */}
         <AnimatePresence>
           {step === 1 && (
             <m.div
@@ -313,7 +313,6 @@ function ImageSearchMockup({ isActive }: { isActive: boolean }) {
                   IMG_2847.jpg
                 </span>
               </div>
-              {/* Cursor icon */}
               <svg
                 width="12"
                 height="12"
@@ -527,38 +526,23 @@ const springTransition = {
 const reducedTransition = { duration: 0 };
 
 /* ------------------------------------------------------------------ */
-/*  FeatureCarousel                                                    */
+/*  CarouselContent — shared between Dialog and Drawer                 */
 /* ------------------------------------------------------------------ */
 
-const SEEN_KEY = "feature-carousel-seen";
-
-export function FeatureCarousel() {
+function CarouselContent({ open }: { open: boolean }) {
   const t = useTranslations("home.features");
   const prefersReduced = useReducedMotion();
 
-  const [dismissed, setDismissed] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
   const lastInteraction = useRef(0);
 
-  // Hide for returning visitors
+  // Reset when modal opens
   useEffect(() => {
-    try {
-      if (localStorage.getItem(SEEN_KEY)) {
-        setDismissed(true);
-      }
-    } catch {}
-  }, []);
-
-  // Mark as seen after autoplay completes one full cycle (all 3 slides)
-  const seenSlides = useRef(new Set<number>([0]));
-  useEffect(() => {
-    seenSlides.current.add(activeIndex);
-    if (seenSlides.current.size >= 3) {
-      try {
-        localStorage.setItem(SEEN_KEY, "1");
-      } catch {}
+    if (open) {
+      setActiveIndex(0);
+      lastInteraction.current = 0;
     }
-  }, [activeIndex]);
+  }, [open]);
 
   const paginate = useCallback(
     (dir: number) => {
@@ -583,7 +567,7 @@ export function FeatureCarousel() {
 
   // Autoplay
   useEffect(() => {
-    if (prefersReduced) return;
+    if (!open || prefersReduced) return;
 
     const timer = setInterval(() => {
       if (Date.now() - lastInteraction.current < 5000) return;
@@ -592,28 +576,9 @@ export function FeatureCarousel() {
     }, 4000);
 
     return () => clearInterval(timer);
-  }, [activeIndex, prefersReduced, paginate]);
+  }, [open, activeIndex, prefersReduced, paginate]);
 
   const transition = prefersReduced ? reducedTransition : springTransition;
-  const dragX = useRef(0);
-
-  if (dismissed) {
-    return (
-      <div className="flex justify-center">
-        <button
-          onClick={() => {
-            setDismissed(false);
-            setActiveIndex(0);
-            seenSlides.current = new Set([0]);
-          }}
-          className="inline-flex items-center gap-2 rounded-md bg-foreground px-4 py-2 text-sm font-medium text-background transition-opacity hover:opacity-80"
-        >
-          <ScanLine className="h-4 w-4" />
-          {t("showFeatures")}
-        </button>
-      </div>
-    );
-  }
 
   return (
     <LazyMotion features={domAnimation}>
@@ -625,22 +590,7 @@ export function FeatureCarousel() {
         onKeyDown={handleKeyDown}
         className="relative outline-none"
       >
-        {/* Carousel — all slides rendered, only active visible */}
-        <div
-          className="relative overflow-hidden touch-pan-y h-[480px] sm:h-[340px] lg:h-[320px]"
-          onPointerDown={() => { dragX.current = 0; }}
-          onPointerMove={(e) => {
-            if (e.buttons > 0) dragX.current += e.movementX;
-          }}
-          onPointerUp={() => {
-            if (dragX.current > 60) {
-              paginate(-1);
-            } else if (dragX.current < -60) {
-              paginate(1);
-            }
-            dragX.current = 0;
-          }}
-        >
+        <div className="relative overflow-hidden touch-pan-y h-[460px] sm:h-[340px]">
           {slides.map((slide, i) => {
             const Icon = slide.icon;
             const isActive = i === activeIndex;
@@ -648,6 +598,10 @@ export function FeatureCarousel() {
             return (
               <m.div
                 key={i}
+                initial={{
+                  opacity: i === 0 ? 1 : 0,
+                  x: i === 0 ? 0 : 60,
+                }}
                 animate={{
                   opacity: isActive ? 1 : 0,
                   x: isActive ? 0 : i > activeIndex ? 60 : -60,
@@ -656,7 +610,7 @@ export function FeatureCarousel() {
                 role="group"
                 aria-roledescription="slide"
                 aria-hidden={!isActive}
-                className={`absolute inset-0 flex flex-col sm:flex-row sm:items-center gap-6 sm:gap-12 lg:gap-16 ${
+                className={`absolute inset-0 flex flex-col sm:flex-row sm:items-center gap-6 sm:gap-10 ${
                   !isActive ? "pointer-events-none" : ""
                 }`}
               >
@@ -693,8 +647,8 @@ export function FeatureCarousel() {
           })}
         </div>
 
-        {/* Navigation: arrows inline with dots */}
-        <div className="flex items-center justify-center gap-4 mt-6">
+        {/* Navigation */}
+        <div className="flex items-center justify-center gap-4 mt-4">
           <button
             onClick={() => paginate(-1)}
             className="hidden sm:flex h-8 w-8 items-center justify-center rounded-full border border-border bg-background shadow-sm transition-colors hover:bg-muted"
@@ -703,7 +657,6 @@ export function FeatureCarousel() {
             <ChevronLeft className="h-4 w-4" />
           </button>
 
-          {/* Dot indicators */}
           <div className="flex items-center gap-2">
             {slides.map((_, i) => (
               <button
@@ -746,5 +699,47 @@ export function FeatureCarousel() {
         </div>
       </div>
     </LazyMotion>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  FeatureCarousel — Dialog on desktop, Drawer on mobile              */
+/* ------------------------------------------------------------------ */
+
+interface FeatureCarouselProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+export function FeatureCarousel({ open, onOpenChange }: FeatureCarouselProps) {
+  const t = useTranslations("home.features");
+  const isDesktop = useMediaQuery("(min-width: 640px)");
+
+  if (isDesktop) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>{t("modalTitle")}</DialogTitle>
+            <DialogDescription>{t("modalDescription")}</DialogDescription>
+          </DialogHeader>
+          <CarouselContent open={open} />
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  return (
+    <Drawer open={open} onOpenChange={onOpenChange}>
+      <DrawerContent className="max-h-[90dvh]">
+        <DrawerHeader className="text-left">
+          <DrawerTitle>{t("modalTitle")}</DrawerTitle>
+          <DrawerDescription>{t("modalDescription")}</DrawerDescription>
+        </DrawerHeader>
+        <div className="overflow-y-auto px-4 pb-4">
+          <CarouselContent open={open} />
+        </div>
+      </DrawerContent>
+    </Drawer>
   );
 }

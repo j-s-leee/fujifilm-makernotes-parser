@@ -1,7 +1,6 @@
 import { Link } from "@/i18n/navigation";
 import { createStaticClient } from "@/lib/supabase/server";
 import { TrendingGrid } from "@/components/trending-grid";
-import { FeatureCarousel } from "@/components/feature-carousel";
 import { TrendingSection } from "@/components/trending-section";
 import { HeroSection } from "@/components/hero-section";
 import { getTranslations, setRequestLocale } from "next-intl/server";
@@ -23,19 +22,14 @@ export default async function Home({ params }: Props) {
   return (
     <div className="container py-12 md:py-20">
       <div className="flex flex-col gap-24 sm:gap-32">
-        {/* Hero + Features */}
-        <div className="flex flex-col gap-16 sm:gap-20">
-          <HeroSection>
-            <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
-              {t("heroTitle")}
-            </h1>
-            <p className="text-sm text-muted-foreground mt-3 max-w-lg mx-auto">
-              {t("heroSubtitle")}
-            </p>
-          </HeroSection>
-
-          <FeatureCarousel />
-        </div>
+        <HeroSection>
+          <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
+            {t("heroTitle")}
+          </h1>
+          <p className="text-sm text-muted-foreground mt-3 max-w-lg mx-auto">
+            {t("heroSubtitle")}
+          </p>
+        </HeroSection>
 
         {/* Trending Recipes */}
         {recipes && recipes.length > 0 ? (

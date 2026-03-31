@@ -73,6 +73,7 @@ export default {
   		animation: {
   			marquee: 'marquee var(--duration, 40s) infinite linear',
   			'marquee-vertical': 'marquee-vertical var(--duration, 40s) linear infinite',
+  			'fade-in-up': 'fade-in-up 0.5s ease-out both',
   		},
   		keyframes: {
   			marquee: {
@@ -82,6 +83,10 @@ export default {
   			'marquee-vertical': {
   				from: { transform: 'translateY(0)' },
   				to: { transform: 'translateY(calc(-100% - var(--gap)))' },
+  			},
+  			'fade-in-up': {
+  				from: { opacity: '1', transform: 'translateY(12px)' },
+  				to: { opacity: '1', transform: 'translateY(0)' },
   			},
   		}
   	}
