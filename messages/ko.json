@@ -128,7 +128,9 @@
       "textSearchStep2": "AI가 설명을 시각적 개념으로 변환",
       "textSearchStep3": "설명한 분위기와 스타일에 맞는 레시피 추천",
       "textSearchCta": "텍스트 검색 시작",
-      "showFeatures": "기능 소개 보기"
+      "showFeatures": "기능 소개 보기",
+      "modalTitle": "이렇게 사용하세요",
+      "modalDescription": "film-simulation.site에서 할 수 있는 것들을 소개합니다"
     }
   },
   "recipes": {

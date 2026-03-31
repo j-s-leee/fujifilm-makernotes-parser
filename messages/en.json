@@ -128,7 +128,9 @@
       "textSearchStep2": "AI translates your description into a visual concept",
       "textSearchStep3": "Get recipes matching the mood and style you described",
       "textSearchCta": "Try text search",
-      "showFeatures": "See how it works"
+      "showFeatures": "See how it works",
+      "modalTitle": "How it works",
+      "modalDescription": "Discover what you can do with film-simulation.site"
     }
   },
   "recipes": {
