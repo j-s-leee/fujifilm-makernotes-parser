@@ -46,7 +46,6 @@ next-env.d.ts
 # supabase
 supabase/.temp/
 
-# serwist service worker (generated at build time)
-public/sw.js
+# serwist service worker build artifacts
 public/sw.js.map
 public/swe-worker*
