@@ -3,11 +3,13 @@
 import { useCallback, useEffect, useState } from "react";
 import {
   Bookmark,
+  BookOpen,
   FolderOpen,
   Heart,
   LogIn,
   LogOut,
   Menu,
+  Newspaper,
   ScanLine,
   ScanSearch,
   SlidersHorizontal,
@@ -143,13 +145,10 @@ export function Header() {
                 <SlidersHorizontal className="h-4 w-4" />
                 {t("recipes")}
               </Link>
-              <button
-                onClick={() => navOrPrompt("/recommend", "recommend")}
-                className={navLinkClass}
-              >
+              <Link href="/recommend" className={navLinkClass}>
                 <ScanSearch className="h-4 w-4" />
                 {t("recommend")}
-              </button>
+              </Link>
               <button
                 onClick={() => navOrPrompt("/bookmarks", "bookmarks")}
                 className={navLinkClass}
@@ -171,6 +170,14 @@ export function Header() {
                 <FolderOpen className="h-4 w-4" />
                 {t("collections")}
               </button>
+              <Link href="/changelog" className={navLinkClass}>
+                <Newspaper className="h-4 w-4" />
+                {t("changelog")}
+              </Link>
+              <Link href="/guide" className={navLinkClass}>
+                <BookOpen className="h-4 w-4" />
+                {t("guide")}
+              </Link>
             </nav>
           </div>
           <div className="flex items-center gap-4">
@@ -258,16 +265,14 @@ export function Header() {
               <SlidersHorizontal className="h-4 w-4" />
               {t("recipes")}
             </Link>
-            <button
-              onClick={() => {
-                setMobileMenuOpen(false);
-                navOrPrompt("/recommend", "recommend");
-              }}
+            <Link
+              href="/recommend"
+              onClick={() => setMobileMenuOpen(false)}
               className={mobileNavLinkClass}
             >
               <ScanSearch className="h-4 w-4" />
               {t("recommend")}
-            </button>
+            </Link>
             <button
               onClick={() => {
                 setMobileMenuOpen(false);
@@ -298,6 +303,22 @@ export function Header() {
               <FolderOpen className="h-4 w-4" />
               {t("collections")}
             </button>
+            <Link
+              href="/changelog"
+              onClick={() => setMobileMenuOpen(false)}
+              className={mobileNavLinkClass}
+            >
+              <Newspaper className="h-4 w-4" />
+              {t("changelog")}
+            </Link>
+            <Link
+              href="/guide"
+              onClick={() => setMobileMenuOpen(false)}
+              className={mobileNavLinkClass}
+            >
+              <BookOpen className="h-4 w-4" />
+              {t("guide")}
+            </Link>
           </nav>
         )}
       </header>
