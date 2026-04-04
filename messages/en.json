@@ -35,7 +35,9 @@
     "scan": "Scan",
     "profile": "Profile",
     "signIn": "Sign In",
-    "signOut": "Sign Out"
+    "signOut": "Sign Out",
+    "changelog": "Changelog",
+    "guide": "Guides"
   },
   "footer": {
     "copyright": "\u00a9 {year} film-simulation.site",

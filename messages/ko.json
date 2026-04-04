@@ -35,7 +35,9 @@
     "scan": "스캔",
     "profile": "프로필",
     "signIn": "로그인",
-    "signOut": "로그아웃"
+    "signOut": "로그아웃",
+    "changelog": "업데이트",
+    "guide": "가이드"
   },
   "footer": {
     "copyright": "\u00a9 {year} film-simulation.site",

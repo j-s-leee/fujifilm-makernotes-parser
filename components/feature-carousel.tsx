@@ -565,6 +565,25 @@ function CarouselContent({ open }: { open: boolean }) {
     [paginate],
   );
 
+  // Touch swipe
+  const touchRef = useRef<{ x: number; y: number } | null>(null);
+
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    touchRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+  }, []);
+
+  const handleTouchEnd = useCallback(
+    (e: React.TouchEvent) => {
+      if (!touchRef.current) return;
+      const dx = e.changedTouches[0].clientX - touchRef.current.x;
+      const dy = e.changedTouches[0].clientY - touchRef.current.y;
+      touchRef.current = null;
+      if (Math.abs(dx) < 40 || Math.abs(dx) < Math.abs(dy)) return;
+      paginate(dx < 0 ? 1 : -1);
+    },
+    [paginate],
+  );
+
   // Autoplay
   useEffect(() => {
     if (!open || prefersReduced) return;
@@ -590,7 +609,11 @@ function CarouselContent({ open }: { open: boolean }) {
         onKeyDown={handleKeyDown}
         className="relative outline-none"
       >
-        <div className="relative overflow-hidden touch-pan-y h-[460px] sm:h-[340px]">
+        <div
+          className="relative overflow-hidden touch-pan-y h-[460px] sm:h-[340px]"
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+        >
           {slides.map((slide, i) => {
             const Icon = slide.icon;
             const isActive = i === activeIndex;
