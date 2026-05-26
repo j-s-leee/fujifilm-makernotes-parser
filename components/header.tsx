@@ -48,7 +48,7 @@ const LoginPromptModal = dynamic(
   { ssr: false }
 );
 import { createClient } from "@/lib/supabase/client";
-import { maybeOpenTallySurvey } from "@/lib/tally-survey";
+import { openWithSurveyGate } from "@/lib/tally-survey";
 import Image from "next/image";
 import { Link, useRouter } from "@/i18n/navigation";
 
@@ -188,7 +188,7 @@ export function Header() {
                   variant="ghost"
                   size="icon"
                   className="h-8 w-8 lg:hidden"
-                  onClick={() => { maybeOpenTallySurvey(); setUploadModalOpen(true); }}
+                  onClick={() => openWithSurveyGate(() => setUploadModalOpen(true))}
                   aria-label={t("scan")}
                 >
                   <ScanLine className="h-4 w-4" />
@@ -197,7 +197,7 @@ export function Header() {
                   variant="ghost"
                   size="sm"
                   className="hidden lg:inline-flex"
-                  onClick={() => { maybeOpenTallySurvey(); setUploadModalOpen(true); }}
+                  onClick={() => openWithSurveyGate(() => setUploadModalOpen(true))}
                 >
                   <ScanLine className="mr-2 h-4 w-4" />
                   {t("scan")}
