@@ -93,6 +93,8 @@ export default async function LocaleLayout({
     <html lang={locale} suppressHydrationWarning>
       <head>
         <GoogleAnalytics />
+        {/* eslint-disable-next-line @next/next/no-sync-scripts */}
+        <script async src="https://tally.so/widgets/embed.js" />
         <link
           rel="preconnect"
           href={process.env.NEXT_PUBLIC_R2_PUBLIC_URL}

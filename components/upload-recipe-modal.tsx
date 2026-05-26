@@ -207,6 +207,7 @@ export function UploadRecipeModal({
     }
 
     let cancelled = false;
+    let tallyTimer: ReturnType<typeof setTimeout> | null = null;
 
     (async () => {
       try {
@@ -233,6 +234,16 @@ export function UploadRecipeModal({
             setRecipe(getFujifilmRecipeFromMakerNote(makerNoteBytes));
             const parsedSim = getFujifilmSimulationFromMakerNote(makerNoteBytes);
             if (parsedSim) setSimulation(parsedSim);
+
+            const SURVEY_KEY = "survey_submitted:PdGLYe";
+            if (!localStorage.getItem(SURVEY_KEY)) {
+              tallyTimer = setTimeout(() => {
+                if (cancelled) return;
+                window.Tally?.openPopup("PdGLYe", {
+                  onSubmit: () => localStorage.setItem(SURVEY_KEY, "1"),
+                });
+              }, 2000);
+            }
           } catch (error) {
             console.error("Error parsing Fujifilm MakerNote:", error);
             toast.error(t("makerNoteParseFailed"));
@@ -248,7 +259,10 @@ export function UploadRecipeModal({
       }
     })();
 
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+      if (tallyTimer) clearTimeout(tallyTimer);
+    };
   }, [primaryPhotoId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const setPrimaryPhoto = useCallback((id: string) => {
