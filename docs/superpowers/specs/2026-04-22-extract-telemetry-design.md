@@ -34,11 +34,12 @@ User drops photo
   → Browser exifr parse success → FujifilmRecipe object
     → sendExtractTelemetry() (fire-and-forget)
       → POST /api/extract-telemetry
-        → Rate limit by IP hash (not persisted)
+        → Rate limit (user_id or hashed IP)
         → Zod validation
         → Resolve user_id from session (optional)
-        → Resolve simulation_id / camera_model_id / wb_type_id / lens_id (service_role)
-        → INSERT extract_events
+        → Resolve simulation_id / camera_model_id / wb_type_id via public SELECT
+        → Resolve lens_id via resolve_lens_id() RPC (find-or-insert)
+        → INSERT extract_events (RLS-guarded: user_id must match auth.uid() or be NULL)
         → 204 No Content
 ```
 
@@ -97,18 +98,26 @@ CREATE INDEX extract_events_simulation_id_idx   ON public.extract_events (simula
 CREATE INDEX extract_events_camera_model_id_idx ON public.extract_events (camera_model_id);
 
 ALTER TABLE public.extract_events ENABLE ROW LEVEL SECURITY;
--- No SELECT policy: dashboard reads bypass RLS via service_role
--- No INSERT policy: API route writes via service_role
+
+-- INSERT: anon + authenticated. Authenticated rows must attach the caller's
+-- own user_id (or NULL); anon can only insert with NULL user_id.
+CREATE POLICY "Anyone can insert extract events"
+  ON public.extract_events FOR INSERT
+  TO anon, authenticated
+  WITH CHECK (
+    user_id IS NULL OR user_id = (SELECT auth.uid())
+  );
+-- No SELECT/UPDATE/DELETE policies — dashboard reads via service_role bypass RLS.
 ```
 
 **Design notes**
 
 - Columns mirror `recipes` names and types exactly → JOINs and comparisons are natural.
 - FKs only for closed-set lookups (`simulations`, `camera_models`, `wb_types`). Unknown values become NULL — we still record the event.
-- `lenses` is open-ended. The API route uses `service_role` to do find-or-insert and attaches the FK.
+- `lenses` is open-ended. The API route calls the existing `resolve_lens_id(text)` RPC (already `SECURITY DEFINER`, callable by anon) for find-or-insert.
 - **Deliberately not stored:** IP address, User-Agent, session ID, locale, referrer, photo bytes, embeddings, color histogram.
 - **Retention:** unlimited initially. Partitioning / archiving is a follow-up once volume warrants.
-- RLS enabled with zero policies. All writes and reads go through server-side code holding `service_role`.
+- INSERT policy is the only grant. All reads happen in the Supabase dashboard (service_role bypasses RLS). This matches the codebase's existing pattern — no `SUPABASE_SERVICE_ROLE_KEY` is needed in the app.
 
 ## 5. API Contract
 
@@ -153,11 +162,11 @@ ALTER TABLE public.extract_events ENABLE ROW LEVEL SECURITY;
 1. Rate limit check via `lib/rate-limit.ts` (Upstash Redis sliding window). Identifier = authenticated `user_id` if present, otherwise `hashIp(clientIp)`. Raw IP stays in request scope; only the bucket hash reaches Redis.
 2. Parse JSON body; validate against Zod schema in `lib/extract-telemetry-schema.ts`. Failure → silently drop.
 3. `supabase.auth.getUser()` from cookie. Capture `user_id` if present; otherwise null.
-4. Resolve FKs in parallel:
-   - `simulations.slug → id`
-   - `camera_models.name → id` (after stripping `/^FUJIFILM\s*/i`)
+4. Resolve FKs in parallel using the ordinary cookie-based Supabase client (anon key, RLS-respected):
+   - `simulations.slug → id` via `createStaticClient().from("simulations")...`
+   - `camera_models.name → id` after stripping `/^FUJIFILM\s*/i`
    - `wb_types.slug → id`
-   - `lenses.name → id` via find-or-insert (trim; reject empty / unreasonable strings)
+   - `lens_id` via `supabase.rpc("resolve_lens_id", { lens_name })` — the existing SECURITY DEFINER RPC handles find-or-insert. Reject empty / over-length strings before calling.
 5. Compute `recipe_hash` using the existing `computeRecipeHash` helper — same algorithm as `recipes` so JOINs by hash work.
 6. INSERT into `extract_events`. Failure → log server-side, still return 204.
 
