@@ -5,8 +5,8 @@ import dynamic from "next/dynamic";
 import { Button } from "@/components/ui/button";
 import { useUser } from "@/hooks/use-user";
 import { createClient } from "@/lib/supabase/client";
-import { usePathname } from "@/i18n/navigation";
-import { useTranslations } from "next-intl";
+import { getPathname, usePathname } from "@/i18n/navigation";
+import { useLocale, useTranslations } from "next-intl";
 import { toast } from "sonner";
 
 const LoginPromptModal = dynamic(
@@ -22,6 +22,7 @@ interface FollowButtonProps {
 export function FollowButton({ targetUserId, onFollowChange }: FollowButtonProps) {
   const { user } = useUser();
   const pathname = usePathname();
+  const locale = useLocale();
   const t = useTranslations("userProfile");
   const [isFollowing, setIsFollowing] = useState<boolean | null>(null);
   const [loginPromptOpen, setLoginPromptOpen] = useState(false);
@@ -102,7 +103,7 @@ export function FollowButton({ targetUserId, onFollowChange }: FollowButtonProps
         open={loginPromptOpen}
         onOpenChange={setLoginPromptOpen}
         feature="follow"
-        next={pathname}
+        next={getPathname({ href: pathname, locale })}
       />
     </>
   );
