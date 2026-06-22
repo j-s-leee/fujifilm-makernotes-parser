@@ -28,6 +28,8 @@ export function FollowButton({ targetUserId, onFollowChange }: FollowButtonProps
   const inflightRef = useRef(false);
 
   useEffect(() => {
+    setIsFollowing(null);
+
     if (!user) {
       setIsFollowing(false);
       return;
