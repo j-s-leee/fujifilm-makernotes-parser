@@ -58,8 +58,8 @@ export function FollowListModal({
 
     const ids: string[] =
       mode === "followers"
-        ? (rows ?? []).map((r) => r.follower_id)
-        : (rows ?? []).map((r) => r.following_id);
+        ? (rows ?? []).map((r) => (r as { follower_id: string }).follower_id)
+        : (rows ?? []).map((r) => (r as { following_id: string }).following_id);
 
     if (ids.length === 0) {
       setUsers([]);
