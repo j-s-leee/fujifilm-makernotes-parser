@@ -63,7 +63,6 @@ export function FollowButton({ targetUserId, onFollowChange }: FollowButtonProps
     const supabase = createClient();
     const wasFollowing = isFollowing;
 
-    // optimistic update
     setIsFollowing(!wasFollowing);
     onFollowChange?.(!wasFollowing);
 
@@ -79,7 +78,6 @@ export function FollowButton({ targetUserId, onFollowChange }: FollowButtonProps
 
       if (error) throw error;
     } catch {
-      // rollback
       setIsFollowing(wasFollowing);
       onFollowChange?.(wasFollowing);
       toast.error("Something went wrong. Please try again.");
