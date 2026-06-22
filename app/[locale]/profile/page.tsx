@@ -22,6 +22,9 @@ export default function ProfilePage() {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [instagramUrl, setInstagramUrl] = useState("");
+  const [youtubeUrl, setYoutubeUrl] = useState("");
+  const [blogUrl, setBlogUrl] = useState("");
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -35,6 +38,9 @@ export default function ProfilePage() {
         setDisplayName(data.display_name ?? "");
         setUsername(data.username ?? "");
         setAvatarUrl(data.avatar_url);
+        setInstagramUrl(data.instagram_url ?? "");
+        setYoutubeUrl(data.youtube_url ?? "");
+        setBlogUrl(data.blog_url ?? "");
       }
     } finally {
       setLoading(false);
@@ -63,6 +69,9 @@ export default function ProfilePage() {
       const formData = new FormData();
       formData.set("display_name", displayName);
       formData.set("username", username);
+      formData.set("instagram_url", instagramUrl);
+      formData.set("youtube_url", youtubeUrl);
+      formData.set("blog_url", blogUrl);
       if (avatarFile) {
         const { blob, extension } = await compressImageToThumbnail(avatarFile, 256);
         formData.set("avatar", new File([blob], `avatar.${extension}`, { type: blob.type }));
@@ -155,6 +164,42 @@ export default function ProfilePage() {
           <p className="text-xs text-muted-foreground">
             {t("usernameHint", { username: username || "..." })}
           </p>
+        </div>
+
+        <div className="w-full space-y-2">
+          <Label htmlFor="instagram-url">{t("instagramUrl")}</Label>
+          <Input
+            id="instagram-url"
+            type="url"
+            value={instagramUrl}
+            onChange={(e) => setInstagramUrl(e.target.value)}
+            placeholder={t("instagramPlaceholder")}
+            maxLength={300}
+          />
+        </div>
+
+        <div className="w-full space-y-2">
+          <Label htmlFor="youtube-url">{t("youtubeUrl")}</Label>
+          <Input
+            id="youtube-url"
+            type="url"
+            value={youtubeUrl}
+            onChange={(e) => setYoutubeUrl(e.target.value)}
+            placeholder={t("youtubePlaceholder")}
+            maxLength={300}
+          />
+        </div>
+
+        <div className="w-full space-y-2">
+          <Label htmlFor="blog-url">{t("blogUrl")}</Label>
+          <Input
+            id="blog-url"
+            type="url"
+            value={blogUrl}
+            onChange={(e) => setBlogUrl(e.target.value)}
+            placeholder={t("blogPlaceholder")}
+            maxLength={300}
+          />
         </div>
 
         <Button onClick={handleSave} disabled={saving} className="w-full">
