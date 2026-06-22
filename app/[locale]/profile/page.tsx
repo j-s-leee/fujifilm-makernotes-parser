@@ -174,7 +174,7 @@ export default function ProfilePage() {
             value={instagramUrl}
             onChange={(e) => setInstagramUrl(e.target.value)}
             placeholder={t("instagramPlaceholder")}
-            maxLength={300}
+            maxLength={290}
           />
         </div>
 
@@ -186,7 +186,7 @@ export default function ProfilePage() {
             value={youtubeUrl}
             onChange={(e) => setYoutubeUrl(e.target.value)}
             placeholder={t("youtubePlaceholder")}
-            maxLength={300}
+            maxLength={290}
           />
         </div>
 
@@ -198,7 +198,7 @@ export default function ProfilePage() {
             value={blogUrl}
             onChange={(e) => setBlogUrl(e.target.value)}
             placeholder={t("blogPlaceholder")}
-            maxLength={300}
+            maxLength={290}
           />
         </div>
 
