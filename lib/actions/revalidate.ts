@@ -5,14 +5,18 @@ import { toSlug } from "@/lib/slug";
 import { routing } from "@/i18n/routing";
 
 /**
- * next-intl uses localePrefix "as-needed": defaultLocale has no prefix,
- * other locales are prefixed (e.g. /ko/...). revalidatePath only busts
- * the exact path it's given, so each locale variant needs its own call.
+ * next-intl uses localePrefix "as-needed": the default locale (en) is requested
+ * without a prefix (e.g. /u/x), but next-intl's middleware *rewrites* that
+ * internally to /en/u/x to satisfy the [locale] route segment. Per Next.js's
+ * revalidatePath docs, a rewritten route must be revalidated by its
+ * destination path, not the source path the browser sees — so every locale,
+ * including the default, needs its prefixed path revalidated. The unprefixed
+ * path is also revalidated as a harmless fallback.
  */
 function revalidateLocalizedPath(path: string) {
+  revalidatePath(path, "page");
   for (const locale of routing.locales) {
-    const localized = locale === routing.defaultLocale ? path : `/${locale}${path}`;
-    revalidatePath(localized, "page");
+    revalidatePath(`/${locale}${path}`, "page");
   }
 }
 
