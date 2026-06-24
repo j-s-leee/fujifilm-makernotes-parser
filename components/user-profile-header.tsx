@@ -6,7 +6,8 @@ import { Link } from "@/i18n/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useUser } from "@/hooks/use-user";
 import { useTranslations, useLocale } from "next-intl";
-import { Globe, Instagram, Youtube } from "lucide-react";
+import { Globe } from "lucide-react";
+import { SiInstagram, SiYoutube } from "@icons-pack/react-simple-icons";
 import { FollowButton } from "@/components/follow-button";
 
 const FollowListModal = dynamic(
@@ -40,7 +41,9 @@ export function UserProfileHeader({ profile, stats }: UserProfileHeaderProps) {
   const t = useTranslations("userProfile");
   const locale = useLocale();
   const [followerCount, setFollowerCount] = useState(stats.followerCount);
-  const [listModalMode, setListModalMode] = useState<"followers" | "following" | null>(null);
+  const [listModalMode, setListModalMode] = useState<
+    "followers" | "following" | null
+  >(null);
 
   const initials = profile.displayName
     ? profile.displayName
@@ -58,18 +61,36 @@ export function UserProfileHeader({ profile, stats }: UserProfileHeaderProps) {
 
   const snsLinks = (
     [
-      profile.instagramUrl && { href: profile.instagramUrl, Icon: Instagram, label: t("viewInstagram") },
-      profile.youtubeUrl && { href: profile.youtubeUrl, Icon: Youtube, label: t("viewYoutube") },
-      profile.blogUrl && { href: profile.blogUrl, Icon: Globe, label: t("viewBlog") },
+      profile.instagramUrl && {
+        href: profile.instagramUrl,
+        Icon: SiInstagram,
+        label: t("viewInstagram"),
+      },
+      profile.youtubeUrl && {
+        href: profile.youtubeUrl,
+        Icon: SiYoutube,
+        label: t("viewYoutube"),
+      },
+      profile.blogUrl && {
+        href: profile.blogUrl,
+        Icon: Globe,
+        label: t("viewBlog"),
+      },
     ] as const
-  ).filter((link): link is { href: string; Icon: typeof Instagram; label: string } => !!link);
+  ).filter(
+    (link): link is { href: string; Icon: typeof SiInstagram; label: string } =>
+      !!link,
+  );
 
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-start gap-4">
         <Avatar className="h-16 w-16 shrink-0">
           {profile.avatarUrl && (
-            <AvatarImage src={profile.avatarUrl} alt={profile.displayName ?? profile.username ?? "User"} />
+            <AvatarImage
+              src={profile.avatarUrl}
+              alt={profile.displayName ?? profile.username ?? "User"}
+            />
           )}
           <AvatarFallback className="text-lg">{initials}</AvatarFallback>
         </Avatar>
@@ -108,7 +129,8 @@ export function UserProfileHeader({ profile, stats }: UserProfileHeaderProps) {
               onClick={() => setListModalMode("following")}
               className="font-medium text-foreground hover:underline"
             >
-              {stats.followingCount} {t("following", { count: stats.followingCount })}
+              {stats.followingCount}{" "}
+              {t("following", { count: stats.followingCount })}
             </button>
           </div>
 
@@ -137,19 +159,25 @@ export function UserProfileHeader({ profile, stats }: UserProfileHeaderProps) {
 
       <div className="grid grid-cols-3 gap-3">
         <div className="rounded-lg border border-border bg-card px-4 py-3 text-center">
-          <p className="text-2xl font-bold tracking-tight">{stats.recipeCount}</p>
+          <p className="text-2xl font-bold tracking-tight">
+            {stats.recipeCount}
+          </p>
           <p className="text-xs text-muted-foreground">
             {t("recipeCount", { count: stats.recipeCount })}
           </p>
         </div>
         <div className="rounded-lg border border-border bg-card px-4 py-3 text-center">
-          <p className="text-2xl font-bold tracking-tight">{stats.totalLikes}</p>
+          <p className="text-2xl font-bold tracking-tight">
+            {stats.totalLikes}
+          </p>
           <p className="text-xs text-muted-foreground">
             {t("likeCount", { count: stats.totalLikes })}
           </p>
         </div>
         <div className="rounded-lg border border-border bg-card px-4 py-3 text-center">
-          <p className="text-2xl font-bold tracking-tight">{stats.totalBookmarks}</p>
+          <p className="text-2xl font-bold tracking-tight">
+            {stats.totalBookmarks}
+          </p>
           <p className="text-xs text-muted-foreground">
             {t("bookmarkCount", { count: stats.totalBookmarks })}
           </p>

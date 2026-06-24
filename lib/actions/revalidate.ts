@@ -2,6 +2,19 @@
 
 import { revalidatePath } from "next/cache";
 import { toSlug } from "@/lib/slug";
+import { routing } from "@/i18n/routing";
+
+/**
+ * next-intl uses localePrefix "as-needed": defaultLocale has no prefix,
+ * other locales are prefixed (e.g. /ko/...). revalidatePath only busts
+ * the exact path it's given, so each locale variant needs its own call.
+ */
+function revalidateLocalizedPath(path: string) {
+  for (const locale of routing.locales) {
+    const localized = locale === routing.defaultLocale ? path : `/${locale}${path}`;
+    revalidatePath(localized, "page");
+  }
+}
 
 function revalidateCategories(params: {
   simulationSlug: string | null;
@@ -9,13 +22,13 @@ function revalidateCategories(params: {
   lensModel: string | null;
 }) {
   if (params.simulationSlug) {
-    revalidatePath(`/recipes/simulation/${params.simulationSlug}`, "page");
+    revalidateLocalizedPath(`/recipes/simulation/${params.simulationSlug}`);
   }
   if (params.cameraModel) {
-    revalidatePath(`/recipes/camera/${toSlug(params.cameraModel)}`, "page");
+    revalidateLocalizedPath(`/recipes/camera/${toSlug(params.cameraModel)}`);
   }
   if (params.lensModel) {
-    revalidatePath(`/recipes/lens/${toSlug(params.lensModel)}`, "page");
+    revalidateLocalizedPath(`/recipes/lens/${toSlug(params.lensModel)}`);
   }
 }
 
@@ -30,8 +43,8 @@ export async function revalidateOnRecipeCreated(params: {
   cameraModel: string | null;
   lensModel: string | null;
 }) {
-  revalidatePath("/", "page");
-  revalidatePath(`/u/${params.userIdentifier ?? params.userId}`, "page");
+  revalidateLocalizedPath("/");
+  revalidateLocalizedPath(`/u/${params.userIdentifier ?? params.userId}`);
   revalidateCategories(params);
 }
 
@@ -49,11 +62,11 @@ export async function revalidateOnRecipeChanged(params: {
   lensModel: string | null;
 }) {
   if (params.recipeSlug) {
-    revalidatePath(`/recipes/${params.recipeSlug}-${params.recipeId}`, "page");
+    revalidateLocalizedPath(`/recipes/${params.recipeSlug}-${params.recipeId}`);
   }
-  revalidatePath(`/recipes/${params.recipeId}`, "page");
-  revalidatePath("/", "page");
-  revalidatePath(`/u/${params.userIdentifier ?? params.userId}`, "page");
+  revalidateLocalizedPath(`/recipes/${params.recipeId}`);
+  revalidateLocalizedPath("/");
+  revalidateLocalizedPath(`/u/${params.userIdentifier ?? params.userId}`);
   revalidateCategories(params);
 }
 
@@ -66,12 +79,12 @@ export async function revalidateOnProfileUpdated(params: {
   username: string | null;
   oldUsername?: string | null;
 }) {
-  revalidatePath(`/u/${params.userId}`, "page");
+  revalidateLocalizedPath(`/u/${params.userId}`);
   if (params.username) {
-    revalidatePath(`/u/${params.username}`, "page");
+    revalidateLocalizedPath(`/u/${params.username}`);
   }
   if (params.oldUsername) {
-    revalidatePath(`/u/${params.oldUsername}`, "page");
+    revalidateLocalizedPath(`/u/${params.oldUsername}`);
   }
-  revalidatePath("/", "page");
+  revalidateLocalizedPath("/");
 }

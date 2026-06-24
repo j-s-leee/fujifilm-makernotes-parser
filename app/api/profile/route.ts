@@ -24,6 +24,37 @@ function parseSnsUrl(raw: string | null): { value: string | null } | { error: tr
   return { value: raw };
 }
 
+const INSTAGRAM_HANDLE_RE = /^[A-Za-z0-9._]{1,30}$/;
+const YOUTUBE_HANDLE_RE = /^[A-Za-z0-9._-]{3,30}$/;
+
+/** Recover a bare handle from a pasted profile URL, or pass through a plain handle. */
+function extractHandle(raw: string): string {
+  let value = raw.trim();
+  if (/^https?:\/\//i.test(value)) {
+    try {
+      const segments = new URL(value).pathname.split("/").filter(Boolean);
+      value = segments[segments.length - 1] ?? "";
+    } catch {
+      // malformed URL; fall through so the handle regex rejects it below
+    }
+  }
+  return value.replace(/^@/, "");
+}
+
+function parseInstagramHandle(raw: string | null): { value: string | null } | { error: true } {
+  if (!raw) return { value: null };
+  const handle = extractHandle(raw);
+  if (!INSTAGRAM_HANDLE_RE.test(handle)) return { error: true };
+  return { value: `https://instagram.com/${handle}` };
+}
+
+function parseYoutubeHandle(raw: string | null): { value: string | null } | { error: true } {
+  if (!raw) return { value: null };
+  const handle = extractHandle(raw);
+  if (!YOUTUBE_HANDLE_RE.test(handle)) return { error: true };
+  return { value: `https://youtube.com/@${handle}` };
+}
+
 export async function GET() {
   const supabase = await createClient();
   const {
@@ -65,8 +96,8 @@ export async function GET() {
     username: profile?.username ?? null,
     avatar_url: avatarUrl,
     agreed_to_terms_at: profile?.agreed_to_terms_at ?? null,
-    instagram_url: profile?.instagram_url ?? null,
-    youtube_url: profile?.youtube_url ?? null,
+    instagram_handle: profile?.instagram_url ? extractHandle(profile.instagram_url) : null,
+    youtube_handle: profile?.youtube_url ? extractHandle(profile.youtube_url) : null,
     blog_url: profile?.blog_url ?? null,
   });
 }
@@ -152,22 +183,32 @@ export async function PUT(request: NextRequest) {
     updateData.agreed_to_terms_at = new Date().toISOString();
   }
 
-  const snsFields: [string, string | null][] = [
-    ["instagram_url", formData.get("instagram_url") as string | null],
-    ["youtube_url", formData.get("youtube_url") as string | null],
-    ["blog_url", formData.get("blog_url") as string | null],
-  ];
-
-  for (const [column, raw] of snsFields) {
-    const parsed = parseSnsUrl(raw);
-    if ("error" in parsed) {
-      return NextResponse.json(
-        { error: "SNS links must be valid URLs starting with http:// or https://" },
-        { status: 400 },
-      );
-    }
-    updateData[column] = parsed.value;
+  const instagramParsed = parseInstagramHandle(formData.get("instagram_handle") as string | null);
+  if ("error" in instagramParsed) {
+    return NextResponse.json(
+      { error: "Instagram handle must be 1-30 characters: letters, numbers, periods, or underscores." },
+      { status: 400 },
+    );
   }
+  updateData.instagram_url = instagramParsed.value;
+
+  const youtubeParsed = parseYoutubeHandle(formData.get("youtube_handle") as string | null);
+  if ("error" in youtubeParsed) {
+    return NextResponse.json(
+      { error: "YouTube handle must be 3-30 characters: letters, numbers, periods, underscores, or hyphens." },
+      { status: 400 },
+    );
+  }
+  updateData.youtube_url = youtubeParsed.value;
+
+  const blogParsed = parseSnsUrl(formData.get("blog_url") as string | null);
+  if ("error" in blogParsed) {
+    return NextResponse.json(
+      { error: "Blog link must be a valid URL starting with http:// or https://" },
+      { status: 400 },
+    );
+  }
+  updateData.blog_url = blogParsed.value;
 
   const { data: profile, error } = await supabase
     .from("profiles")
@@ -205,8 +246,8 @@ export async function PUT(request: NextRequest) {
     username: profile?.username ?? null,
     avatar_url: avatarUrl,
     agreed_to_terms_at: profile?.agreed_to_terms_at ?? null,
-    instagram_url: profile?.instagram_url ?? null,
-    youtube_url: profile?.youtube_url ?? null,
+    instagram_handle: profile?.instagram_url ? extractHandle(profile.instagram_url) : null,
+    youtube_handle: profile?.youtube_url ? extractHandle(profile.youtube_url) : null,
     blog_url: profile?.blog_url ?? null,
   });
 }

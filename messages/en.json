@@ -290,9 +290,11 @@
     "instagramUrl": "Instagram",
     "youtubeUrl": "YouTube",
     "blogUrl": "Blog",
-    "instagramPlaceholder": "https://instagram.com/yourhandle",
-    "youtubePlaceholder": "https://youtube.com/@yourhandle",
+    "instagramPlaceholder": "yourhandle",
+    "youtubePlaceholder": "yourhandle",
     "blogPlaceholder": "https://yourblog.com",
+    "instagramHint": "instagram.com/{handle}",
+    "youtubeHint": "youtube.com/@{handle}",
     "invalidUrl": "Must be a valid URL starting with http:// or https://"
   },
   "bookmarks": {

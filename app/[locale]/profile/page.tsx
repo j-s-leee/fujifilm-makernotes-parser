@@ -22,8 +22,8 @@ export default function ProfilePage() {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
-  const [instagramUrl, setInstagramUrl] = useState("");
-  const [youtubeUrl, setYoutubeUrl] = useState("");
+  const [instagramHandle, setInstagramHandle] = useState("");
+  const [youtubeHandle, setYoutubeHandle] = useState("");
   const [blogUrl, setBlogUrl] = useState("");
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -38,8 +38,8 @@ export default function ProfilePage() {
         setDisplayName(data.display_name ?? "");
         setUsername(data.username ?? "");
         setAvatarUrl(data.avatar_url);
-        setInstagramUrl(data.instagram_url ?? "");
-        setYoutubeUrl(data.youtube_url ?? "");
+        setInstagramHandle(data.instagram_handle ?? "");
+        setYoutubeHandle(data.youtube_handle ?? "");
         setBlogUrl(data.blog_url ?? "");
       }
     } finally {
@@ -69,8 +69,8 @@ export default function ProfilePage() {
       const formData = new FormData();
       formData.set("display_name", displayName);
       formData.set("username", username);
-      formData.set("instagram_url", instagramUrl);
-      formData.set("youtube_url", youtubeUrl);
+      formData.set("instagram_handle", instagramHandle);
+      formData.set("youtube_handle", youtubeHandle);
       formData.set("blog_url", blogUrl);
       if (avatarFile) {
         const { blob, extension } = await compressImageToThumbnail(avatarFile, 256);
@@ -167,27 +167,33 @@ export default function ProfilePage() {
         </div>
 
         <div className="w-full space-y-2">
-          <Label htmlFor="instagram-url">{t("instagramUrl")}</Label>
+          <Label htmlFor="instagram-handle">{t("instagramUrl")}</Label>
           <Input
-            id="instagram-url"
-            type="url"
-            value={instagramUrl}
-            onChange={(e) => setInstagramUrl(e.target.value)}
+            id="instagram-handle"
+            type="text"
+            value={instagramHandle}
+            onChange={(e) => setInstagramHandle(e.target.value.trim())}
             placeholder={t("instagramPlaceholder")}
-            maxLength={290}
+            maxLength={30}
           />
+          <p className="text-xs text-muted-foreground">
+            {t("instagramHint", { handle: instagramHandle || "..." })}
+          </p>
         </div>
 
         <div className="w-full space-y-2">
-          <Label htmlFor="youtube-url">{t("youtubeUrl")}</Label>
+          <Label htmlFor="youtube-handle">{t("youtubeUrl")}</Label>
           <Input
-            id="youtube-url"
-            type="url"
-            value={youtubeUrl}
-            onChange={(e) => setYoutubeUrl(e.target.value)}
+            id="youtube-handle"
+            type="text"
+            value={youtubeHandle}
+            onChange={(e) => setYoutubeHandle(e.target.value.trim())}
             placeholder={t("youtubePlaceholder")}
-            maxLength={290}
+            maxLength={30}
           />
+          <p className="text-xs text-muted-foreground">
+            {t("youtubeHint", { handle: youtubeHandle || "..." })}
+          </p>
         </div>
 
         <div className="w-full space-y-2">
