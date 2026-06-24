@@ -4,6 +4,9 @@ import { createClient } from "@/lib/supabase/server";
 import { r2, R2_BUCKET } from "@/lib/r2";
 import { revalidateOnProfileUpdated } from "@/lib/actions/revalidate";
 
+const PROFILE_COLUMNS =
+  "display_name, username, avatar_path, agreed_to_terms_at, instagram_url, youtube_url, blog_url";
+
 function resolveAvatarUrl(
   avatarPath: string | null | undefined,
   oauthAvatarUrl: string | null,
@@ -12,6 +15,13 @@ function resolveAvatarUrl(
   if (avatarPath.startsWith("http")) return avatarPath;
   const r2PublicUrl = process.env.NEXT_PUBLIC_R2_PUBLIC_URL ?? "";
   return `${r2PublicUrl}/${avatarPath}`;
+}
+
+/** Empty/missing -> clear the field. Non-empty -> must be http(s):// and reasonably short. */
+function parseSnsUrl(raw: string | null): { value: string | null } | { error: true } {
+  if (!raw) return { value: null };
+  if (!/^https?:\/\/.{1,290}$/.test(raw)) return { error: true };
+  return { value: raw };
 }
 
 export async function GET() {
@@ -26,7 +36,7 @@ export async function GET() {
 
   let { data: profile } = await supabase
     .from("profiles")
-    .select("display_name, username, avatar_path, agreed_to_terms_at")
+    .select(PROFILE_COLUMNS)
     .eq("id", user.id)
     .single();
 
@@ -41,7 +51,7 @@ export async function GET() {
         display_name: defaultName,
         avatar_path: user.user_metadata?.avatar_url ?? null,
       })
-      .select("display_name, username, avatar_path, agreed_to_terms_at")
+      .select(PROFILE_COLUMNS)
       .single();
 
     profile = inserted;
@@ -55,6 +65,9 @@ export async function GET() {
     username: profile?.username ?? null,
     avatar_url: avatarUrl,
     agreed_to_terms_at: profile?.agreed_to_terms_at ?? null,
+    instagram_url: profile?.instagram_url ?? null,
+    youtube_url: profile?.youtube_url ?? null,
+    blog_url: profile?.blog_url ?? null,
   });
 }
 
@@ -139,11 +152,28 @@ export async function PUT(request: NextRequest) {
     updateData.agreed_to_terms_at = new Date().toISOString();
   }
 
+  const snsFields: [string, string | null][] = [
+    ["instagram_url", formData.get("instagram_url") as string | null],
+    ["youtube_url", formData.get("youtube_url") as string | null],
+    ["blog_url", formData.get("blog_url") as string | null],
+  ];
+
+  for (const [column, raw] of snsFields) {
+    const parsed = parseSnsUrl(raw);
+    if ("error" in parsed) {
+      return NextResponse.json(
+        { error: "SNS links must be valid URLs starting with http:// or https://" },
+        { status: 400 },
+      );
+    }
+    updateData[column] = parsed.value;
+  }
+
   const { data: profile, error } = await supabase
     .from("profiles")
     .update(updateData)
     .eq("id", user.id)
-    .select("display_name, username, avatar_path, agreed_to_terms_at")
+    .select(PROFILE_COLUMNS)
     .single();
 
   if (error) {
@@ -175,5 +205,8 @@ export async function PUT(request: NextRequest) {
     username: profile?.username ?? null,
     avatar_url: avatarUrl,
     agreed_to_terms_at: profile?.agreed_to_terms_at ?? null,
+    instagram_url: profile?.instagram_url ?? null,
+    youtube_url: profile?.youtube_url ?? null,
+    blog_url: profile?.blog_url ?? null,
   });
 }

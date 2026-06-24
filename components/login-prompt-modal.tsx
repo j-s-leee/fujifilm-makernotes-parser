@@ -19,10 +19,11 @@ import {
   Heart,
   ScanSearch,
   Upload,
+  UserPlus,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 
-export type LoginFeature = "recommend" | "bookmarks" | "likes" | "upload" | "collections";
+export type LoginFeature = "recommend" | "bookmarks" | "likes" | "upload" | "collections" | "follow";
 
 const iconClass = "h-8 w-8";
 
@@ -32,6 +33,7 @@ const FEATURE_ICONS: Record<LoginFeature, ReactNode> = {
   likes: <Heart className={iconClass} />,
   upload: <Upload className={iconClass} />,
   collections: <FolderOpen className={iconClass} />,
+  follow: <UserPlus className={iconClass} />,
 };
 
 const FEATURE_NEXT: Record<LoginFeature, string> = {
@@ -40,6 +42,7 @@ const FEATURE_NEXT: Record<LoginFeature, string> = {
   likes: "/likes",
   upload: "/",
   collections: "/collections",
+  follow: "/",
 };
 
 const BENEFIT_KEYS: Record<LoginFeature, string[]> = {
@@ -48,18 +51,22 @@ const BENEFIT_KEYS: Record<LoginFeature, string[]> = {
   likes: ["support", "track", "help"],
   upload: ["share", "feedback", "portfolio"],
   collections: ["themed", "shareCommunity", "organize"],
+  follow: ["discover", "support", "connect"],
 };
 
 interface LoginPromptModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   feature: LoginFeature;
+  /** Overrides FEATURE_NEXT[feature] — e.g. FollowButton passes the current profile path so login returns the user there. */
+  next?: string;
 }
 
 export function LoginPromptModal({
   open,
   onOpenChange,
   feature,
+  next,
 }: LoginPromptModalProps) {
   const isDesktop = useMediaQuery("(min-width: 640px)");
   const t = useTranslations("loginPrompt");
@@ -96,7 +103,7 @@ export function LoginPromptModal({
       </ul>
 
       {/* CTA */}
-      <GoogleSignInButton className="w-full" size="lg" next={FEATURE_NEXT[feature]} />
+      <GoogleSignInButton className="w-full" size="lg" next={next ?? FEATURE_NEXT[feature]} />
     </div>
   );
 

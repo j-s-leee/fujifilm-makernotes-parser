@@ -20,7 +20,9 @@ const getProfile = cache(async (identifier: string) => {
   const isUuid = UUID_REGEX.test(identifier);
   const { data } = await supabase
     .from("profiles")
-    .select("id, display_name, username, avatar_path, created_at")
+    .select(
+      "id, display_name, username, avatar_path, created_at, instagram_url, youtube_url, blog_url",
+    )
     .eq(isUuid ? "id" : "username", identifier)
     .single();
   return data;
@@ -36,6 +38,8 @@ const getUserStats = cache(async (userId: string) => {
     recipeCount: Number(row?.recipe_count ?? 0),
     totalLikes: Number(row?.total_likes ?? 0),
     totalBookmarks: Number(row?.total_bookmarks ?? 0),
+    followerCount: Number(row?.follower_count ?? 0),
+    followingCount: Number(row?.following_count ?? 0),
   };
 });
 
@@ -92,7 +96,6 @@ export default async function UserProfilePage({ params }: UserProfilePageProps) 
 
   const supabase = createStaticClient();
 
-  // Fetch stats, recipes, and public collections in parallel
   const [userStats, { data: recipes }, { data: collections }] =
     await Promise.all([
       getUserStats(profile.id),
@@ -112,7 +115,6 @@ export default async function UserProfilePage({ params }: UserProfilePageProps) 
         .limit(12),
     ]);
 
-  // Resolve avatar URL
   const r2PublicUrl = process.env.NEXT_PUBLIC_R2_PUBLIC_URL ?? "";
   const avatarUrl = profile.avatar_path
     ? `${r2PublicUrl}/${profile.avatar_path}`
@@ -120,7 +122,6 @@ export default async function UserProfilePage({ params }: UserProfilePageProps) 
 
   const typedRecipes = (recipes ?? []) as Parameters<typeof GalleryGrid>[0]["initialRecipes"];
 
-  // Fetch cover images for collections (up to 4 per collection)
   const typedCollections = collections ?? [];
   const collectionCovers: Map<number, string[]> = new Map();
 
@@ -134,7 +135,6 @@ export default async function UserProfilePage({ params }: UserProfilePageProps) 
       .limit(collectionIds.length * 4);
 
     if (coverItems && coverItems.length > 0) {
-      // Group by collection, max 4 per collection
       const grouped = new Map<number, number[]>();
       for (const item of coverItems) {
         const list = grouped.get(item.collection_id) ?? [];
@@ -142,7 +142,6 @@ export default async function UserProfilePage({ params }: UserProfilePageProps) 
         grouped.set(item.collection_id, list);
       }
 
-      // Fetch thumbnail_path for those recipe IDs
       const allRecipeIds = [...new Set(coverItems.map((i) => i.recipe_id))];
       const { data: thumbs } = await supabase
         .from("recipes")
@@ -176,11 +175,16 @@ export default async function UserProfilePage({ params }: UserProfilePageProps) 
             displayName: profile.display_name,
             username: profile.username,
             avatarUrl,
+            instagramUrl: profile.instagram_url,
+            youtubeUrl: profile.youtube_url,
+            blogUrl: profile.blog_url,
           }}
           stats={{
             recipeCount: userStats.recipeCount,
             totalLikes: userStats.totalLikes,
             totalBookmarks: userStats.totalBookmarks,
+            followerCount: userStats.followerCount,
+            followingCount: userStats.followingCount,
             joinedAt: profile.created_at,
           }}
         />

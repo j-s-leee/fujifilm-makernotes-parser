@@ -49,3 +49,4 @@ supabase/.temp/
 # serwist service worker build artifacts
 public/sw.js.map
 public/swe-worker*
+.gstack/
