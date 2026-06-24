@@ -290,9 +290,11 @@
     "instagramUrl": "인스타그램",
     "youtubeUrl": "유튜브",
     "blogUrl": "블로그",
-    "instagramPlaceholder": "https://instagram.com/yourhandle",
-    "youtubePlaceholder": "https://youtube.com/@yourhandle",
+    "instagramPlaceholder": "yourhandle",
+    "youtubePlaceholder": "yourhandle",
     "blogPlaceholder": "https://yourblog.com",
+    "instagramHint": "instagram.com/{handle}",
+    "youtubeHint": "youtube.com/@{handle}",
     "invalidUrl": "올바른 URL 형식이 아닙니다 (http:// 또는 https://로 시작)"
   },
   "bookmarks": {
