@@ -2,9 +2,11 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { Drawer, DrawerContent, DrawerTitle } from "@/components/ui/drawer";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Link } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { useMediaQuery } from "@/hooks/use-media-query";
 import { useTranslations } from "next-intl";
 
 interface FollowListModalProps {
@@ -30,6 +32,7 @@ export function FollowListModal({
   onOpenChange,
 }: FollowListModalProps) {
   const t = useTranslations("userProfile");
+  const isDesktop = useMediaQuery("(min-width: 640px)");
   const [mode, setMode] = useState<"followers" | "following">(initialMode);
   const [users, setUsers] = useState<ListedUser[] | null>(null);
 
@@ -86,65 +89,81 @@ export function FollowListModal({
   const pillActive = "bg-foreground text-background";
   const pillInactive = "border-border text-muted-foreground hover:text-foreground";
 
+  const title = mode === "followers" ? t("followersTitle") : t("followingTitle");
+
+  const body = (
+    <>
+      <div className="flex gap-2">
+        <button
+          onClick={() => setMode("followers")}
+          className={`${pillBase} ${mode === "followers" ? pillActive : pillInactive}`}
+        >
+          {t("followersTitle")}
+        </button>
+        <button
+          onClick={() => setMode("following")}
+          className={`${pillBase} ${mode === "following" ? pillActive : pillInactive}`}
+        >
+          {t("followingTitle")}
+        </button>
+      </div>
+
+      <div className="flex max-h-[60vh] flex-col gap-1 overflow-y-auto">
+        {users === null ? (
+          <div className="flex justify-center py-8">
+            <div className="h-5 w-5 animate-spin rounded-full border-2 border-muted-foreground border-t-transparent" />
+          </div>
+        ) : users.length === 0 ? (
+          <p className="py-8 text-center text-sm text-muted-foreground">
+            {mode === "followers" ? t("noFollowers") : t("noFollowing")}
+          </p>
+        ) : (
+          users.map((u) => {
+            const avatarUrl = u.avatar_path
+              ? u.avatar_path.startsWith("http")
+                ? u.avatar_path
+                : `${r2Base}/${u.avatar_path}`
+              : null;
+            const name = u.username ? `@${u.username}` : u.display_name;
+            const initials = name ? name.replace("@", "").slice(0, 2).toUpperCase() : "?";
+
+            return (
+              <Link
+                key={u.id}
+                href={`/u/${u.username ?? u.id}`}
+                onClick={() => onOpenChange(false)}
+                className="flex items-center gap-3 rounded-md px-2 py-2 transition-colors hover:bg-muted"
+              >
+                <Avatar className="h-9 w-9">
+                  {avatarUrl && <AvatarImage src={avatarUrl} alt={name ?? "User"} />}
+                  <AvatarFallback className="text-xs">{initials}</AvatarFallback>
+                </Avatar>
+                <span className="text-sm font-medium">{name ?? "User"}</span>
+              </Link>
+            );
+          })
+        )}
+      </div>
+    </>
+  );
+
+  if (isDesktop) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-sm">
+          <DialogTitle className="sr-only">{title}</DialogTitle>
+          {body}
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-sm">
-        <DialogTitle className="sr-only">
-          {mode === "followers" ? t("followersTitle") : t("followingTitle")}
-        </DialogTitle>
-
-        <div className="flex gap-2">
-          <button
-            onClick={() => setMode("followers")}
-            className={`${pillBase} ${mode === "followers" ? pillActive : pillInactive}`}
-          >
-            {t("followersTitle")}
-          </button>
-          <button
-            onClick={() => setMode("following")}
-            className={`${pillBase} ${mode === "following" ? pillActive : pillInactive}`}
-          >
-            {t("followingTitle")}
-          </button>
-        </div>
-
-        <div className="flex max-h-[60vh] flex-col gap-1 overflow-y-auto">
-          {users === null ? (
-            <div className="flex justify-center py-8">
-              <div className="h-5 w-5 animate-spin rounded-full border-2 border-muted-foreground border-t-transparent" />
-            </div>
-          ) : users.length === 0 ? (
-            <p className="py-8 text-center text-sm text-muted-foreground">
-              {mode === "followers" ? t("noFollowers") : t("noFollowing")}
-            </p>
-          ) : (
-            users.map((u) => {
-              const avatarUrl = u.avatar_path
-                ? u.avatar_path.startsWith("http")
-                  ? u.avatar_path
-                  : `${r2Base}/${u.avatar_path}`
-                : null;
-              const name = u.username ? `@${u.username}` : u.display_name;
-              const initials = name ? name.replace("@", "").slice(0, 2).toUpperCase() : "?";
-
-              return (
-                <Link
-                  key={u.id}
-                  href={`/u/${u.username ?? u.id}`}
-                  onClick={() => onOpenChange(false)}
-                  className="flex items-center gap-3 rounded-md px-2 py-2 transition-colors hover:bg-muted"
-                >
-                  <Avatar className="h-9 w-9">
-                    {avatarUrl && <AvatarImage src={avatarUrl} alt={name ?? "User"} />}
-                    <AvatarFallback className="text-xs">{initials}</AvatarFallback>
-                  </Avatar>
-                  <span className="text-sm font-medium">{name ?? "User"}</span>
-                </Link>
-              );
-            })
-          )}
-        </div>
-      </DialogContent>
-    </Dialog>
+    <Drawer open={open} onOpenChange={onOpenChange}>
+      <DrawerContent className="max-h-[90dvh]">
+        <DrawerTitle className="sr-only">{title}</DrawerTitle>
+        <div className="flex flex-col gap-4 px-4 pb-4">{body}</div>
+      </DrawerContent>
+    </Drawer>
   );
 }
