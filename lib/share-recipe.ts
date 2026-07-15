@@ -70,10 +70,10 @@ export async function shareRecipe(
 
   const [simResult, camResult, lensResult, wbResult] = await Promise.all([
     simulation
-      ? supabase.from("simulations").select("id").eq("slug", simulation).single()
+      ? supabase.rpc("resolve_simulation_id", { simulation_slug: simulation })
       : Promise.resolve({ data: null }),
     normalizedCamera
-      ? supabase.from("camera_models").select("id").eq("name", normalizedCamera).single()
+      ? supabase.rpc("resolve_camera_model_id", { camera_name: normalizedCamera })
       : Promise.resolve({ data: null }),
     lensModel
       ? supabase.rpc("resolve_lens_id", { lens_name: lensModel })
@@ -83,8 +83,8 @@ export async function shareRecipe(
       : Promise.resolve({ data: null }),
   ]);
 
-  const simulationId = simResult.data?.id ?? null;
-  const cameraModelId = camResult.data?.id ?? null;
+  const simulationId = simResult.data ?? null;
+  const cameraModelId = camResult.data ?? null;
   const lensId = lensResult.data ?? null;
   const wbTypeId = wbResult.data?.id ?? null;
 

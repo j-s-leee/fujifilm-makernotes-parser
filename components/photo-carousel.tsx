@@ -91,7 +91,7 @@ export function PhotoCarousel({ photos }: PhotoCarouselProps) {
                 alt={currentPhoto.alt}
                 width={currentPhoto.width ?? 600}
                 height={currentPhoto.height ?? 600}
-                className="w-full object-cover"
+                className="w-full aspect-square object-cover"
                 sizes="(max-width: 600px) 100vw, 50vw"
                 priority={activeIndex === 0}
                 placeholder={currentPhoto.blurDataUrl ? "blur" : "empty"}

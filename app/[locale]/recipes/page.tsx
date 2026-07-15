@@ -7,8 +7,9 @@ import {
   type SensorGeneration,
 } from "@/fujifilm/cameras";
 import {
-  FUJIFILM_SIMULATION_FORM_INPUT_OPTIONS,
   isStringFujifilmSimulation,
+  labelForFujifilmSimulation,
+  type FujifilmSimulation,
 } from "@/fujifilm/simulation";
 import { GALLERY_SELECT } from "@/lib/queries";
 import { getTranslations, setRequestLocale } from "next-intl/server";
@@ -77,12 +78,40 @@ export default async function RecipesPage({ params, searchParams }: Props) {
     return query;
   };
 
-  // Fetch camera models and recipes in parallel
-  const [{ data: cameraRows }, { data: recipes }] = await Promise.all([
-    supabase.from("camera_models").select("name").order("name"),
-    buildRecipesQuery(),
-  ]);
+  // Build camera models query (sensor generation desc, then camera name desc)
+  const buildCameraModelsQuery = () => {
+    let query = supabase
+      .from("camera_models")
+      .select("name, sensor_generation")
+      .order("sensor_generation", { ascending: false })
+      .order("name", { ascending: false });
+
+    if (
+      sp.sensor &&
+      SENSOR_GENERATIONS.includes(sp.sensor as SensorGeneration)
+    ) {
+      query = query.eq("sensor_generation", sp.sensor);
+    }
+
+    return query;
+  };
+
+  // Fetch camera models, simulations, and recipes in parallel
+  const [{ data: cameraRows }, { data: simulationRows }, { data: recipes }] =
+    await Promise.all([
+      buildCameraModelsQuery(),
+      supabase.from("simulations").select("slug"),
+      buildRecipesQuery(),
+    ]);
   const cameraModels = (cameraRows ?? []).map((r) => r.name);
+  const simulationOptions = (simulationRows ?? [])
+    .map((r) => r.slug)
+    .filter(isStringFujifilmSimulation)
+    .map((slug) => ({
+      value: slug,
+      label: labelForFujifilmSimulation(slug as FujifilmSimulation).large,
+    }))
+    .sort((a, b) => a.label.localeCompare(b.label));
 
   return (
     <div className="container py-8 md:py-12">
@@ -93,7 +122,7 @@ export default async function RecipesPage({ params, searchParams }: Props) {
           params={sp}
           sensorGenerations={SENSOR_GENERATIONS as unknown as string[]}
           cameraModels={cameraModels}
-          simulationOptions={FUJIFILM_SIMULATION_FORM_INPUT_OPTIONS}
+          simulationOptions={simulationOptions}
         >
           {recipes && recipes.length > 0 ? (
             <GalleryGrid
