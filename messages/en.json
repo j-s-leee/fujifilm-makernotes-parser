@@ -1,5 +1,6 @@
 {
   "common": {
+    "advertisement": "Ad",
     "anonymous": "Anonymous",
     "loading": "Loading...",
     "save": "Save",

@@ -106,6 +106,8 @@ The Company uses third-party advertising services, including Google AdSense, whi
 
 You may manage your cookie preferences at any time through the cookie consent banner displayed on the Service. You may also configure your browser to block or delete cookies. Please note that disabling essential cookies may impair core site functionality.
 
+You may opt out of personalized advertising by visiting [Google Ads Settings](https://adssettings.google.com), or opt out of third-party vendors' use of cookies for personalized advertising at [www.aboutads.info](https://www.aboutads.info/choices).
+
 For more information about how Google uses data from partner sites, visit: [How Google uses information from sites or apps that use our services](https://policies.google.com/technologies/partner-sites)
 
 ## 8. Rights of Users in the European Economic Area (GDPR)

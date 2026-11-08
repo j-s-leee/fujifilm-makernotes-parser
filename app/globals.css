@@ -74,3 +74,7 @@
     transform: none !important;
   }
 }
+/* Hide feed ad cards that AdSense could not fill */
+.feed-ad-card:has(ins.adsbygoogle[data-ad-status="unfilled"]) {
+  display: none;
+}

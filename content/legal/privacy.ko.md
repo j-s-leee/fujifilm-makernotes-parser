@@ -106,6 +106,8 @@ film-simulation.site (이하 "회사"라 합니다)는 『정보통신망 이용
 
 서비스에 표시되는 쿠키 동의 배너를 통해 언제든지 쿠키 설정을 관리할 수 있습니다. 브라우저를 설정하여 쿠키를 차단하거나 삭제할 수도 있습니다. 단, 필수 쿠키를 비활성화하면 핵심 사이트 기능이 저하될 수 있습니다.
 
+맞춤형 광고를 원하지 않는 경우 [Google 광고 설정](https://adssettings.google.com)에서 맞춤 광고를 해제하거나, [www.aboutads.info](https://www.aboutads.info/choices)에서 제3자 공급업체의 맞춤 광고 쿠키 사용을 거부할 수 있습니다.
+
 Google이 파트너 사이트의 데이터를 사용하는 방법에 대한 자세한 내용은 다음을 참조하세요: [Google이 파트너 사이트나 앱의 정보를 사용하는 방식](https://policies.google.com/technologies/partner-sites)
 
 ## 8. 유럽경제지역(EEA) 사용자 권리 (GDPR)
