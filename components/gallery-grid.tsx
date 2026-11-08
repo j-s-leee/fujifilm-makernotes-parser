@@ -1,12 +1,14 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { Fragment, useState, useEffect, useRef, useCallback } from "react";
 import { Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useUserInteractions } from "@/contexts/user-interactions-context";
 import { SENSOR_GENERATIONS, type SensorGeneration } from "@/fujifilm/cameras";
 import { GALLERY_SELECT } from "@/lib/queries";
 import { GalleryCard, type GalleryRecipe } from "@/components/gallery-card";
+import { FeedAdCard, feedAdsEnabled } from "@/components/feed-ad-card";
+import { FEED_AD_INTERVAL } from "@/lib/adsense";
 
 const PAGE_SIZE = 24;
 
@@ -18,6 +20,8 @@ interface GalleryGridProps {
   camera?: string;
   userId?: string;
   recipeIds?: number[];
+  /** Insert an ad card after every N recipes. 0 disables ads. */
+  adInterval?: number;
 }
 
 export function GalleryGrid({
@@ -28,6 +32,7 @@ export function GalleryGrid({
   camera,
   userId,
   recipeIds,
+  adInterval = FEED_AD_INTERVAL,
 }: GalleryGridProps) {
   const [recipes, setRecipes] = useState<GalleryRecipe[]>(initialRecipes);
   const [loading, setLoading] = useState(false);
@@ -145,9 +150,20 @@ export function GalleryGrid({
   return (
     <div>
       <div className="flex flex-col gap-4 sm:block sm:columns-2 sm:gap-4 lg:columns-3 [&>*]:sm:mb-4 [&>*]:sm:break-inside-avoid">
-        {recipes.map((recipe) => (
-          <GalleryCard key={recipe.id} recipe={recipe} />
-        ))}
+        {recipes.map((recipe, i) => {
+          // Ads only go *between* cards, never after the last one
+          const showAd =
+            feedAdsEnabled &&
+            adInterval > 0 &&
+            (i + 1) % adInterval === 0 &&
+            i < recipes.length - 1;
+          return (
+            <Fragment key={recipe.id}>
+              <GalleryCard recipe={recipe} />
+              {showAd && <FeedAdCard />}
+            </Fragment>
+          );
+        })}
       </div>
       <div ref={sentinelRef} className="flex justify-center py-8">
         {loading && (
