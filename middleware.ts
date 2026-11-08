@@ -9,7 +9,11 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // SEO files: skip i18n middleware entirely
-  if (pathname === "/robots.txt" || pathname === "/sitemap.xml") {
+  if (
+    pathname === "/robots.txt" ||
+    pathname === "/sitemap.xml" ||
+    pathname === "/ads.txt"
+  ) {
     return NextResponse.next();
   }
   // Locale-prefixed SEO files (e.g. /ko/robots.txt) → rewrite to root

@@ -4,6 +4,7 @@ import Image from "next/image";
 import { GalleryGrid } from "@/components/gallery-grid";
 import type { GalleryRecipe } from "@/components/gallery-card";
 import { useTranslations } from "next-intl";
+import { RECOMMEND_AD_INTERVAL } from "@/lib/adsense";
 
 interface RecommendResultsProps {
   recipes: GalleryRecipe[];
@@ -61,7 +62,10 @@ export function RecommendResults({
         <h2 className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-4">
           {t("similarRecipes", { count: recipes.length })}
         </h2>
-        <GalleryGrid initialRecipes={recipes} />
+        <GalleryGrid
+          initialRecipes={recipes}
+          adInterval={RECOMMEND_AD_INTERVAL}
+        />
       </div>
     </div>
   );

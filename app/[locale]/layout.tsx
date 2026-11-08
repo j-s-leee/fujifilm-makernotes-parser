@@ -9,6 +9,8 @@ import { UserInteractionsProvider } from "@/contexts/user-interactions-context";
 import { CollectionsProvider } from "@/contexts/collections-context";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { GoogleAnalytics } from "@/components/google-analytics";
+import { GoogleAdSense } from "@/components/google-adsense";
+import { ADSENSE_CLIENT } from "@/lib/adsense";
 import { NextIntlClientProvider, hasLocale } from "next-intl";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { routing } from "@/i18n/routing";
@@ -69,6 +71,7 @@ export async function generateMetadata({
     verification: {
       other: {
         "naver-site-verification": "2c88e03135f926ee362c422f6bf2ea0541feac9c",
+        ...(ADSENSE_CLIENT && { "google-adsense-account": ADSENSE_CLIENT }),
       },
     },
   };
@@ -93,8 +96,7 @@ export default async function LocaleLayout({
     <html lang={locale} suppressHydrationWarning>
       <head>
         <GoogleAnalytics />
-        {/* eslint-disable-next-line @next/next/no-sync-scripts */}
-        <script async src="https://tally.so/widgets/embed.js" />
+        <GoogleAdSense />
         <link
           rel="preconnect"
           href={process.env.NEXT_PUBLIC_R2_PUBLIC_URL}
